@@ -1,0 +1,6 @@
+.vs/
+.VSCodeCounter/
+.editorconfig
+classDiagram.cd
+bin/
+obj/
