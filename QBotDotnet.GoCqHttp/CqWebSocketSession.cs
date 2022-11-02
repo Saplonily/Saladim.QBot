@@ -105,7 +105,7 @@ public sealed class CqWebSocketSession : IDisposable
                 Console.WriteLine(ex.Message);
             }
         }
-        catch (ObjectDisposedException e)
+        catch (ObjectDisposedException)
         {
             return;
         }
