@@ -6,7 +6,7 @@ public class SendGroupMessageEntityAction : CqApi
 {
     public override string ApiName { get => "send_msg"; }
 
-    public override Type ApiResultDataType { get => typeof(SendGroupMessageActionResultData); }
+    public override Type ApiResultDataType { get => typeof(SendMessageActionResultData); }
 
     [Name("group_id")]
     public long GroupId { get; set; }

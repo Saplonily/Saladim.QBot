@@ -21,6 +21,9 @@ public sealed class CqWebSocketSession : IDisposable
     public WebSocketState State { get => webSocket.State; }
 
     public delegate void OnReceivedHandler(in JsonDocument parseDocment);
+    /// <summary>
+    /// 收到上报时引发的事件,注意Cancel/Abort/Stop后会主动清空事件的订阅者
+    /// </summary>
     public event OnReceivedHandler? OnReceived;
 
     public CqWebSocketSession(string address, string? endpoint = null)
@@ -40,9 +43,6 @@ public sealed class CqWebSocketSession : IDisposable
     public Task ConnectAsync(CancellationToken token)
         => webSocket.ConnectAsync(Uri, token);
 
-    public Task CloseAsync(WebSocketCloseStatus status, string? description, CancellationToken token)
-        => webSocket.CloseAsync(status, description, token);
-
     public void Abort()
         => webSocket.Abort();
 
@@ -53,6 +53,8 @@ public sealed class CqWebSocketSession : IDisposable
             webSocket.Abort();
             webSocket.Dispose();
             webSocket = new();
+            this.Receiving = false;
+            this.ReceivingTask = null;
         }
     }
 
@@ -76,7 +78,10 @@ public sealed class CqWebSocketSession : IDisposable
         }
     });
 
-    public Task StartReceiving() => ReceivingTask = Task.Run(() =>
+    public Task StartReceiving()
+        => ReceivingTask = Task.Run(ReceivingLoop);
+
+    public void ReceivingLoop()
     {
         var segment = GetArraySegment(BufferSize);
         try
@@ -94,8 +99,13 @@ public sealed class CqWebSocketSession : IDisposable
         {
             if (e.InnerException is not TaskCanceledException)
                 throw e;
+            Console.WriteLine("session引发了Chained exceptions");
+            foreach (var ex in ExceptionHelper.GetChainedExceptions(e))
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
-        catch (ObjectDisposedException)
+        catch (ObjectDisposedException e)
         {
             return;
         }
@@ -106,11 +116,16 @@ public sealed class CqWebSocketSession : IDisposable
             webSocket.Abort();
             webSocket.Dispose();
         }
-    });
+    }
 
     public void StopReceiving()
     {
         receiveTokenSource.Cancel();
+        //2022-11-2 22:48:04,这个source cancel后状态一直保留着...
+        //然后导致两个任务都无法继续...
+        //我sb了
+        receiveTokenSource = new();
+        OnReceived = null;
     }
 
     public async Task<CqApiCallResult?> SendApi(CqApi api, string echo)

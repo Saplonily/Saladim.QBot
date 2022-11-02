@@ -33,14 +33,6 @@ public sealed class CqWebSocketClient : IClient, IAsyncDisposable
            (new(gocqhttpWsAddress, StringConsts.CqApiEndpoint, false, true),
             new(gocqhttpWsAddress, StringConsts.CqPostEndpoint, true, false));
 
-    private async Task ConnectWebSocketsSessionAsync()
-    {
-        CancellationToken token = CancellationToken.None;
-
-        await sessionPost.ConnectAsync(token);
-        await sessionApi.ConnectAsync(token);
-    }
-
     public async Task<CqApiCallResult?> CallApiAsync(CqApi api)
     {
         return await sessionApi.SendApi(api, Guid.NewGuid().ToString());
@@ -75,7 +67,8 @@ public sealed class CqWebSocketClient : IClient, IAsyncDisposable
         ObjectHelper.BulkRun(CheckAndRenewWs, sessionApi, sessionPost);
         try
         {
-            await ConnectWebSocketsSessionAsync();
+            CancellationToken token = CancellationToken.None;
+            await ObjectHelper.BulkRunAsync(async s => await s.ConnectAsync(token), sessionApi, sessionPost);
 
             _ = sessionPost.StartReceiving();
             sessionPost.OnReceived += (in JsonDocument srcDoc) =>
@@ -104,13 +97,10 @@ public sealed class CqWebSocketClient : IClient, IAsyncDisposable
 
     internal async Task InternalStopAsync()
     {
-        if (!Started)
+        if (Started)
         {
-            var token = CancellationToken.None;
-            string des = "The client called the stop method.";
-            await ObjectHelper.BulkRunAsync(
-                s => s.CloseAsync(WebSocketCloseStatus.NormalClosure, des, token),
-                sessionApi, sessionPost);
+            await ObjectHelper.BulkRunAsync(s => s.StopReceiving(), sessionApi, sessionPost);
+            Started = false;
         }
         return;
     }

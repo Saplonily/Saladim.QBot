@@ -30,7 +30,6 @@ public static class CqApiJsonSerializer
 	        }
           }
         */
-
         //最外层
         JsonObject rootObj = new(new Dictionary<string, JsonNode?>()
         {

@@ -6,5 +6,6 @@ global using NameIn = QBotDotnet.GoCqHttp.FormInPostAttribute;
 //我不喜欢int和long不行嘛qwq
 global using Int32 = System.Int32;
 global using Int64 = System.Int64;
+global using UInt32 = System.UInt32;
 
 global using StringDictionary = System.Collections.Generic.Dictionary<string, string>;

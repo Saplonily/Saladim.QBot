@@ -57,17 +57,24 @@ public static class EnumAttributeCacher
     {
         if (!cache.ContainsKey(type))
         {
-            BiDictionary<object, int> valueDic = new();
-            var fields = type.GetFields();
-            foreach (var field in fields)
+            //为了线程安全操作
+            lock (cache)
             {
-                var attr = field.GetCustomAttribute<NameIn>();
-                if (attr is null)
-                    continue;
-                valueDic.Add(attr.Value, (int)field.GetRawConstantValue()!);
+                if (!cache.ContainsKey(type))
+                {
+                    BiDictionary<object, int> valueDic = new();
+                    var fields = type.GetFields();
+                    foreach (var field in fields)
+                    {
+                        var attr = field.GetCustomAttribute<NameIn>();
+                        if (attr is null)
+                            continue;
+                        valueDic.Add(attr.Value, (int)field.GetRawConstantValue()!);
 
+                    }
+                    cache.Add(type, valueDic);
+                }
             }
-            cache.Add(type, valueDic);
         }
     }
     private static void EnsureTypeIsEnum(Type type)

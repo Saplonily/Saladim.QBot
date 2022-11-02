@@ -4,9 +4,11 @@ namespace QBotDotnet.GoCqHttp.Apis;
 
 public class SendGroupMessageAction : CqApi
 {
-    public override string ApiName { get => "send_msg"; }
+    [Ignore]
+    public override string ApiName { get => "send_group_msg"; }
 
-    public override Type ApiResultDataType { get => typeof(SendGroupMessageActionResultData); }
+    [Ignore]
+    public override Type ApiResultDataType { get => typeof(SendMessageActionResultData); }
 
     [Name("group_id")]
     public long GroupId { get; set; }

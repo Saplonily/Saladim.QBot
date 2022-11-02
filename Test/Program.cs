@@ -75,6 +75,22 @@ public class Program
             {
                 client.StopAsync();
             }
+            string s = "/echo ";
+            if (mpost is CqGroupMessagePost gpost)
+            {
+                if (mpost.RawMessage.StartsWith(s))
+                {
+                    SendGroupMessageAction api = new()
+                    {
+                        GroupId = gpost.GroupId,
+                        Message = gpost.RawMessage.Substring(s.Length)
+                    };
+                    client.CallApiAsync(api).ContinueWith(task =>
+                    {
+                        Console.WriteLine($"API调用了,结果是{task.Result?.Data}");
+                    });
+                }
+            }
         }
         if (post is CqNoticePost np)
         {
@@ -117,12 +133,32 @@ public class Program
         string s = string.Empty;
         while ((s = Console.ReadLine()!) != "exit")
         {
+            if (s.Contains("start!"))
+            {
+                try
+                {
+                    _ = client.StartAsync();
+                }
+                catch (ClientException) { }
+                continue;
+            }
             SendGroupMessageAction api = new()
             {
                 Message = s,
                 GroupId = 860355679
             };
-            _ = Task.Run(() => client.CallApiAsync(api));
+            _ = Task.Run(() => client.CallApiAsync(api)).ContinueWith(task =>
+            {
+                if (task.Exception is not null)
+                {
+                    Console.WriteLine("Chained Exception 被引发了:");
+                    foreach (var e in ExceptionHelper.GetChainedExceptions(task.Exception))
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    Console.WriteLine("--------");
+                }
+            });
         }
         await client.StopAsync();
     }
