@@ -16,4 +16,6 @@ Legacy.QBotDotnet.WebSocket
 Visual Studio 2022/
 
 # 让ide闭嘴的一些设置, 当你删除这个文件你可能会得到一大堆ide的~吐槽~
-.editorconfig
+#.editorconfig
+#2022-11-22 10:02:23 但是为什么我要屏蔽这个文件
+#这我想不通了,所以把它加了回来
