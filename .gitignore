@@ -1,6 +1,19 @@
 .vs/
 .VSCodeCounter/
-.editorconfig
-classDiagram.cd
 bin/
 obj/
+
+# 一些无关这个项目的实验项目
+EmptyTest/
+
+# 单元测试结果
+TestResults/
+
+# 过去的不完整项目, 该项目仍然可以在commit历史中找到
+Legacy.QBotDotnet.WebSocket
+
+# 我也不知道这是干啥的,与项目无关就屏蔽了
+Visual Studio 2022/
+
+# 让ide闭嘴的一些设置, 当你删除这个文件你可能会得到一大堆ide的~吐槽~
+.editorconfig

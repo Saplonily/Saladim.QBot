@@ -1,4 +1,25 @@
-﻿for(float f = 0.0f;f<=10.0f;f+=0.1f)
+﻿Person p = new();
+var a = p.Name = "114514";
+
+public class Person
+{
+    public string Name
+    {
+        get
+        {
+            Console.WriteLine("get执行");
+            return "114514";
+        }
+        set
+        {
+            Console.WriteLine($"set执行,值是{value}");
+        }
+    }
+}
+
+
+
+/*for(float f = 0.0f;f<=10.0f;f+=0.1f)
 {
     Console.WriteLine($"{f}-{float.IsNormal(f)}");
 }
@@ -7,7 +28,7 @@ Console.WriteLine(float.IsNormal(float.NegativeInfinity));
 Console.WriteLine(float.IsNormal(float.NaN));
 Console.WriteLine(float.IsNormal(float.MaxValue));
 Console.WriteLine(float.IsNormal(0.0f));
-
+*/
 /*
 using System.Text.Json;
 using System.Text.Json.Serialization;
