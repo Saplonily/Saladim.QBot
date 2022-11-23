@@ -23,9 +23,4 @@ public class CqMessageFaceNode : CqMessageEntityNode, IMessageFaceNode
     [JsonConstructor]
     public CqMessageFaceNode(string faceIdStr)
         => FaceIdStr = faceIdStr;
-
-    public override string CqStringify()
-    {
-        return $"[CQ:face,id={FaceIdStr}]";
-    }
 }

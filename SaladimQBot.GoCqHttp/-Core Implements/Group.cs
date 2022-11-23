@@ -62,12 +62,12 @@ public class Group : CqEntity, IGroup
         return HashCode.Combine(this.GroupId);
     }
 
-    public static bool operator ==(Group? left, Group? right)
+    public static bool operator ==(Group left, Group right)
     {
         return EqualityComparer<Group>.Default.Equals(left, right);
     }
 
-    public static bool operator !=(Group? left, Group? right)
+    public static bool operator !=(Group left, Group right)
     {
         return !(left == right);
     }

@@ -13,7 +13,9 @@ public class PrivateMessage : Message, IPrivateMessage
 {
     public MessageTempSource TempSource { get; protected set; } = default!;
 
-    public Expirable<User> PrivateSender { get => Sender; }
+    public Expirable<User> ExpPrivateSender { get => ExpSender; }
+
+    public User PrivateSender { get => ExpPrivateSender.Value; }
 
     protected internal PrivateMessage(ICqClient client, long messageId) : base(client, messageId)
     {

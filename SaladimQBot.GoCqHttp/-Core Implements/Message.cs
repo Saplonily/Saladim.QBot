@@ -9,9 +9,13 @@ namespace SaladimQBot.GoCqHttp;
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public class Message : CqEntity, IMessage
 {
-    public Expirable<MessageEntity> MessageEntity { get; protected set; } = default!;
+    public Expirable<MessageEntity> ExpMessageEntity { get; protected set; } = default!;
 
-    public Expirable<User> Sender { get; protected set; } = default!;
+    public Expirable<User> ExpSender { get; protected set; } = default!;
+
+    public MessageEntity MessageEntity => ExpMessageEntity.Value;
+
+    public User Sender => ExpSender.Value;
 
     public long MessageId { get; protected set; } = default!;
 
@@ -34,18 +38,18 @@ public class Message : CqEntity, IMessage
 
     internal Message LoadFromMessagePost(CqMessagePost post)
     {
-        Sender = Client.MakeNoneExpirableExpirable(User.CreateFromMessagePost(Client, post));
-        MessageEntity = Client.MakeNoneExpirableExpirable(new MessageEntity(post.MessageEntity, post.RawMessage));
+        ExpSender = Client.MakeNoneExpirableExpirable(User.CreateFromMessagePost(Client, post));
+        ExpMessageEntity = Client.MakeNoneExpirableExpirable(new MessageEntity(post.MessageEntity, post.RawMessage));
         return this;
     }
 
     internal Message LoadFromMessageId()
     {
-        Sender = Client.MakeDependencyExpirable(
+        ExpSender = Client.MakeDependencyExpirable(
             ApiCallResult,
             d => User.CreateFromNicknameAndId(Client, d.Sender.Nickname, d.Sender.UserId)
             ).WithNoExpirable();
-        MessageEntity = Client.MakeDependencyExpirable(
+        ExpMessageEntity = Client.MakeDependencyExpirable(
             ApiCallResult,
             d => new MessageEntity(d.MessageEntity, MessageEntityHelper.CqEntity2RawString(d.MessageEntity))
             ).WithNoExpirable();
@@ -65,15 +69,14 @@ public class Message : CqEntity, IMessage
     #region IMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IMessageEntity IMessage.MessageEntity => MessageEntity.Value;
+    IMessageEntity IMessage.MessageEntity => MessageEntity;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IUser IMessage.Sender => Sender.Value;
-
+    IUser IMessage.Sender => Sender;
 
     #endregion
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"{Sender.Value.Nickname}({Sender.Value.UserId}): {MessageEntity.Value.RawString}";
+    private string DebuggerDisplay => $"{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}";
 
 }

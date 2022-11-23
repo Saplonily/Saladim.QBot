@@ -1,5 +1,8 @@
+using System;
+using System.Reflection.Emit;
 using System.Text;
 using System.Web;
+using System.Xml.Linq;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -20,15 +23,29 @@ public static class MessageEntityHelper
             sb.Append(node.CqStringify());
         }
         return sb.ToString();
-
-
     }
 
-    private static string GetCqCodeName(CqCodeType type)
-        => (string)GetAttrFromEnum(typeof(CqCodeType), (int)type);
+    internal static string CqStringify(this CqMessageEntityNode node) => node switch
+    {
+        CqMessageTextNode textNode => CqEncode(textNode.Text),
+        CqMessageUnimplementedNode unimplNode => ParamsDicToCqString(unimplNode.Params, unimplNode.Name),
+        _ => ParamsDicToCqString(node.GetParamsDictionary(), node.CqCodeType)
+    };
 
-    internal static string GetParaValuePair(string argName, string arg)
-        => $"{argName}={CqEncode(arg)}";
+    internal static string ParamsDicToCqString(IDictionary<string, string> paramDic, string cqCodeName)
+    {
+        var paramStrings =
+                    from param in paramDic
+                    where param.Value is not null
+                    let key = param.Key
+                    let value = CqEncode(param.Value)
+                    select $"{key}={value}";
+        var @params = string.Join(",", paramStrings);
+        return $"[CQ:{cqCodeName},{@params}]";
+    }
+
+    internal static string ParamsDicToCqString(IDictionary<string, string> paramDic, CqCodeType cqCodeType)
+        => ParamsDicToCqString(paramDic, EnumAttributeCacher.GetStrAttrFromEnum(cqCodeType));
 
     public static string CqEncode(string str)
         => str.Replace("&", "&amp;")
@@ -41,17 +58,4 @@ public static class MessageEntityHelper
               .Replace("&#91;", "[")
               .Replace("&#93;", "]")
               .Replace("&#44;", ",");
-
-    internal static void AppendCqHead(this StringBuilder sb, CqMessageEntityNode node)
-    {
-        sb.Append('[');
-        sb.Append("CQ:");
-        sb.Append(GetCqCodeName(node.CqCodeType));
-        sb.Append(',');
-    }
-
-    internal static void AppendCqFoot(this StringBuilder sb)
-    {
-        sb.Append(']');
-    }
 }

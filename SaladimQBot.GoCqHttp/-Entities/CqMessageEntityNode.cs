@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using SaladimQBot.Core;
 using SaladimQBot.Shared;
 
@@ -14,10 +17,17 @@ public abstract class CqMessageEntityNode : IMessageEntityNode
     public CqCodeType CqCodeType { get => NodeType.Cast<CqCodeType>(); }
 
     /// <summary>
-    /// 格式化为Cq格式的字符串
+    /// 获取键值对参数字典
     /// </summary>
-    /// <returns></returns>
-    public abstract string CqStringify();
+    /// <returns>键值对字典</returns>
+    public virtual IDictionary<string, string> GetParamsDictionary()
+    {
+        JsonNode? node = JsonSerializer.SerializeToNode(this, GetType(), CqJsonOptions.Instance);
+        if (node is null) throw new Exception("Error occured when serialize a CqMessageEntityNode. Node is null.");
+        StringDictionary? dic = JsonSerializer.Deserialize<StringDictionary>(node, CqJsonOptions.Instance);
+        if (dic is null) throw new ArgumentException("Failed to serialize a node to params dictionary.");
+        return dic;
+    }
 }
 
 

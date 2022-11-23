@@ -33,48 +33,42 @@ public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageRecei
     Core.ImageShowType IMessageImageReceiveNode.ShowType => ShowType.Cast<Core.ImageShowType>();
 
     internal CqMessageImageReceiveNode(
-        string imageUrl,
-        string fileName,
-        ImageSendType type,
-        ImageSendSubType subType,
-        ImageShowType showType)
+        string imageUrl, string fileName,
+        ImageSendType type, ImageSendSubType subType, ImageShowType showType
+        )
         =>
         (ImageUrl, Type, SubType, ShowType, FileName) =
         (imageUrl, type, subType, showType, fileName);
 
-    public override string CqStringify()
+    public override IDictionary<string, string> GetParamsDictionary()
     {
-        StringBuilder sb = new();
-        sb.AppendCqHead(this);
-        List<string> strs = new(5)
+        StringDictionary dic = new()
         {
-            MessageEntityHelper.GetParaValuePair(UrlPropertyName, ImageUrl),
-            MessageEntityHelper.GetParaValuePair(FilePropertyName,FileName)
+            [UrlPropertyName] = ImageUrl,
+            [FilePropertyName] = FileName
         };
         switch (Type)
         {
             case ImageSendType.Show:
-                strs.Add(MessageEntityHelper.GetParaValuePair(
-                    ShowTypePropertyName, EnumAttributeCacher.GetIntAttrFromEnum(ShowType).ToString()
-                    ));
-                strs.Add(MessageEntityHelper.GetParaValuePair(
-                    TypePropertyName, EnumAttributeCacher.GetStrAttrFromEnum(Type)
-                    ));
+                dic.Add(ShowTypePropertyName, EnumAttributeCacher.GetIntAttrFromEnum(ShowType).ToString());
+                dic.Add(TypePropertyName, EnumAttributeCacher.GetStrAttrFromEnum(Type));
                 break;
             case ImageSendType.Flash:
-                strs.Add(MessageEntityHelper.GetParaValuePair(
-                    TypePropertyName, EnumAttributeCacher.GetStrAttrFromEnum(Type)
-                    ));
+                dic.Add(TypePropertyName, EnumAttributeCacher.GetStrAttrFromEnum(Type));
                 break;
         }
         if (ShowType is not ImageShowType.Invalid)
         {
-            strs.Add(MessageEntityHelper.GetParaValuePair(
-                SubTypePropertyName, EnumAttributeCacher.GetIntAttrFromEnum(SubType).ToString()
-                ));
+            dic.Add(SubTypePropertyName, EnumAttributeCacher.GetIntAttrFromEnum(SubType).ToString());
         }
-        sb.Append(string.Join(",", strs));
-        sb.AppendCqFoot();
-        return sb.ToString();
+        return dic;
+    }
+
+    IMessageImageSendNode IMessageImageReceiveNode.ToSendNode()
+        => ToSendNode();
+
+    public CqMessageImageSendNode ToSendNode()
+    {
+        return new(this.FileName);
     }
 }

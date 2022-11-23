@@ -27,9 +27,4 @@ public class CqMessageAtNode : CqMessageEntityNode, IMessageAtNode
 
     public CqMessageAtNode(long userId, string? userName = null)
         => (UserId, UserName) = (userId, userName);
-
-    public override string CqStringify()
-    {
-        return $"[CQ:at,qq={UserIdStr}]";
-    }
 }

@@ -31,21 +31,25 @@ public class CqMessageEntityJsonConverter : JsonConverter<CqMessageEntity>
         CqMessageEntity entity = new();
         foreach (var item in root.EnumerateArray())
         {
+            //获取cq码类别
             CqCodeType type = MessageEntityNodeHelper.GetTypeFromString(
                 item.GetProperty(StringConsts.CqCodeTypeProperty).GetString()!
                 );
-
+            //获取cq码对应的实体类
             Type? nodeClass = MessageEntityNodeHelper.FindClassFromCqCodeType(type);
             if (nodeClass is null) continue;
 
             object? node;
-            if (nodeClass != typeof(CqMessageUnimplementedNode))
+            if (type != CqCodeType.Unimplemented)
             {
+                //不是未实现类别的cq码, 直接反序列化为cq码实体
                 var dataProp = item.GetProperty(StringConsts.CqCodeParamsProperty);
                 node = JsonSerializer.Deserialize(dataProp, nodeClass, options);
             }
             else
             {
+                //未实现类别cq码, 使用上层的东西反序列化, type对应节点的Name属性
+                //data对应Params属性
                 node = JsonSerializer.Deserialize<CqMessageUnimplementedNode>(item, options);
             }
 
@@ -61,21 +65,19 @@ public class CqMessageEntityJsonConverter : JsonConverter<CqMessageEntity>
         writer.WriteStartArray();
         foreach (var node in value)
         {
-            if (node is not CqMessageUnimplementedNode unimplNode)
-            {
-                writer.WriteStartObject();
-                writer.WriteString(
-                    StringConsts.CqCodeTypeProperty,
-                    EnumAttributeCacher.GetAttrFromEnum<CqCodeType>(node.NodeType.Cast<int>()).Cast<string>()
-                    );
-                writer.WritePropertyName(StringConsts.CqCodeParamsProperty);
-                JsonSerializer.Serialize(writer, node, node.GetType(), options);
-                writer.WriteEndObject();
-            }
-            else
-            {
-                JsonSerializer.Serialize(writer, unimplNode, options);
-            }
+            writer.WriteStartObject();
+            //cq码类别
+            writer.WriteString(
+                StringConsts.CqCodeTypeProperty,
+                EnumAttributeCacher.GetAttrFromEnum<CqCodeType>(node.NodeType.Cast<int>()).Cast<string>()
+                );
+            writer.WritePropertyName(StringConsts.CqCodeParamsProperty);
+            writer.WriteStartObject();
+            //data
+            foreach (var para in node.GetParamsDictionary())
+                writer.WriteString(para.Key, para.Value);
+            writer.WriteEndObject();
+            writer.WriteEndObject();
         }
         writer.WriteEndArray();
     }

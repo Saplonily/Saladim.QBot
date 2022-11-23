@@ -29,4 +29,8 @@
     <ProjectReference Include="..\SaladimQBot.Shared\SaladimQBot.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="-Converters\-CqDataStructs\" />
+  </ItemGroup>
+
 </Project>

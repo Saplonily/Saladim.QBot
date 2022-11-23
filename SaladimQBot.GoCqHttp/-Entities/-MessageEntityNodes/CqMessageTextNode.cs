@@ -14,7 +14,4 @@ public class CqMessageTextNode : CqMessageEntityNode, IMessageTextNode
 
     public CqMessageTextNode(string text)
         => Text = text;
-
-    public override string CqStringify()
-        => MessageEntityHelper.CqEncode(Text);
 }

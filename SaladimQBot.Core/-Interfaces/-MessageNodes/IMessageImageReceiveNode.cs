@@ -20,4 +20,10 @@ public interface IMessageImageReceiveNode : IMessageEntityNode
     /// 若图片为秀图时的秀图特效id，非秀图应实现为<see cref="ImageShowType.Invalid"/>
     /// </summary>
     ImageShowType ShowType { get; }
+
+    /// <summary>
+    /// 转换成发送Node
+    /// </summary>
+    /// <returns></returns>
+    IMessageImageSendNode ToSendNode();
 }

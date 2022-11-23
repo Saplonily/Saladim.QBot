@@ -129,12 +129,12 @@ public class User : CqEntity, IUser
         return HashCode.Combine(this.UserId);
     }
 
-    public static bool operator ==(User? left, User? right)
+    public static bool operator ==(User left, User right)
     {
         return EqualityComparer<User>.Default.Equals(left, right);
     }
 
-    public static bool operator !=(User? left, User? right)
+    public static bool operator !=(User left, User right)
     {
         return !(left == right);
     }

@@ -24,9 +24,4 @@ public class CqMessageReplyIdNode : CqMessageEntityNode, IMessageReplyIdNode
     [JsonConstructor]
     public CqMessageReplyIdNode(string messageIdStr) : this(int.Parse(messageIdStr))
     { }
-
-    public override string CqStringify()
-    {
-        return $"[CQ:reply,id={MessageIdStr}]";
-    }
 }

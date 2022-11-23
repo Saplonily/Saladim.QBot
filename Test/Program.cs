@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
@@ -68,20 +69,32 @@ public static class Program
         {
             if (msg is GroupMessage message)
             {
-                if (message.MessageEntity.Value.RawString.Contains("/random"))
+                if (message.MessageEntity.RawString.Contains("/random"))
                 {
                     Random r = new();
                     int num = r.Next(0, 100);
-                    message.Group.Value.SendMessageAsync($"{message.Sender.Value.CqAt} 随机数为{num}哦~");
+                    message.Group.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
+                    StringBuilder sb = new();
+                    sb.AppendLine("这是目前的群成员:");
+                    foreach (var user in message.Group.Members.Value)
+                    {
+                        bool hasCard = user.Card.Value != "";
+                        if (hasCard)
+                            sb.Append($"{user.Card.Value}({user.Nickname.Value}), qq号是{user.UserId}, qid是{user.Qid.Value}");
+                        else
+                            sb.Append($"{user.Nickname.Value}, qq号是{user.UserId}, qid是{user.Qid.Value}");
+                        sb.AppendLine($", 他的身份是{user.GroupRole.Value}");
+                    }
+                    message.Group.SendMessageAsync(sb.ToString());
                 }
             }
             else
             {
-                if (msg.MessageEntity.Value.RawString.Contains("/random"))
+                if (msg.MessageEntity.RawString.Contains("/random"))
                 {
                     Random r = new();
                     int num = r.Next(0, 100);
-                    msg.Sender.Value.SendMessageAsync($"随机数为{num}哦~");
+                    msg.Sender.SendMessageAsync($"随机数为{num}哦~");
                 }
             }
         }

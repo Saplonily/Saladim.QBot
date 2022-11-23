@@ -18,19 +18,8 @@ public class CqMessageUnimplementedNode : CqMessageEntityNode, IMessageUnimpleme
     public CqMessageUnimplementedNode(string name, IDictionary<string, string> @params)
         => (Name, Params) = (name, @params);
 
-    public override string CqStringify()
+    public override IDictionary<string, string> GetParamsDictionary()
     {
-        StringBuilder sb = new();
-        sb.Append("[CQ:");
-        sb.Append(Name);
-        sb.Append(',');
-        var paramStrings = from param in Params
-                           let name = param.Key
-                           let value = MessageEntityHelper.CqEncode(param.Value)
-                           select $"{name}={value}";
-        sb.Append(string.Join(",", paramStrings));
-        sb.Append(']');
-
-        return sb.ToString();
+        return Params;
     }
 }

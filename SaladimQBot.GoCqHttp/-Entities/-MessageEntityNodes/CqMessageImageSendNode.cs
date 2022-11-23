@@ -1,6 +1,15 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using SaladimQBot.Core;
 
-public class CqMessageImageSendNode
+namespace SaladimQBot.GoCqHttp;
+
+public class CqMessageImageSendNode : CqMessageEntityNode, IMessageImageSendNode
 {
+    public override MessageNodeType NodeType { get => MessageNodeType.Image; }
 
+    public string File { get; set; } = default!;
+
+    public CqMessageImageSendNode(string file)
+    {
+        this.File = file;
+    }
 }
