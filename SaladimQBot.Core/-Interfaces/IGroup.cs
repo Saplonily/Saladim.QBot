@@ -3,7 +3,7 @@
 /// <summary>
 /// 一个群,允许bot号不在群内
 /// </summary>
-public interface IGroup
+public interface IGroup : IClientEntity
 {
     /// <summary>
     /// 群号

@@ -27,6 +27,16 @@ public static class Program
             .WithLogToConsole()
             .WithAction(s => writer.WriteLine(s))
             .Build();
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+        static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+        {
+            try
+            {
+                writer.Dispose();
+            }
+            catch { }
+        }
+
         client = new("127.0.0.1:5000", LogLevel.Trace);
     Start:
         try
@@ -34,7 +44,7 @@ public static class Program
             await client.StartAsync();
 
             /*client.OnPost += Client_OnPostAsync;*/
-            client.OnGroupMessageReceived += Client_OnMessageReceived;
+            client.OnMessageReceived += Client_OnMessageReceived;
             client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
             ConsoleLoop();
             await client.StopAsync();
@@ -51,18 +61,29 @@ public static class Program
         Console.ReadLine();
     }
 
-    private static void Client_OnMessageReceived(GroupMessage message)
+    private static void Client_OnMessageReceived(Message msg)
     {
-        //Task.Run(OnMessageReceived);
-        //void OnMessageReceived()
+        Task.Run(OnMessageReceived);
+        void OnMessageReceived()
         {
-            if (message.MessageEntity.Value.RawString.Contains("send to me"))
+            if (msg is GroupMessage message)
             {
-                var task = message.Sender.Value.SendPrivateMessage(message.MessageEntity.Value);
-                var sth = task.Result;
-               
+                if (message.MessageEntity.Value.RawString.Contains("/random"))
+                {
+                    Random r = new();
+                    int num = r.Next(0, 100);
+                    message.Group.Value.SendMessageAsync($"{message.Sender.Value.CqAt} 随机数为{num}哦~");
+                }
             }
-
+            else
+            {
+                if (msg.MessageEntity.Value.RawString.Contains("/random"))
+                {
+                    Random r = new();
+                    int num = r.Next(0, 100);
+                    msg.Sender.Value.SendMessageAsync($"随机数为{num}哦~");
+                }
+            }
         }
     }
 

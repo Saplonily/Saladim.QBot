@@ -45,6 +45,12 @@ public class JoinedGroup : Group, IJoinedGroup
     {
     }
 
+    public Task<GroupMessage> SendMessageAsync(MessageEntity messageEntity)
+        => Client.SendGroupMessageAsync(this.GroupId, messageEntity);
+
+    public Task<GroupMessage> SendMessageAsync(string rawString)
+        => Client.SendGroupMessageAsync(this.GroupId, rawString);
+
     #region CreateFrom / LoadFrom集合
 
     internal static new JoinedGroup CreateFromGroupId(ICqClient client, long groupId)
@@ -88,31 +94,6 @@ public class JoinedGroup : Group, IJoinedGroup
 
     #endregion
 
-    /// <inheritdoc cref="IJoinedGroup.SendMessageAsync(IMessageEntity)"/>
-    public async Task<GroupMessage> SendMessageAsync(IMessageEntity messageEntity)
-    {
-        SendGroupMessageEntityAction a = new()
-        {
-            GroupId = GroupId,
-            Message = CqMessageEntity.FromIMessageEntity(messageEntity)
-        };
-        var result = (await Client.CallApiWithCheckingAsync(a)).Cast<SendMessageActionResultData>()
-        return GroupMessage.CreateFromMessageId(Client, result.MessageId);
-    }
-
-    /// <inheritdoc cref="IJoinedGroup.SendMessageAsync(string)"/>
-    public async Task<GroupMessage> SendMessageAsync(string message)
-    {
-        SendGroupMessageAction a = new()
-        {
-            AsCqCodeString = true,
-            GroupId = this.GroupId,
-            Message = message
-        };
-        var result = (await Client.CallApiWithCheckingAsync(a)).Cast<SendMessageActionResultData>();
-        return GroupMessage.CreateFromMessageId(Client, result.MessageId);
-    }
-
     #region IJoinedGroup
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -129,12 +110,6 @@ public class JoinedGroup : Group, IJoinedGroup
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IEnumerable<IGroupUser> IJoinedGroup.Members { get => Members.Value; }
-
-    async Task<IGroupMessage> IJoinedGroup.SendMessageAsync(IMessageEntity messageEntity)
-        => await SendMessageAsync(messageEntity);
-
-    async Task<IGroupMessage> IJoinedGroup.SendMessageAsync(string message)
-        => await SendMessageAsync(message);
 
     #endregion
 

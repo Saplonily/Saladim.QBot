@@ -3,7 +3,7 @@
 /// <summary>
 /// 一个QQ用户
 /// </summary>
-public interface IUser
+public interface IUser : IClientEntity
 {
     /// <summary>
     /// QQ号
@@ -39,6 +39,4 @@ public interface IUser
     /// 连续登录天数
     /// </summary>
     int LoginDays { get; }
-
-    Task<IPrivateMessage> SendPrivateMessage(IMessageEntity messageEntity);
 }

@@ -48,4 +48,29 @@ public class Group : CqEntity, IGroup
     string IGroup.Remark { get => Remark.Value; }
 
     #endregion
+
+    #region equals重写
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Group group &&
+               this.GroupId == group.GroupId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.GroupId);
+    }
+
+    public static bool operator ==(Group? left, Group? right)
+    {
+        return EqualityComparer<Group>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(Group? left, Group? right)
+    {
+        return !(left == right);
+    }
+
+    #endregion
 }

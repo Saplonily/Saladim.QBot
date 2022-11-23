@@ -16,19 +16,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Cout.cs" />
     <Compile Remove="Program.cs" />
     <Compile Remove="Program2.cs" />
     <Compile Remove="Program3.cs" />
     <Compile Remove="Program4.cs" />
     <Compile Remove="Program5.cs" />
+    <Compile Remove="Program6.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Cout.cs" />
     <None Include="Program.cs" />
     <None Include="Program2.cs" />
     <None Include="Program3.cs" />
     <None Include="Program4.cs" />
     <None Include="Program5.cs" />
+    <None Include="Program6.cs" />
   </ItemGroup>
 
   <ItemGroup>

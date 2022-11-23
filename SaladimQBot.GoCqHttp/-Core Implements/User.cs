@@ -24,6 +24,8 @@ public class User : CqEntity, IUser
 
     public Expirable<int> LoginDays { get; protected set; } = default!;
 
+    public string CqAt { get => new CqMessageAtNode(this.UserId).CqStringify(); }
+
     protected Expirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;
 
     protected User(ICqClient client, long userId) : base(client)
@@ -31,19 +33,11 @@ public class User : CqEntity, IUser
         UserId = userId;
     }
 
-    public async Task<PrivateMessage> SendPrivateMessage(MessageEntity messageEntity)
-    {
-        SendPrivateMessageEntityAction api = new()
-        {
-            Message = messageEntity.cqEntity,
-            UserId = this.UserId
-        };
-        var rst = await Client.CallApiWithCheckingAsync(api);
+    public Task<PrivateMessage> SendMessageAsync(MessageEntity messageEntity)
+        => Client.SendPrivateMessageAsync(UserId, messageEntity);
 
-        PrivateMessage msg =
-            PrivateMessage.CreateFromMessageId(Client, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
-        return msg;
-    }
+    public Task<PrivateMessage> SendMessageAsync(string rawString)
+        => Client.SendPrivateMessageAsync(UserId, rawString);
 
     #region CreateFrom / LoadFrom集合
 
@@ -121,8 +115,28 @@ public class User : CqEntity, IUser
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     int IUser.LoginDays { get => LoginDays.Value; }
 
-    async Task<IPrivateMessage> IUser.SendPrivateMessage(IMessageEntity messageEntity)
-        => await SendPrivateMessage(new MessageEntity(messageEntity));
+    #endregion
 
+    #region equals重写
+    public override bool Equals(object? obj)
+    {
+        return obj is User user &&
+               this.UserId == user.UserId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.UserId);
+    }
+
+    public static bool operator ==(User? left, User? right)
+    {
+        return EqualityComparer<User>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(User? left, User? right)
+    {
+        return !(left == right);
+    }
     #endregion
 }

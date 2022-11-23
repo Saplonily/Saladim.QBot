@@ -1,6 +1,6 @@
 namespace SaladimQBot.Core;
 
-public interface IMessage
+public interface IMessage : IClientEntity
 {
     long MessageId { get; }
 

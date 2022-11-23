@@ -18,7 +18,6 @@ public class GroupMessage : Message, IGroupMessage
     protected internal GroupMessage(ICqClient client, long messageId)
         : base(client, messageId)
     {
-
     }
 
     internal static GroupMessage CreateFromGroupMessagePost(ICqClient client, CqGroupMessagePost post)

@@ -1,8 +1,12 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using SaladimQBot.Core;
 
-public abstract class CqEntity
+namespace SaladimQBot.GoCqHttp;
+
+public abstract class CqEntity : IClientEntity
 {
     public ICqClient Client { get; }
+
+    IClient IClientEntity.Client { get => Client; }
 
     public CqEntity(ICqClient client)
     {

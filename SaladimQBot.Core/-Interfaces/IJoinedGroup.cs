@@ -5,7 +5,6 @@
 /// </summary>
 public interface IJoinedGroup : IGroup
 {
-    #region 属性
     /// <summary>
     /// 群创建时间
     /// </summary>
@@ -30,23 +29,4 @@ public interface IJoinedGroup : IGroup
     /// 成员
     /// </summary>
     IEnumerable<IGroupUser> Members { get; }
-    #endregion
-
-    #region 方法
-
-    /// <summary>
-    /// 异步向群里发送一条消息, 使用消息实体发送
-    /// </summary>
-    /// <param name="messageEntity">消息实体</param>
-    /// <returns>一个IGroupMessage实例</returns>
-    Task<IGroupMessage> SendMessageAsync(IMessageEntity messageEntity);
-
-    /// <summary>
-    /// 异步向群里发送一条消息, 使用格式化字符串发送
-    /// </summary>
-    /// <param name="message">字符串</param>
-    /// <returns>一个IGroupMessage实例</returns>
-    Task<IGroupMessage> SendMessageAsync(string message);
-
-    #endregion
 }

@@ -14,7 +14,7 @@ public class CqPostLoadFailedExcpetion : ClientException
     {
     }
 
-    protected static string GenerateString(CqPost? post, string extraMessage)
+    protected static string GenerateString(CqPost? post, string? extraMessage)
     => $"CqPost load failed," + post is not null ?
         $"selfId: {post!.SelfId}, loaded PostType: {post!.PostType}"
         : $" no loaded CqPost instance provided. {extraMessage}";

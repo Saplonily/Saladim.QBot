@@ -4,11 +4,15 @@ using Saladim.SalLogger;
 using SaladimQBot.Shared;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Core;
+using SaladimQBot.GoCqHttp.Apis;
+using System.Text.RegularExpressions;
 
 namespace SaladimQBot.GoCqHttp;
 
 public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
 {
+    #region 私有字段 & 常量属性
+
     private readonly CqWebSocketSession sessionPost;
     private readonly CqWebSocketSession sessionApi;
     private readonly Dictionary<CqApi, Expirable<CqApiCallResultData>> cachedApiCallResultData = new();
@@ -17,6 +21,9 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
 
     public TimeSpan ExpireTimeSpan { get; } = new TimeSpan(0, 3, 0);
 
+    #endregion
+
+    #region 构造器
     /// <summary>
     /// 创建一个Cq WebSocket客户端
     /// </summary>
@@ -38,6 +45,7 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[{l}][{s}/{(ss is null ? "" : $"{ss}")}] {content}";
     }
+    #endregion
 
     #region Client状态
 
@@ -151,7 +159,7 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
             logger.LogInfo("Client", "Connection", "Connecting WebSocketSession...");
             await ObjectHelper.BulkRunAsync(async s => await s.ConnectAsync(token), sessionApi, sessionPost);
 
-            _ = sessionPost.StartReceiving().ContinueWith(ChainedExceptionChecker);
+            _ = sessionPost.StartReceiving().ContinueWith(ExceptionChecker);
             sessionPost.OnReceived += (in JsonDocument srcDoc) =>
             {
                 CqPost? post = JsonSerializer.Deserialize<CqPost>(srcDoc, CqJsonOptions.Instance);
@@ -164,8 +172,19 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
                 };
                 OnPost?.Invoke(post);
             };
-            _ = sessionApi.StartReceiving().ContinueWith(ChainedExceptionChecker); ;
+            _ = sessionApi.StartReceiving().ContinueWith(ExceptionChecker);
 
+            ObjectHelper.BulkRun(s => s.OnReceivedAcceptableException += OnReceivedAcceptableException, sessionApi, sessionPost);
+            void OnReceivedAcceptableException(Exception e)
+            {
+                if (e is CqPostLoadFailedExcpetion postLoadFailedE)
+                {
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostReceive", $"Failed to parse post string. Detailed message: " +
+                            $"{postLoadFailedE.Message}, inner json deserializer message: " +
+                            $"{postLoadFailedE.InnerException!.Message}");
+                }
+            }
             StartedBefore = true;
             Started = true;
         }
@@ -183,9 +202,9 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
         }
         return;
 
-        void ChainedExceptionChecker(Task task)
+        void ExceptionChecker(Task task)
         {
-            if (task.Exception is not null and AggregateException ae)
+            if (task.Exception is (not null) and AggregateException ae)
             {
                 logger.LogWarn("Client", "ApiCall", ae);
             }
@@ -337,11 +356,88 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
 
     #region IClient
 
+    #region 获取消息
     IGroupMessage IClient.GetGroupMessageById(long messageId)
         => GetGroupMessageById(messageId);
 
     public GroupMessage GetGroupMessageById(long messageId)
         => GroupMessage.CreateFromMessageId(this, messageId);
+
+    IPrivateMessage IClient.GetPrivateMessageById(long messageId)
+        => GetPrivateMessageById(messageId);
+
+    public PrivateMessage GetPrivateMessageById(long messageId)
+        => PrivateMessage.CreateFromMessageId(this, messageId);
+    #endregion
+
+    #region 发消息
+    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IMessageEntity messageEntity)
+        => await SendPrivateMessageAsync(userId, new MessageEntity(messageEntity));
+
+    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, string rawString)
+        => await SendPrivateMessageAsync(userId, rawString);
+
+    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, IMessageEntity)"/>
+    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, MessageEntity messageEntity)
+    {
+        SendPrivateMessageEntityAction api = new()
+        {
+            Message = messageEntity.cqEntity,
+            UserId = userId
+        };
+        var rst = await this.CallApiWithCheckingAsync(api);
+
+        PrivateMessage msg =
+            PrivateMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
+        return msg;
+    }
+
+    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, string)"/>
+    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, string rawString)
+    {
+        SendPrivateMessageAction api = new()
+        {
+            Message = rawString,
+            UserId = userId
+        };
+        var rst = await this.CallApiWithCheckingAsync(api);
+
+        PrivateMessage msg =
+            PrivateMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
+        return msg;
+    }
+
+    async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IMessageEntity messageEntity)
+        => await SendGroupMessageAsync(groupId, new MessageEntity(messageEntity));
+
+    async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, string rawString)
+        => await SendGroupMessageAsync(groupId, rawString);
+
+    /// <inheritdoc cref="IClient.SendGroupMessageAsync(long, IMessageEntity)"/>
+    public async Task<GroupMessage> SendGroupMessageAsync(long groupId, MessageEntity messageEntity)
+    {
+        SendGroupMessageEntityAction a = new()
+        {
+            GroupId = groupId,
+            Message = messageEntity.cqEntity
+        };
+        var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
+        return GroupMessage.CreateFromMessageId(this, result.MessageId);
+    }
+
+    /// <inheritdoc cref="IClient.SendGroupMessageAsync(long, string)"/>
+    public async Task<GroupMessage> SendGroupMessageAsync(long groupId, string message)
+    {
+        SendGroupMessageAction a = new()
+        {
+            AsCqCodeString = true,
+            GroupId = groupId,
+            Message = message
+        };
+        var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
+        return GroupMessage.CreateFromMessageId(this, result.MessageId);
+    }
+    #endregion
 
     #endregion
 }

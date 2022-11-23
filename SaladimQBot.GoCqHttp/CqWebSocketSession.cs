@@ -17,10 +17,35 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
     private CancellationTokenSource receiveTokenSource = new();
     private readonly Dictionary<string, Action<JsonDocument>> suspendedApiResponseWaitings = new();
 
-    public bool UseEventEndPoint { get; private set; }
-    public bool UseApiEndPoint { get; private set; }
+    internal class PostParseFailedException : Exception
+    {
+        public PostParseFailedException(Exception? innerException = null) : base(string.Empty, innerException)
+        {
+        }
+    }
+
+    /// <summary>
+    /// 是否使用事件端口
+    /// </summary>
+    public bool UseEventEndPoint { get; private set; } = false;
+
+    /// <summary>
+    /// 是否使用api端口
+    /// </summary>
+    public bool UseApiEndPoint { get; private set; } = false;
+
+    /// <summary>
+    /// true: 接收过程遇到可接受异常时中断连接
+    /// false: 接受过程中遇到可接受异常时不中断连接
+    /// 可接受异常: 指json解析出错异常
+    /// 可接受异常会通过<see cref="OnReceivedAcceptableException"/>事件通知
+    /// </summary>
+    public bool AbortOnAcceptableException { get; private set; } = false;
+
     public Task? ReceivingTask { get; private set; }
+
     public bool Receiving { get; private set; }
+
     public WebSocketState State { get => webSocket.State; }
 
 
@@ -29,16 +54,21 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
     /// </summary>
     public event OnCqSessionReceivedHandler? OnReceived;
 
+    /// <summary>
+    /// 可接受异常发生时的通知事件
+    /// </summary>
+    public event Action<Exception>? OnReceivedAcceptableException;
+
     public CqWebSocketSession(string address, string? endpoint = null)
     {
         Uri = new($"ws://{address}/{endpoint}");
     }
 
     public CqWebSocketSession(string address, string? endpoint = null,
-        bool useEventEndPoint = false, bool useApiEndPoint = false)
+        bool useEventEndPoint = false, bool useApiEndPoint = false, bool abortOnAcceptableException = false)
         : this(address, endpoint) =>
-        (UseEventEndPoint, UseApiEndPoint) =
-        (useEventEndPoint, useApiEndPoint);
+        (UseEventEndPoint, UseApiEndPoint, AbortOnAcceptableException) =
+        (useEventEndPoint, useApiEndPoint, abortOnAcceptableException);
 
     public void Dispose()
         => webSocket.Dispose();
@@ -112,7 +142,8 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
                 }
                 catch (JsonException jsonException)
                 {
-                     throw new ClientException()
+                    var e = new PostParseFailedException(jsonException);
+                    OnReceivedAcceptableException?.Invoke(e);
                 }
             }
         }
