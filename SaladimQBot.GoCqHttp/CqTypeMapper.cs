@@ -21,6 +21,7 @@ internal static class CqTypeMapper
 
     public static Type? FindCalssForPostType(CqPostType postType) => postType switch
     {
+        CqPostType.MessageSent or
         CqPostType.Message => typeof(CqMessagePost),
         CqPostType.Request => null,
         CqPostType.Notice => typeof(CqNoticePost),
@@ -52,7 +53,7 @@ internal static class CqTypeMapper
         CqMessageSubType.Group or
         CqMessageSubType.Anonymous => typeof(CqGroupMessagePost),
         CqMessageSubType.Other => typeof(CqOtherMessagePost),
-        CqMessageSubType.GroupFromSelf => throw new NotSupportedException(),
+        CqMessageSubType.GroupFromSelf => typeof(CqGroupMessagePost),
         _ => null
     };
 

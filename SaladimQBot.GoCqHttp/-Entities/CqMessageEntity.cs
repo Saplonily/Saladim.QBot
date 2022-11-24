@@ -44,8 +44,8 @@ public class CqMessageEntity : List<CqMessageEntityNode>
                 case MessageNodeType.Image:
                     if (node is IMessageImageReceiveNode irNode)
                         cqEntity.Add(new CqMessageImageReceiveNode(
-                            irNode.ImageUrl,
-                            irNode.FileName,
+                            "",
+                            irNode.File,
                             irNode.Type.Cast<ImageSendType>(),
                             irNode.SubType.Cast<ImageSendSubType>(),
                             irNode.ShowType.Cast<ImageShowType>()

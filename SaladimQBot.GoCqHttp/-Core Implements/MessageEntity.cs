@@ -36,6 +36,12 @@ public class MessageEntity : IMessageEntity
         rawString = new Lazy<string>(() => MessageEntityHelper.CqEntity2RawString(cqEntity), isThreadSafe: true);
     }
 
+    public MessageEntity(CqMessageEntity cqEntity)
+    {
+        this.cqEntity = cqEntity;
+        this.rawString = new Lazy<string>(() => MessageEntityHelper.CqEntity2RawString(cqEntity), isThreadSafe: true);
+    }
+
     #region IMessageEntity
 
     public int Count => cqEntity.Count;

@@ -5,9 +5,7 @@
 /// </summary>
 public interface IMessageImageReceiveNode : IMessageEntityNode
 {
-    string ImageUrl { get; }
-
-    string FileName { get; }
+    string File { get; }
 
     ImageSendType Type { get; }
 

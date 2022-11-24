@@ -338,7 +338,6 @@ public sealed class CqWebSocketClient : ICqClient, IAsyncDisposable
                         OnMessageReceived?.Invoke(pm);
                         OnPrivateMessageReceived?.Invoke(pm);
                         break;
-
                 }
                 break;
         }

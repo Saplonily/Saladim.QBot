@@ -13,5 +13,7 @@ public enum CqPostType
     [NameIn("notice")]
     Notice,
     [NameIn("meta_event")]
-    MetaEvent
+    MetaEvent,
+    [NameIn("message_sent")]
+    MessageSent
 }

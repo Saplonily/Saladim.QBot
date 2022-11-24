@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
@@ -69,23 +70,32 @@ public static class Program
         {
             if (msg is GroupMessage message)
             {
+                logger.LogDebug(
+                    "Program",
+                    "Msg",
+                    $"{message.Group.Name.Value} - " +
+                    $"{message.GroupSender.Nickname.Value}: " +
+                    $"{message.MessageEntity.RawString}"
+                    );
                 if (message.MessageEntity.RawString.Contains("/random"))
                 {
                     Random r = new();
                     int num = r.Next(0, 100);
                     message.Group.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
-                    StringBuilder sb = new();
-                    sb.AppendLine("这是目前的群成员:");
-                    foreach (var user in message.Group.Members.Value)
+                }
+                if (message.MessageEntity.RawString.Contains("/来点图"))
+                {
+                    HttpClient client = new();
+                    var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
+                    StreamReader reader = new(result.Content.ReadAsStream());
+                    string s = reader.ReadToEnd();
+                    JsonDocument doc = JsonDocument.Parse(s);
+                    string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
+                    CqMessageEntity cqEntity = new()
                     {
-                        bool hasCard = user.Card.Value != "";
-                        if (hasCard)
-                            sb.Append($"{user.Card.Value}({user.Nickname.Value}), qq号是{user.UserId}, qid是{user.Qid.Value}");
-                        else
-                            sb.Append($"{user.Nickname.Value}, qq号是{user.UserId}, qid是{user.Qid.Value}");
-                        sb.AppendLine($", 他的身份是{user.GroupRole.Value}");
-                    }
-                    message.Group.SendMessageAsync(sb.ToString());
+                        new CqMessageImageSendNode(imageUrl)
+                    };
+                    message.Group.SendMessageAsync(new MessageEntity(cqEntity));
                 }
             }
             else

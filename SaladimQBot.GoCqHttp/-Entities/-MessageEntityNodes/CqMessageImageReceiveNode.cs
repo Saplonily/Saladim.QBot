@@ -17,7 +17,8 @@ public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageRecei
     public const string TypePropertyName = "type";
     public override MessageNodeType NodeType { get => MessageNodeType.Image; }
 
-    public string FileName { get; }
+    public string File { get; }
+
     public string ImageUrl { get; }
 
     public ImageSendType Type { get; }
@@ -26,18 +27,12 @@ public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageRecei
 
     public ImageShowType ShowType { get; }
 
-    Core.ImageSendType IMessageImageReceiveNode.Type => Type.Cast<Core.ImageSendType>();
-
-    Core.ImageSendSubType IMessageImageReceiveNode.SubType => SubType.Cast<Core.ImageSendSubType>();
-
-    Core.ImageShowType IMessageImageReceiveNode.ShowType => ShowType.Cast<Core.ImageShowType>();
-
     internal CqMessageImageReceiveNode(
         string imageUrl, string fileName,
         ImageSendType type, ImageSendSubType subType, ImageShowType showType
         )
         =>
-        (ImageUrl, Type, SubType, ShowType, FileName) =
+        (ImageUrl, Type, SubType, ShowType, File) =
         (imageUrl, type, subType, showType, fileName);
 
     public override IDictionary<string, string> GetParamsDictionary()
@@ -45,7 +40,7 @@ public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageRecei
         StringDictionary dic = new()
         {
             [UrlPropertyName] = ImageUrl,
-            [FilePropertyName] = FileName
+            [FilePropertyName] = File
         };
         switch (Type)
         {
@@ -69,6 +64,16 @@ public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageRecei
 
     public CqMessageImageSendNode ToSendNode()
     {
-        return new(this.FileName);
+        return new(this.File);
     }
+
+    #region IMessageImageReceiveNode
+
+    Core.ImageSendType IMessageImageReceiveNode.Type => Type.Cast<Core.ImageSendType>();
+
+    Core.ImageSendSubType IMessageImageReceiveNode.SubType => SubType.Cast<Core.ImageSendSubType>();
+
+    Core.ImageShowType IMessageImageReceiveNode.ShowType => ShowType.Cast<Core.ImageShowType>();
+
+    #endregion
 }

@@ -35,6 +35,7 @@ public class CqMessageEntityJsonConverter : JsonConverter<CqMessageEntity>
             CqCodeType type = MessageEntityNodeHelper.GetTypeFromString(
                 item.GetProperty(StringConsts.CqCodeTypeProperty).GetString()!
                 );
+            if (type is CqCodeType.Invalid) type = CqCodeType.Unimplemented;
             //获取cq码对应的实体类
             Type? nodeClass = MessageEntityNodeHelper.FindClassFromCqCodeType(type);
             if (nodeClass is null) continue;
