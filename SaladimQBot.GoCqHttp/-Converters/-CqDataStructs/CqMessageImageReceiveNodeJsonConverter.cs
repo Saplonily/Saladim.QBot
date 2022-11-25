@@ -17,14 +17,23 @@ public class CqMessageImageReceiveNodeJsonConverter : JsonConverter<CqMessageIma
 
         string? file = fileEle.GetString(); if (file is null) return null;
         string? url = urlEle.GetString(); if (url is null) return null;
-        //我也不知道我怎么把这玩意挤进一行里的
-        ImageSendSubType subType =
-            EnumAttributeCacher.GetEnumFromAttr<ImageSendSubType>(
-                subTypeEle.ValueKind != JsonValueKind.Undefined ?
-                (int.TryParse(subTypeEle.GetString(), out int result) ? result : -1) : -1
-                ).Cast<ImageSendSubType>();
 
-        //这个也是, 美观性max, 可读性吃屎
+        int rawValue = subTypeEle.ValueKind != JsonValueKind.Undefined ?
+                (int.TryParse(subTypeEle.GetString(), out int result) ? result : -1) : -1;
+
+        //实际收到上报时会有114514种未定义的ImageSendSubType
+        //这里如果尝试获取其他未定义的SubType的话赋值ImageSendSubType.Invalid
+        ImageSendSubType subType;
+        try
+        {
+            subType = EnumAttributeCacher.GetEnumFromAttr<ImageSendSubType>(rawValue)
+                .Cast<ImageSendSubType>();
+        }
+        catch (KeyNotFoundException)
+        {
+            subType = ImageSendSubType.Invalid;
+        }
+
         ImageSendType sendType =
             EnumAttributeCacher.GetEnumFromAttr<ImageSendType>(
                 typeEle.ValueKind != JsonValueKind.Undefined ?

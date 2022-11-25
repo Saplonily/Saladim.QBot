@@ -17,6 +17,9 @@ public static class Program
     public const string SecProgram = "Program";
     public static async Task Main()
     {
+        //大部分情况下你会因为没有这个目录程序就寄了
+        #region 初始化/配置日志
+        //搞日志:
         string rawLogFileName = $"D:\\Projects\\Saladim.QBot\\Logs\\{DateTime.Now.ToShortDateString()}";
         int index = 0;
         while (File.Exists($"{rawLogFileName}-{index}.log"))
@@ -38,29 +41,37 @@ public static class Program
             }
             catch { }
         }
+        #endregion
 
+        logger.LogInfo(SecProgram, "Starting...");
         client = new("127.0.0.1:5000", LogLevel.Trace);
-    Start:
-        try
-        {
-            await client.StartAsync();
+        client.OnPost += Client_OnPostAsync;
+        client.OnMessageReceived += Client_OnMessageReceived;
+        client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
 
-            /*client.OnPost += Client_OnPostAsync;*/
-            client.OnMessageReceived += Client_OnMessageReceived;
-            client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
-            ConsoleLoop();
-            await client.StopAsync();
-        }
-        catch (Exception ex)
+        bool connected = false;
+        while (connected == false)
         {
-            logger.LogError(SecProgram, "MainMethod", ex);
-            logger.LogError(SecProgram, "检测到客户端连接失败，将在3s后重新连接.");
-            Thread.Sleep(3000);
-            goto Start;
+            try
+            {
+                await client.StartAsync();
+                logger.LogInfo(SecProgram, "cq客户端连接成功.");
+                connected = true;
+            }
+            catch (Exception ex)
+            {
+                connected = false;
+                logger.LogError(SecProgram, "MainMethod", ex);
+                logger.LogError(SecProgram, "检测到客户端连接失败，将在3s后重新连接.");
+                Thread.Sleep(3000);
+            }
         }
+
+        await ConsoleLoop();
+
+        await client.StopAsync();
         logger.LogInfo(SecProgram, "---main method ended.---");
         writer.Dispose();
-        Console.ReadLine();
     }
 
     private static void Client_OnMessageReceived(Message msg)
@@ -110,73 +121,50 @@ public static class Program
         }
     }
 
+    //操控原始上报
     private static void Client_OnPostAsync(CqPost? post)
     {
         if (post is null) return;
         if (post.PostType == CqPostType.MetaEvent) return;
         logger.LogTrace(SecProgram, $"--收到上报类型: {post.PostType}");
-        /**
-        if (post is CqGroupMessagePost mpost)
-        {
-            Console.WriteLine($"{mpost.Sender.Nickname} 在群{mpost.GroupId}里说: {mpost.RawMessage},{mpost.MessageEntity}");
-            SendGroupMessageEntityAction a = new()
-            {
-                GroupId = mpost.GroupId,
-                AsCqCodeString = true,
-                Message = mpost.MessageEntity
-            };
-            var result = (await client.CallApiAsync(a))!.Data!.Cast<SendGroupMessageActionResultData>();
-            Console.WriteLine($"消息发送成功,id为{result.MessageId},api调用结果:{result.ResultIn.Status}");
-        }
+
         if (post is CqPrivateMessagePost ppost)
         {
-            Console.WriteLine($"消息临时来源: {ppost.TempSource},{ppost.Sender.Nickname}:{ppost.RawMessage}");
+            logger.LogDebug("Program", "RawPost", $"消息临时来源: {ppost.TempSource},{ppost.Sender.Nickname}:{ppost.RawMessage}");
         }
+
         if (post is CqOtherMessagePost opost)
         {
-            Console.WriteLine($"消息临时来源(other): {opost.TempSource},{opost.Sender.Nickname}:{opost.RawMessage}");
-        }*/
+            logger.LogDebug(
+                "Program", "RawPost", $"消息临时来源(other): {opost.TempSource}," +
+                $"{opost.Sender.Nickname}:{opost.RawMessage}"
+                );
+        }
+
         if (post is CqMessagePost mpost)
         {
-            logger.LogDebug(SecProgram, $"消息来咯({mpost.MessageId}): {mpost.Sender.Nickname}说:{mpost.RawMessage}");
-            if (mpost.RawMessage.Contains("stop!"))
-            {
-                client.StopAsync();
-            }
+            logger.LogDebug(
+                "Program", "RawPost", $"消息来咯({mpost.MessageId}): " +
+                $"{mpost.Sender.Nickname}说:{mpost.RawMessage}"
+                );
             if (mpost is CqGroupMessagePost gpost)
             {
                 var gsender = mpost.Sender.AsCast<CqGroupMessageSender>()!;
-                logger.LogDebug(SecProgram, $"这是一条群消息, 群号是{gpost.GroupId}");
+                logger.LogDebug("Program", "RawPost", $"这是一条群消息, 群号是{gpost.GroupId}");
                 string s = "/echo ";
                 if (mpost.RawMessage.StartsWith(s))
                 {
-                    SendGroupMessageAction api = new()
-                    {
-                        GroupId = gpost.GroupId,
-                        Message = gpost.RawMessage.Substring(s.Length)
-                    };
-                    client.CallApiAsync(api).ContinueWith(task =>
-                    {
-                        logger.LogDebug(SecProgram, $"API调用了,结果是{task.Result?.Data}");
-                    });
+                    _ = client.SendGroupMessageAsync(gpost.GroupId, gpost.RawMessage.Substring(s.Length));
                 }
                 if (mpost.RawMessage.Contains("repeatTHIS"))
                 {
-                    SendGroupMessageAction api = new()
-                    {
-                        GroupId = gpost.GroupId,
-                        Message = mpost.RawMessage
-                    };
-                    client.CallApiAsync(api).ContinueWith(task =>
-                    {
-                        logger.LogDebug(SecProgram, $"API调用了,结果是{task.Result?.Data}");
-                    });
+                    _ = client.SendGroupMessageAsync(gpost.GroupId, mpost.RawMessage);
                 }
             }
         }
         if (post is CqNoticePost np)
         {
-            logger.LogInfo(SecProgram, post switch
+            logger.LogDebug("Program", "RawPost", post switch
             {
                 CqGroupMemberIncreaseNoticePost np1 =>
                     $"有人进来群{np1.GroupId}了,人是{np1.UserId},操作者{np1.OperatorId},方式{np1.SubType}",
@@ -207,19 +195,27 @@ public static class Program
         return;
     }
 
-    private static void ConsoleLoop()
+    private async static Task ConsoleLoop()
     {
         string s;
         while ((s = Console.ReadLine()!) != "exit")
         {
-            if (s.Contains("start!"))
+            try
             {
-                try
+                if (s is "stop")
                 {
-                    _ = client.StartAsync();
+                    await client.StopAsync();
+                    logger.LogInfo(SecProgram, "stop动作完成.");
                 }
-                catch (ClientException) { }
-                continue;
+                if (s is "start")
+                {
+                    await client.StartAsync();
+                    logger.LogInfo(SecProgram, "start动作完成.");
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogWarn(SecProgram, "Exception", e);
             }
         }
     }

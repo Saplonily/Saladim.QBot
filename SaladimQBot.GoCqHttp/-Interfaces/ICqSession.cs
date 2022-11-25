@@ -1,8 +1,16 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using System.Text.Json;
 
-public interface ICqSession
+namespace SaladimQBot.GoCqHttp;
+
+public interface ICqSession : IDisposable
 {
-    event OnCqSessionReceivedHandler? OnReceived;
+    bool Started { get; }
 
-    Task<CqApiCallResult?> CallApiAsync(CqApi api, string echo);
+    Task StartAsync();
+
+    Task<CqApiCallResult?> CallApiAsync(CqApi api);
+
+    void EmitOnReceived(JsonDocument docToEmit);
+
+    event OnCqSessionReceivedHandler OnReceived;
 }

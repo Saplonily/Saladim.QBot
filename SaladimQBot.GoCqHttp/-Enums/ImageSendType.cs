@@ -11,6 +11,7 @@ public enum ImageSendType
     Show
 }
 
+/// <inheritdoc cref="Core.ImageSendSubType"/>
 public enum ImageSendSubType
 {
     [NameIn(-1)]
@@ -31,9 +32,6 @@ public enum ImageSendSubType
     Selfie,
     [NameIn(9)]
     StickerAd,
-    [NameIn(11)]
-    Unknown, //实际收发消息会出现11,目前尚不明确复现方法,疑似特殊的动图?
-    //10 - 有待测试
     [NameIn(13)]
     HotSearch
 }

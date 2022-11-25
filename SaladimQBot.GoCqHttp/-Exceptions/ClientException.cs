@@ -39,8 +39,8 @@ public class ClientException : Exception
             "The client hasn't started before stop it.",
         ExceptionType.TimeOut =>
             "The client connected timeout.",
-        ExceptionType.WebSocketError =>
-            "Internal WebSocket error. ",
+        ExceptionType.SessionInternal =>
+            "Internal session error. ",
         ExceptionType.NotStartedBeforeCallApi =>
             "The client hasn't started before call an api.",
         ExceptionType.ImplicitApiCallFailed =>
@@ -75,9 +75,9 @@ public class ClientException : Exception
         /// </summary>
         TimeOut,
         /// <summary>
-        /// WebSocket内部错误，具体Exception会放入innerException中，类型为WebSocketException
+        /// Session内部错误，具体Exception会放入innerException中，类型由session类型决定
         /// </summary>
-        WebSocketError,
+        SessionInternal,
         /// <summary>
         /// Client还未开始就尝试调用Api
         /// </summary>

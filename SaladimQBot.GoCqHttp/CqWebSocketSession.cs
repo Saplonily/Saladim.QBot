@@ -8,21 +8,16 @@ namespace SaladimQBot.GoCqHttp;
 
 public delegate void OnCqSessionReceivedHandler(in JsonDocument parsedDocment);
 
-public sealed class CqWebSocketSession : ICqSession, IDisposable
+public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 {
     public const int BufferSize = 1 * Size.MiB;
     public static readonly Encoding Encoding = Encoding.UTF8;
     public readonly Uri Uri;
+
+    private readonly Dictionary<string, Action<JsonDocument>> suspendedApiResponseWaitings = new();
     private ClientWebSocket webSocket = new();
     private CancellationTokenSource receiveTokenSource = new();
-    private readonly Dictionary<string, Action<JsonDocument>> suspendedApiResponseWaitings = new();
-
-    internal class PostParseFailedException : Exception
-    {
-        public PostParseFailedException(Exception? innerException = null) : base(string.Empty, innerException)
-        {
-        }
-    }
+    private int seq = 0;
 
     /// <summary>
     /// 是否使用事件端口
@@ -34,19 +29,11 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
     /// </summary>
     public bool UseApiEndPoint { get; private set; } = false;
 
-    /// <summary>
-    /// true: 接收过程遇到可接受异常时中断连接
-    /// false: 接受过程中遇到可接受异常时不中断连接
-    /// 可接受异常: 指json解析出错异常
-    /// 可接受异常会通过<see cref="OnReceivedAcceptableException"/>事件通知
-    /// </summary>
-    public bool AbortOnAcceptableException { get; private set; } = false;
-
     public Task? ReceivingTask { get; private set; }
 
-    public bool Receiving { get; private set; }
-
     public WebSocketState State { get => webSocket.State; }
+
+    public bool Started { get; private set; }
 
 
     /// <summary>
@@ -65,30 +52,43 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
     }
 
     public CqWebSocketSession(string address, string? endpoint = null,
-        bool useEventEndPoint = false, bool useApiEndPoint = false, bool abortOnAcceptableException = false)
+        bool useEventEndPoint = false, bool useApiEndPoint = false)
         : this(address, endpoint) =>
-        (UseEventEndPoint, UseApiEndPoint, AbortOnAcceptableException) =
-        (useEventEndPoint, useApiEndPoint, abortOnAcceptableException);
+        (UseEventEndPoint, UseApiEndPoint) =
+        (useEventEndPoint, useApiEndPoint);
+
+    private async Task ConnectAsync(CancellationToken token)
+    {
+        try
+        {
+            MakeWebSocketAvailable();
+            await webSocket.ConnectAsync(Uri, token);
+            Started = true;
+            ReceivingTask = Task.Run(ReceivingLoop);
+        }
+        catch(Exception e)
+        {
+            Started = false;
+            throw;
+        }
+        void MakeWebSocketAvailable()
+        {
+            if (webSocket.State is WebSocketState.Aborted or WebSocketState.Closed)
+            {
+                webSocket.Abort();
+                webSocket.Dispose();
+                webSocket = new();
+                this.ReceivingTask = null;
+            }
+        }
+    }
 
     public void Dispose()
-        => webSocket.Dispose();
-
-    public Task ConnectAsync(CancellationToken token)
-        => webSocket.ConnectAsync(Uri, token);
-
-    public void Abort()
-        => webSocket.Abort();
-
-    public void RenewWebSocket()
     {
-        if (webSocket.State is WebSocketState.Aborted or WebSocketState.Closed)
-        {
-            webSocket.Abort();
-            webSocket.Dispose();
-            webSocket = new();
-            this.Receiving = false;
-            this.ReceivingTask = null;
-        }
+        receiveTokenSource.Cancel();
+        receiveTokenSource = new();
+        ReceivingTask = null;
+        webSocket.Dispose();
     }
 
     public void EmitOnReceived(JsonDocument docToEmit)
@@ -113,15 +113,12 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
         }
     }
 
-    public Task StartReceiving()
-        => ReceivingTask = Task.Run(ReceivingLoop);
-
-    public void ReceivingLoop()
+    private void ReceivingLoop()
     {
         var segment = GetArraySegment(BufferSize);
         try
         {
-            Receiving = true;
+            Started = true;
             while (true)
             {
                 int count = 0;
@@ -132,8 +129,6 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
                     count += result.Count;
                 }
                 while (!result.EndOfMessage);
-                //懒,出bug后再检测result的一些状态
-                //2022-11-10 22:36:25 出bug了...数据量太大了
                 string str = Encoding.GetString(segment.Array!, segment.Offset, count);
                 try
                 {
@@ -159,20 +154,10 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
         finally
         {
             ReceivingTask = null;
-            Receiving = false;
+            Started = false;
             webSocket.Abort();
             webSocket.Dispose();
         }
-    }
-
-    public void StopReceiving()
-    {
-        receiveTokenSource.Cancel();
-        //2022-11-2 22:48:04,这个source cancel后状态一直保留着...
-        //然后导致两个任务都无法继续...
-        //我sb了
-        receiveTokenSource = new();
-        OnReceived = null;
     }
 
     /// <summary>
@@ -188,7 +173,7 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
     public async Task<CqApiCallResult?> CallApiAsync(CqApi api, string echo)
     {
         if (!UseApiEndPoint) throw new InvalidOperationException("This session doesn't use api endpoint.");
-        if (!Receiving) throw new InvalidOperationException("This session hasn't started receiving.");
+        if (!Started) throw new InvalidOperationException("This session hasn't started receiving.");
 
         string json = CqApiJsonSerializer.SerializeApi(api, echo);
         ArraySegment<byte> seg = new(Encoding.GetBytes(json));
@@ -210,4 +195,10 @@ public sealed class CqWebSocketSession : ICqSession, IDisposable
 
     private static ArraySegment<byte> GetArraySegment(int size)
         => new(new byte[size]);
+
+    Task ICqSession.StartAsync()
+        => ConnectAsync(CancellationToken.None);
+
+    Task<CqApiCallResult?> ICqSession.CallApiAsync(CqApi api)
+        => CallApiAsync(api, seq++.ToString());
 }

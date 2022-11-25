@@ -21,19 +21,25 @@ public static class EnumAttributeCacher
         return InternalGetAttrFromEnum(type, rawEnumValue);
     }
 
+
+    /// <exception cref="KeyNotFoundException"></exception>
     public static TEnum GetEnumFromAttr<TEnum>(object valueToGet) where TEnum : Enum
         => EnumHelper.ToObject<TEnum>(InternalGetEnumFromAttr(typeof(TEnum), valueToGet));
 
+    /// <exception cref="KeyNotFoundException"></exception>
     public static object GetAttrFromEnum<TEnum>(EnumRawInt rawEnumValue) where TEnum : Enum
         => InternalGetAttrFromEnum(typeof(TEnum), rawEnumValue);
 
+    /// <exception cref="KeyNotFoundException"></exception>
     public static string GetStrAttrFromEnum<TEnum>(TEnum enumValue) where TEnum : Enum
         => GetAttrFromEnum(typeof(TEnum), enumValue.Cast<int>()).Cast<string>();
 
+    /// <exception cref="KeyNotFoundException"></exception>
     public static int GetIntAttrFromEnum<TEnum>(TEnum enumValue) where TEnum : Enum
         => GetAttrFromEnum(typeof(TEnum), enumValue.Cast<int>()).Cast<int>();
 
 
+    /// <exception cref="KeyNotFoundException"></exception>
     private static EnumRawInt InternalGetEnumFromAttr(Type type, object valueToGet)
     {
         CheckAndLoadType(type);
