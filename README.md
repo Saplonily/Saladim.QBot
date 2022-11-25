@@ -9,7 +9,7 @@
 <br>
 目前框架仍为完工,目前未来计划如下(完成度截止2022-11-1):
 
-- [ ] 完成基层, 如go-cqhttp的所有post支持,所有api支持
+- [x] 完成基层, 如go-cqhttp的所有post支持,所有api支持
 - [ ] 完成基础应用层, 例如实现一个GroupUser类实现IUser接口,
 包含`SendPrivateMessage`方法、`Name`,`NickName`等属性这一类(类似于隔壁[Discord.net](https://github.com/discord-net/Discord.Net))
 - [ ] 完成高级应用层, 例如消息/命令解析处理管道等
