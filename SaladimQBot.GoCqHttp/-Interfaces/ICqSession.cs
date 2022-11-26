@@ -10,7 +10,5 @@ public interface ICqSession : IDisposable
 
     Task<CqApiCallResult?> CallApiAsync(CqApi api);
 
-    void EmitOnReceived(JsonDocument docToEmit);
-
     event OnCqSessionReceivedHandler OnReceived;
 }

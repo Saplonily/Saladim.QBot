@@ -11,13 +11,13 @@ namespace Test;
 
 public static class Program
 {
-    private static CqWebSocketClient client = null!;
+    private static CqClient client = null!;
     private static Logger logger = null!;
     private static StreamWriter writer = null!;
     public const string SecProgram = "Program";
     public static async Task Main()
     {
-        //大部分情况下你会因为没有这个目录程序就寄了
+        //大部分情况下你会因为没有这个目录导致程序直接寄
         #region 初始化/配置日志
         //搞日志:
         string rawLogFileName = $"D:\\Projects\\Saladim.QBot\\Logs\\{DateTime.Now.ToShortDateString()}";
@@ -44,8 +44,8 @@ public static class Program
         #endregion
 
         logger.LogInfo(SecProgram, "Starting...");
-        client = new("127.0.0.1:5000", LogLevel.Trace);
-        client.OnPost += Client_OnPostAsync;
+        client = new CqHttpClient("http://127.0.0.1:5700", "http://127.0.0.1:5566", LogLevel.Trace);
+        /*client.OnPost += Client_OnPostAsync;*/
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
 
@@ -88,25 +88,30 @@ public static class Program
                     $"{message.GroupSender.Nickname.Value}: " +
                     $"{message.MessageEntity.RawString}"
                     );
-                if (message.MessageEntity.RawString.Contains("/random"))
+                string rawString = message.MessageEntity.RawString;
+                if (rawString.Contains("/random"))
                 {
                     Random r = new();
                     int num = r.Next(0, 100);
                     message.Group.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
                 }
-                if (message.MessageEntity.RawString.Contains("/来点图"))
+                if (rawString.Contains("/来点图"))
                 {
-                    HttpClient client = new();
-                    var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
-                    StreamReader reader = new(result.Content.ReadAsStream());
-                    string s = reader.ReadToEnd();
-                    JsonDocument doc = JsonDocument.Parse(s);
-                    string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
-                    CqMessageEntity cqEntity = new()
+                    int count = rawString.Count("/来点图");
+                    for (int i = 0; i < count; i++)
                     {
-                        new CqMessageImageSendNode(imageUrl)
-                    };
-                    message.Group.SendMessageAsync(new MessageEntity(cqEntity));
+                        HttpClient client = new();
+                        var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
+                        StreamReader reader = new(result.Content.ReadAsStream());
+                        string s = reader.ReadToEnd();
+                        JsonDocument doc = JsonDocument.Parse(s);
+                        string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
+                        CqMessageEntity cqEntity = new()
+                        {
+                            new CqMessageImageSendNode(imageUrl)
+                        };
+                        message.Group.SendMessageAsync(new MessageEntity(cqEntity));
+                    }
                 }
             }
             else

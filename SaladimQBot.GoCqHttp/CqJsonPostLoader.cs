@@ -13,7 +13,9 @@ public sealed class CqJsonPostLoader
     }
 
     public Int32 Int32(string keyName) => Element.GetProperty(keyName).GetInt32();
+
     public Int64 Int64(string keyName) => Element.GetProperty(keyName).GetInt64();
+
     public int EnumFromString(Type enumType, string keyName)
     {
         string rawStr;
@@ -31,6 +33,7 @@ public sealed class CqJsonPostLoader
         }
         return EnumAttributeCacher.GetEnumFromAttr(enumType, rawStr);
     }
+
     public int EnumFromInt32(Type enumType, string keyName)
     {
         int rawInt;
@@ -51,6 +54,7 @@ public sealed class CqJsonPostLoader
 
     public TEnum EnumFromString<TEnum>(string keyName) where TEnum : Enum
         => EnumFromString(typeof(TEnum), keyName).Cast<TEnum>();
+
     public TEnum EnumFromInt32<TEnum>(string keyName) where TEnum : Enum
         => EnumFromInt32(typeof(TEnum), keyName).Cast<TEnum>();
 }

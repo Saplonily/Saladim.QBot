@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
@@ -48,7 +49,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 
     public CqWebSocketSession(string address, string? endpoint = null)
     {
-        Uri = new($"ws://{address}/{endpoint}");
+        Uri = new($"{address}/{endpoint}");
     }
 
     public CqWebSocketSession(string address, string? endpoint = null,
@@ -66,7 +67,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
             Started = true;
             ReceivingTask = Task.Run(ReceivingLoop);
         }
-        catch(Exception e)
+        catch(Exception)
         {
             Started = false;
             throw;
@@ -175,7 +176,18 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         if (!UseApiEndPoint) throw new InvalidOperationException("This session doesn't use api endpoint.");
         if (!Started) throw new InvalidOperationException("This session hasn't started receiving.");
 
-        string json = CqApiJsonSerializer.SerializeApi(api, echo);
+        //根节点
+        JsonObject rootObj = new(new Dictionary<string, JsonNode?>()
+        {
+            [StringConsts.ActionProperty] = JsonValue.Create(api.ApiName),
+            [StringConsts.ApiEchoProperty] = JsonValue.Create(echo),
+        });
+        //获得参数对象节点
+        JsonObject paramObject = CqApiJsonSerializer.SerializeApiParamsToNode(api);
+        rootObj.Add(StringConsts.ParamsProperty, paramObject);
+        //转为json字符串
+        string json = rootObj.ToJsonString();
+
         ArraySegment<byte> seg = new(Encoding.GetBytes(json));
         await webSocket.SendAsync(seg, WebSocketMessageType.Text, true, CancellationToken.None);
 
