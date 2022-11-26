@@ -3,7 +3,7 @@
 /// <summary>
 /// 一个bot号加入的QQ群
 /// </summary>
-public interface IJoinedGroup : IGroup
+public interface IJoinedGroup : IGroup, IMessageWindow
 {
     /// <summary>
     /// 群创建时间

@@ -111,6 +111,12 @@ public class JoinedGroup : Group, IJoinedGroup
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IEnumerable<IGroupUser> IJoinedGroup.Members { get => Members.Value; }
 
+    async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
+        => await Client.SendGroupMessageAsync(GroupId, messageEntity);
+
+    async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
+        => await Client.SendGroupMessageAsync(GroupId, rawString);
+
     #endregion
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

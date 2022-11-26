@@ -45,7 +45,7 @@ public static class Program
 
         logger.LogInfo(SecProgram, "Starting...");
         client = new CqHttpClient("http://127.0.0.1:5700", "http://127.0.0.1:5566", LogLevel.Trace);
-        /*client.OnPost += Client_OnPostAsync;*/
+        client.OnPost += Client_OnPostAsync;
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
 
@@ -69,58 +69,46 @@ public static class Program
 
         await ConsoleLoop();
 
-        await client.StopAsync();
+        try
+        {
+            await client.StopAsync();
+        }
+        catch (ClientException e)
+        {
+            logger.LogWarn("Program", "Client", e);
+        }
         logger.LogInfo(SecProgram, "---main method ended.---");
         writer.Dispose();
     }
 
-    private static void Client_OnMessageReceived(Message msg)
+    private static void Client_OnMessageReceived(Message message)
     {
         Task.Run(OnMessageReceived);
         void OnMessageReceived()
         {
-            if (msg is GroupMessage message)
+            string rawString = message.MessageEntity.RawString;
+            if (rawString.Contains("/random"))
             {
-                logger.LogDebug(
-                    "Program",
-                    "Msg",
-                    $"{message.Group.Name.Value} - " +
-                    $"{message.GroupSender.Nickname.Value}: " +
-                    $"{message.MessageEntity.RawString}"
-                    );
-                string rawString = message.MessageEntity.RawString;
-                if (rawString.Contains("/random"))
-                {
-                    Random r = new();
-                    int num = r.Next(0, 100);
-                    message.Group.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
-                }
-                if (rawString.Contains("/来点图"))
-                {
-                    int count = rawString.Count("/来点图");
-                    for (int i = 0; i < count; i++)
-                    {
-                        HttpClient client = new();
-                        var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
-                        StreamReader reader = new(result.Content.ReadAsStream());
-                        string s = reader.ReadToEnd();
-                        JsonDocument doc = JsonDocument.Parse(s);
-                        string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
-                        CqMessageEntity cqEntity = new()
-                        {
-                            new CqMessageImageSendNode(imageUrl)
-                        };
-                        message.Group.SendMessageAsync(new MessageEntity(cqEntity));
-                    }
-                }
+                Random r = new();
+                int num = r.Next(0, 100);
+                message.MessageWindow.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
             }
-            else
+            if (rawString.Contains("/来点图"))
             {
-                if (msg.MessageEntity.RawString.Contains("/random"))
+                int count = rawString.Count("/来点图");
+                for (int i = 0; i < count; i++)
                 {
-                    Random r = new();
-                    int num = r.Next(0, 100);
-                    msg.Sender.SendMessageAsync($"随机数为{num}哦~");
+                    HttpClient client = new();
+                    var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
+                    StreamReader reader = new(result.Content.ReadAsStream());
+                    string s = reader.ReadToEnd();
+                    JsonDocument doc = JsonDocument.Parse(s);
+                    string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
+                    CqMessageEntity cqEntity = new()
+                    {
+                        new CqMessageImageSendNode(imageUrl)
+                    };
+                    message.MessageWindow.SendMessageAsync(new MessageEntity(cqEntity));
                 }
             }
         }
@@ -160,10 +148,6 @@ public static class Program
                 if (mpost.RawMessage.StartsWith(s))
                 {
                     _ = client.SendGroupMessageAsync(gpost.GroupId, gpost.RawMessage.Substring(s.Length));
-                }
-                if (mpost.RawMessage.Contains("repeatTHIS"))
-                {
-                    _ = client.SendGroupMessageAsync(gpost.GroupId, mpost.RawMessage);
                 }
             }
         }

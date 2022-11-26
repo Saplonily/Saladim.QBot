@@ -15,6 +15,8 @@ public class PrivateMessage : Message, IPrivateMessage
 
     public Expirable<User> ExpPrivateSender { get => ExpSender; }
 
+    public override IMessageWindow MessageWindow => PrivateSender;
+
     public User PrivateSender { get => ExpPrivateSender.Value; }
 
     protected internal PrivateMessage(ICqClient client, long messageId) : base(client, messageId)

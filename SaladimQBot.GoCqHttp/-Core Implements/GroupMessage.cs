@@ -15,6 +15,8 @@ public class GroupMessage : Message, IGroupMessage
 
     public new Expirable<User> ExpSender { get; protected set; } = default!;
 
+    public override IMessageWindow MessageWindow => Group;
+
     public JoinedGroup Group => ExpGroup.Value;
 
     public GroupUser GroupSender => ExpGroupSender.Value;

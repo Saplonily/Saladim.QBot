@@ -52,13 +52,13 @@ public interface IClient
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, string rawString);
 
     /// <summary>
-    /// 开始该Client与go-cqhttp的连接
+    /// 开始该Client的连接
     /// </summary>
     /// <returns>状态值</returns>
     Task StartAsync();
 
     /// <summary>
-    /// 停止该Client与go-cqhttp的连接
+    /// 停止该Client的连接
     /// </summary>
     /// <returns>状态值</returns>
     Task StopAsync();

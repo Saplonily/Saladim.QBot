@@ -15,6 +15,8 @@ public class Message : CqEntity, IMessage
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
+    public virtual IMessageWindow MessageWindow => Sender;
+
     public User Sender => ExpSender.Value;
 
     public long MessageId { get; protected set; } = default!;
@@ -78,5 +80,4 @@ public class Message : CqEntity, IMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}";
-
 }

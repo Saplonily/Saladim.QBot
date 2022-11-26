@@ -115,6 +115,12 @@ public class User : CqEntity, IUser
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     int IUser.LoginDays { get => LoginDays.Value; }
 
+    async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
+        => await Client.SendPrivateMessageAsync(UserId, messageEntity);
+
+    async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
+        => await Client.SendPrivateMessageAsync(UserId, rawString);
+
     #endregion
 
     #region equals重写

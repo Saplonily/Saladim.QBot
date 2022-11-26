@@ -52,23 +52,29 @@ public class CqHttpListenerSession : ICqSession
     {
         while (true)
         {
-            var content = listener.GetContext();
-            Stream stream = content.Request.InputStream;
-
             try
             {
-                JsonDocument doc = JsonDocument.Parse(stream);
-                OnReceived?.Invoke(doc);
+                var content = listener.GetContext();
+                Stream stream = content.Request.InputStream;
+                try
+                {
+                    JsonDocument doc = JsonDocument.Parse(stream);
+                    OnReceived?.Invoke(doc);
+                }
+                catch (JsonException jsonException)
+                {
+                    var e = new PostParseFailedException(jsonException);
+                    OnReceivedAcceptableException?.Invoke(e);
+                }
+                finally
+                {
+                    content.Response.StatusCode = 200;
+                    content.Response.Close();
+                }
             }
-            catch (JsonException jsonException)
+            catch (HttpListenerException) 
             {
-                var e = new PostParseFailedException(jsonException);
-                OnReceivedAcceptableException?.Invoke(e);
-            }
-            finally
-            {
-                content.Response.StatusCode = 200;
-                content.Response.Close();
+                break;
             }
         }
     }

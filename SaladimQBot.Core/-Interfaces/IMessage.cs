@@ -7,4 +7,6 @@ public interface IMessage : IClientEntity
     IMessageEntity MessageEntity { get; }
 
     IUser Sender { get; }
+
+    IMessageWindow MessageWindow { get; }
 }

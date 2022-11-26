@@ -31,7 +31,8 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     public CqClient(LogLevel logLevelLimit)
     {
         OnPost += InternalPostProcesser;
-        logger = new LoggerBuilder().WithLevelLimit(logLevelLimit)
+        logger = new LoggerBuilder()
+                .WithLevelLimit(logLevelLimit)
                .WithAction(s => OnLog?.Invoke(s))
                .WithFormatter(ClientLogFormatter)
                .Build();
@@ -67,6 +68,11 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     {
         if (!Started)
             throw new ClientException(this, ClientException.ExceptionType.NotStartedBeforeCallApi);
+        if (logger.NeedLogging(LogLevel.Debug))
+            logger.LogDebug(
+                "Client", "ApiCall", $"Ready for api '{api.ApiName}' call: " +
+                $"{CqApiJsonSerializer.SerializeApiParamsToNode(api).ToJsonString()}"
+                );
         return await ApiSession.CallApiAsync(api);
     }
 
