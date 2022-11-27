@@ -21,4 +21,7 @@ public static class EntityExtensions
         => group.Client.SendGroupMessageAsync(group.GroupId, rawString);
 
     #endregion
+
+    public static Task Recall(this IMessage message)
+        => message.Client.RecallMessageAsync(message.MessageId);
 }

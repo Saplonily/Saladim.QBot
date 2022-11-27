@@ -12,7 +12,7 @@ using SaladimQBot.Shared;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public class JoinedGroup : Group, IJoinedGroup
+public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 {
     /// <summary>
     /// 群创建时间
@@ -116,6 +116,12 @@ public class JoinedGroup : Group, IJoinedGroup
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendGroupMessageAsync(GroupId, rawString);
+
+    async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
+        => await SendMessageAsync(messageEntity);
+
+    async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
+        => await SendMessageAsync(rawString);
 
     #endregion
 

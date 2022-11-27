@@ -15,15 +15,15 @@ public class Message : CqEntity, IMessage
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
-    public virtual IMessageWindow MessageWindow => Sender;
+    public virtual ICqMessageWindow MessageWindow => Sender;
 
     public User Sender => ExpSender.Value;
 
-    public long MessageId { get; protected set; } = default!;
+    public int MessageId { get; protected set; } = default!;
 
     protected internal Expirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
 
-    protected internal Message(ICqClient client, long messageId)
+    protected internal Message(ICqClient client, int messageId)
         : base(client)
     {
         MessageId = messageId;
@@ -33,7 +33,7 @@ public class Message : CqEntity, IMessage
         => new Message(client, post.MessageId)
             .LoadFromMessagePost(post);
 
-    internal static Message CreateFromMessageId(ICqClient client, long messageId)
+    internal static Message CreateFromMessageId(ICqClient client, int messageId)
         => new Message(client, messageId)
             .LoadGetMessageApiResult()
             .LoadFromMessageId();
@@ -75,6 +75,10 @@ public class Message : CqEntity, IMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IUser IMessage.Sender => Sender;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    IMessageWindow IMessage.MessageWindow => Sender;
+
 
     #endregion
 

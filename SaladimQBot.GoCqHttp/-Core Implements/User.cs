@@ -8,7 +8,7 @@ using SaladimQBot.Shared;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("{Nickname,nq} ({UserId,nq})")]
-public class User : CqEntity, IUser
+public class User : CqEntity, IUser, ICqMessageWindow
 {
     public long UserId { get; protected set; }
 
@@ -120,6 +120,12 @@ public class User : CqEntity, IUser
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendPrivateMessageAsync(UserId, rawString);
+
+    async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
+        => await SendMessageAsync(messageEntity);
+
+    async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
+        => await SendMessageAsync(rawString);
 
     #endregion
 

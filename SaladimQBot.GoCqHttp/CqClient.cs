@@ -71,7 +71,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         if (logger.NeedLogging(LogLevel.Debug))
             logger.LogDebug(
                 "Client", "ApiCall", $"Ready for api '{api.ApiName}' call: " +
-                $"{CqApiJsonSerializer.SerializeApiParamsToNode(api).ToJsonString()}"
+                $"{CqApiJsonSerializer.SerializeApiParamsToNode(api).ToJsonString(CqJsonOptions.Instance)}"
                 );
         return await ApiSession.CallApiAsync(api);
     }
@@ -143,8 +143,10 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         }
         catch (Exception ex)
         {
+            this.InternalStop();
+
             Started = false;
-            var msg = $"Internal session error, please check the inner exceptions.";
+            var msg = $"Internal session error, please check the inner exceptions. Trying to stop the sessions and client.";
             var clientException = new ClientException(
                 this,
                 ClientException.ExceptionType.SessionInternal,
@@ -306,20 +308,23 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     #region IClient
 
     #region 获取消息
-    IGroupMessage IClient.GetGroupMessageById(long messageId)
+    IGroupMessage IClient.GetGroupMessageById(int messageId)
         => GetGroupMessageById(messageId);
 
-    public GroupMessage GetGroupMessageById(long messageId)
+    public GroupMessage GetGroupMessageById(int messageId)
         => GroupMessage.CreateFromMessageId(this, messageId);
 
-    IPrivateMessage IClient.GetPrivateMessageById(long messageId)
+    IPrivateMessage IClient.GetPrivateMessageById(int messageId)
         => GetPrivateMessageById(messageId);
 
-    public PrivateMessage GetPrivateMessageById(long messageId)
+    public PrivateMessage GetPrivateMessageById(int messageId)
         => PrivateMessage.CreateFromMessageId(this, messageId);
     #endregion
 
     #region 发消息
+
+    #region 私聊
+
     async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IMessageEntity messageEntity)
         => await SendPrivateMessageAsync(userId, new MessageEntity(messageEntity));
 
@@ -356,6 +361,9 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         return msg;
     }
 
+    #endregion
+
+    #region 群聊
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IMessageEntity messageEntity)
         => await SendGroupMessageAsync(groupId, new MessageEntity(messageEntity));
 
@@ -386,6 +394,25 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
         return GroupMessage.CreateFromMessageId(this, result.MessageId);
     }
+
+    #endregion
+
+    #region 通用
+
+    Task IClient.RecallMessageAsync(int messageId)
+        => RecallMessageAsync(messageId);
+
+    public async Task RecallMessageAsync(int messageId)
+    {
+        DeleteMessageAction api = new()
+        { 
+            MessageId = messageId 
+        };
+        await this.CallApiWithCheckingAsync(api);
+    }
+
+    #endregion
+
     #endregion
 
     #endregion

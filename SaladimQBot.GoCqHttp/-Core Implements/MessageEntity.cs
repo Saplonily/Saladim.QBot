@@ -15,6 +15,8 @@ public class MessageEntity : IMessageEntity
 {
     protected internal readonly CqMessageEntity cqEntity;
 
+    public CqMessageEntity CqEntity { get => cqEntity; }
+
     public string RawString { get => rawString.Value; }
 
 
@@ -46,7 +48,7 @@ public class MessageEntity : IMessageEntity
 
     public int Count => cqEntity.Count;
 
-    public IEnumerator<IMessageEntityNode> GetEnumerator()
+    IEnumerator<IMessageEntityNode> IEnumerable<IMessageEntityNode>.GetEnumerator()
         => cqEntity.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

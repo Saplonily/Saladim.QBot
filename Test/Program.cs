@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using CodingSeb.ExpressionEvaluator;
@@ -88,7 +89,7 @@ public static class Program
         void OnMessageReceived()
         {
             string rawString = message.MessageEntity.RawString;
-            
+
             if (rawString.Contains("/random"))
             {
                 Random r = new();
@@ -126,6 +127,19 @@ public static class Program
                 catch (Exception e)
                 {
                     logger.LogWarn("Program", "Calculate", e);
+                }
+            }
+
+            if (rawString.Contains("撤回这条消息"))
+            {
+                var replyNode =
+                    (from node in message.MessageEntity.CqEntity
+                     where node is CqMessageReplyIdNode
+                     let replyIdNode = node as CqMessageReplyIdNode
+                     select replyIdNode).First();
+                if (replyNode is not null)
+                {
+                    _ = client.RecallMessageAsync(replyNode.MessageId);
                 }
             }
         }

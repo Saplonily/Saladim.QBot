@@ -15,11 +15,11 @@ public class PrivateMessage : Message, IPrivateMessage
 
     public Expirable<User> ExpPrivateSender { get => ExpSender; }
 
-    public override IMessageWindow MessageWindow => PrivateSender;
+    public override ICqMessageWindow MessageWindow => PrivateSender;
 
     public User PrivateSender { get => ExpPrivateSender.Value; }
 
-    protected internal PrivateMessage(ICqClient client, long messageId) : base(client, messageId)
+    protected internal PrivateMessage(ICqClient client, int messageId) : base(client, messageId)
     {
     }
 
@@ -27,7 +27,7 @@ public class PrivateMessage : Message, IPrivateMessage
         => new PrivateMessage(client, post.MessageId)
             .LoadFromPrivateMessagePost(post);
 
-    internal static new PrivateMessage CreateFromMessageId(ICqClient client, long messageId)
+    internal static new PrivateMessage CreateFromMessageId(ICqClient client, int messageId)
         => new PrivateMessage(client, messageId)
                 .LoadGetMessageApiResult()
                 .LoadFromMessageId().Cast<PrivateMessage>()

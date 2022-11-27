@@ -10,14 +10,14 @@ public interface IClient
     /// </summary>
     /// <param name="messageId">消息id</param>
     /// <returns>消息实体</returns>
-    IGroupMessage GetGroupMessageById(long messageId);
+    IGroupMessage GetGroupMessageById(int messageId);
 
     /// <summary>
     /// 使用消息Id获取一个私聊消息
     /// </summary>
     /// <param name="messageId"></param>
     /// <returns></returns>
-    IPrivateMessage GetPrivateMessageById(long messageId);
+    IPrivateMessage GetPrivateMessageById(int messageId);
 
     /// <summary>
     /// 使用消息实体发送私聊消息
@@ -50,6 +50,12 @@ public interface IClient
     /// <param name="messageEntity">消息实体</param>
     /// <returns>该消息实体</returns>
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, string rawString);
+
+    /// <summary>
+    /// 撤回一条消息
+    /// </summary>
+    /// <param name="messageId">消息id</param>
+    Task RecallMessageAsync(int messageId);
 
     /// <summary>
     /// 开始该Client的连接

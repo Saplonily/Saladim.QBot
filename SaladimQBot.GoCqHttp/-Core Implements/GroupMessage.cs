@@ -15,7 +15,7 @@ public class GroupMessage : Message, IGroupMessage
 
     public new Expirable<User> ExpSender { get; protected set; } = default!;
 
-    public override IMessageWindow MessageWindow => Group;
+    public override ICqMessageWindow MessageWindow => Group;
 
     public JoinedGroup Group => ExpGroup.Value;
 
@@ -23,7 +23,7 @@ public class GroupMessage : Message, IGroupMessage
 
     public new User Sender => ExpSender.Value;
 
-    protected internal GroupMessage(ICqClient client, long messageId)
+    protected internal GroupMessage(ICqClient client, int messageId)
         : base(client, messageId)
     {
     }
@@ -32,7 +32,7 @@ public class GroupMessage : Message, IGroupMessage
         => new GroupMessage(client, post.MessageId)
                 .LoadGroupAndSenderFromMessagePost(post);
 
-    internal static new GroupMessage CreateFromMessageId(ICqClient client, long messageId)
+    internal static new GroupMessage CreateFromMessageId(ICqClient client, int messageId)
         => new GroupMessage(client, messageId)
                 .LoadGetMessageApiResult().Cast<GroupMessage>()
                 .LoadGroupAndSenderFromMessageId();
@@ -76,4 +76,8 @@ public class GroupMessage : Message, IGroupMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IGroupUser IGroupMessage.Sender { get => ExpGroupSender.Value; }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    IMessageWindow IMessage.MessageWindow => Group;
+
 }
