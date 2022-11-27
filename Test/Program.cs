@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using CodingSeb.ExpressionEvaluator;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
@@ -87,6 +88,7 @@ public static class Program
         void OnMessageReceived()
         {
             string rawString = message.MessageEntity.RawString;
+            
             if (rawString.Contains("/random"))
             {
                 Random r = new();
@@ -109,6 +111,21 @@ public static class Program
                         new CqMessageImageSendNode(imageUrl)
                     };
                     message.MessageWindow.SendMessageAsync(new MessageEntity(cqEntity));
+                }
+            }
+            string whatCalculate = "/算 ";
+            if (rawString.StartsWith(whatCalculate))
+            {
+                try
+                {
+                    string thing = rawString[whatCalculate.Length..];
+                    ExpressionEvaluator e = new();
+                    string rst = e.Evaluate(thing)?.ToString() ?? "";
+                    message.MessageWindow.SendMessageAsync($"计算结果是: {rst}");
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarn("Program", "Calculate", e);
                 }
             }
         }

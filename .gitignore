@@ -2,6 +2,7 @@
 .VSCodeCounter/
 bin/
 obj/
+.vscode/
 
 # 一些无关这个项目的实验项目
 EmptyTest/
