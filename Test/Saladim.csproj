@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+		<SignAssembly>False</SignAssembly>
+		<AssemblyOriginatorKeyFile>D:\User\Pictures\Z$UINO3CZC(`V}UR5LMUJZN.png</AssemblyOriginatorKeyFile>
+		<AnalysisLevel>latest</AnalysisLevel>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CodingSeb.ExpressionEvaluator" Version="1.4.39" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="System.Text.Json" Version="6.0.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SaladimQBot.Core\SaladimQBot.Core.csproj" />
+		<ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
+		<ProjectReference Include="..\SaladimQBot.Shared\SaladimQBot.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

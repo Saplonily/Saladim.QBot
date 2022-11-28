@@ -7,7 +7,8 @@ public static class ICqClientExtensions
     {
         var result = await client.CallApiAsync(api);
         if (result is null) throw new CqApiCallFailedException(client, implicitly, api);
-        if (result.Data is null) throw new CqApiCallFailedException(client, implicitly, api, result);
+        if (api.ApiResultDataType is not null && result.Data is null)
+            throw new CqApiCallFailedException(client, implicitly, api, result);
         return result;
     }
 

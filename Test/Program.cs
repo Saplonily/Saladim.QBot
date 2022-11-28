@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using CodingSeb.ExpressionEvaluator;
 using Saladim.SalLogger;
+using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
@@ -17,7 +18,7 @@ public static class Program
     private static Logger logger = null!;
     private static StreamWriter writer = null!;
     public const string SecProgram = "Program";
-    public static async Task Main()
+    public static async Task<int> Main()
     {
         //大部分情况下你会因为没有这个目录导致程序直接寄
         #region 初始化/配置日志
@@ -79,14 +80,15 @@ public static class Program
         {
             logger.LogWarn("Program", "Client", e);
         }
-        logger.LogInfo(SecProgram, "---main method ended.---");
+        logger.LogInfo(SecProgram, "Main method ended.");
         writer.Dispose();
+        return 0;
     }
 
     private static void Client_OnMessageReceived(Message message)
     {
         Task.Run(OnMessageReceived);
-        void OnMessageReceived()
+        async void OnMessageReceived()
         {
             string rawString = message.MessageEntity.RawString;
 
@@ -94,7 +96,7 @@ public static class Program
             {
                 Random r = new();
                 int num = r.Next(0, 100);
-                message.MessageWindow.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
+                await message.MessageWindow.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
             }
             if (rawString.Contains("/来点图"))
             {
@@ -111,7 +113,7 @@ public static class Program
                     {
                         new CqMessageImageSendNode(imageUrl)
                     };
-                    message.MessageWindow.SendMessageAsync(new MessageEntity(cqEntity));
+                    await message.MessageWindow.SendMessageAsync(new MessageEntity(cqEntity));
                 }
             }
             string whatCalculate = "/算 ";
@@ -122,7 +124,7 @@ public static class Program
                     string thing = rawString[whatCalculate.Length..];
                     ExpressionEvaluator e = new();
                     string rst = e.Evaluate(thing)?.ToString() ?? "";
-                    message.MessageWindow.SendMessageAsync($"计算结果是: {rst}");
+                    await message.MessageWindow.SendMessageAsync($"计算结果是: {rst}");
                 }
                 catch (Exception e)
                 {
@@ -140,6 +142,35 @@ public static class Program
                 if (replyNode is not null)
                 {
                     _ = client.RecallMessageAsync(replyNode.MessageId);
+                }
+            }
+
+            if (rawString.Contains("狠狠骂我"))
+            {
+                var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧");
+                await Task.Delay(1000);
+                await msg.Recall();
+                await message.MessageWindow.SendMessageAsync("qwq, 怎么能骂人呢awa");
+
+            }
+
+            //auto猜数游戏
+
+            if (rawString.Contains("您猜了") && rawString.Contains("但是猜的数"))
+            {
+                const string currentRegion = "当前范围:";
+                int loc = rawString.IndexOf(currentRegion);
+                if (loc is not -1)
+                {
+                    string regionString = rawString[(loc + currentRegion.Length)..];
+                    logger.LogInfo("Program", "猜数", $"区域字符串为: {regionString}");
+                    string[] regions = regionString.Split("~");
+                    long num1 = long.Parse(regions[0]);
+                    long num2 = long.Parse(regions[1]);
+                    long target = (num1 + num2) / 2;
+                    logger.LogInfo("Program", "猜数", $"bot算出来{target}");
+                    await Task.Delay(2000);
+                    await message.MessageWindow.SendMessageAsync($"猜{target}");
                 }
             }
         }
