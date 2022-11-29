@@ -45,6 +45,9 @@
                                 新日志自动滚动到底部
                             </CheckBox>
                         </WrapPanel>
+                        <WrapPanel>
+                            <Button x:Name="ClearOutPut" Content="清空控制台" Click="ClearOutPut_Click"/>
+                        </WrapPanel>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="猜数自动机控制">

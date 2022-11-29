@@ -36,12 +36,19 @@ public class GroupUser : User, IGroupUser
 
     protected new Expirable<GetGroupMemberInfoActionResultData> ApiCallResult { get; set; } = default!;
 
-
     protected GroupUser(ICqClient client, long groupId, long userId)
         : base(client, userId)
     {
         Group = JoinedGroup.CreateFromGroupId(client, groupId);
     }
+
+    public Task BanAsync(TimeSpan timeSpan)
+        => Client.BanGroupUserAsync(this.Group.GroupId, this.UserId, timeSpan);
+
+    public Task LiftBanAsync()
+        => Client.LiftBanGroupUserAsync(this.Group.GroupId, this.UserId);
+
+    #region 一堆杂七杂八的Load
 
     internal static GroupUser CreateFromCqGroupMessagePost(ICqClient client, CqGroupMessagePost messagePost)
         => CreateFromCqGroupMessageSender(client, (CqGroupMessageSender)messagePost.Sender, messagePost.GroupId);
@@ -128,6 +135,7 @@ public class GroupUser : User, IGroupUser
         return this;
     }
 
+    #endregion
 
     #region IGroupUser
 

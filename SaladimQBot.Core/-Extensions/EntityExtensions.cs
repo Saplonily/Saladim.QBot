@@ -22,6 +22,20 @@ public static class EntityExtensions
 
     #endregion
 
-    public static Task Recall(this IMessage message)
+    public static Task RecallAsync(this IMessage message)
         => message.Client.RecallMessageAsync(message.MessageId);
+
+    #region 群操作
+
+    #region 操作用户
+
+    public static Task BanAsync(this IGroupUser groupUser, TimeSpan time)
+        => groupUser.Client.BanGroupUserAsync(groupUser.Group.GroupId, groupUser.UserId, time);
+
+    public static Task LiftBanAsync(this IGroupUser groupUser)
+        => groupUser.Client.LiftBanGroupUserAsync(groupUser.Group.GroupId, groupUser.UserId);
+
+    #endregion
+
+    #endregion
 }

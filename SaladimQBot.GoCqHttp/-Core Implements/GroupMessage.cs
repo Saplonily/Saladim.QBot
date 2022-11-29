@@ -13,15 +13,13 @@ public class GroupMessage : Message, IGroupMessage
 
     public Expirable<GroupUser> ExpGroupSender { get; protected set; } = default!;
 
-    public new Expirable<User> ExpSender { get; protected set; } = default!;
-
     public override ICqMessageWindow MessageWindow => Group;
 
     public JoinedGroup Group => ExpGroup.Value;
 
-    public GroupUser GroupSender => ExpGroupSender.Value;
+    public new GroupUser Sender => ExpGroupSender.Value;
 
-    public new User Sender => ExpSender.Value;
+    public new GroupUser Author => Sender;
 
     protected internal GroupMessage(ICqClient client, int messageId)
         : base(client, messageId)
@@ -42,7 +40,6 @@ public class GroupMessage : Message, IGroupMessage
         base.LoadFromMessageId();
         ExpGroup = Client.MakeDependencyExpirable(ApiCallResult, GroupFactory).WithNoExpirable();
         ExpGroupSender = Client.MakeDependencyExpirable(ApiCallResult, GroupSenderFactory).WithNoExpirable();
-        ExpSender = CastedExpirable<User, GroupUser>.MakeFromSource(ExpGroupSender);
 
         return this;
         JoinedGroup GroupFactory(GetMessageActionResultData d)
@@ -65,7 +62,6 @@ public class GroupMessage : Message, IGroupMessage
     {
         base.LoadFromMessagePost(post);
         ExpGroupSender = Client.MakeNoneExpirableExpirable(GroupUser.CreateFromCqGroupMessagePost(Client, post));
-        ExpSender = CastedExpirable<User, GroupUser>.MakeFromSource(ExpGroupSender);
         ExpGroup = Client.MakeNoneExpirableExpirable(JoinedGroup.CreateFromCqGroupMessagePost(Client, post));
         return this;
     }

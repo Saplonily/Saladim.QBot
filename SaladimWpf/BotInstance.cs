@@ -32,22 +32,22 @@ public class BotInstance
         client.OnMessageReceived += Client_OnMessageReceived;
     }
 
-    private void Client_OnMessageReceived(Message message)
+    private async void Client_OnMessageReceived(Message message)
     {
-        Task.Run(OnMessageReceived);
+        await Task.Run(OnMessageReceived);
         async void OnMessageReceived()
         {
             if (message is GroupMessage groupMsg)
             {
                 string nameFormat = string.Empty;
-                if (await groupMsg.GroupSender.Card.ValueAsync != string.Empty)
+                if (await groupMsg.Sender.Card.ValueAsync != string.Empty)
                 {
-                    nameFormat = $"{await groupMsg.GroupSender.Card.ValueAsync}" +
-                        $"({await groupMsg.GroupSender.Nickname.ValueAsync})";
+                    nameFormat = $"{await groupMsg.Sender.Card.ValueAsync}" +
+                        $"({await groupMsg.Sender.Nickname.ValueAsync})";
                 }
                 else
                 {
-                    nameFormat = await groupMsg.GroupSender.Nickname.ValueAsync;
+                    nameFormat = await groupMsg.Sender.Nickname.ValueAsync;
                 }
                 logger.LogInfo(
                     "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) {nameFormat} 说: " +
@@ -124,7 +124,7 @@ public class BotInstance
             {
                 var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧");
                 await Task.Delay(1000);
-                await msg.Recall();
+                await msg.RecallAsync();
                 await message.MessageWindow.SendMessageAsync("qwq, 怎么能骂人呢awa");
 
             }

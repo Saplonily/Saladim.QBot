@@ -14,20 +14,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        logger = new LoggerBuilder()
-            .WithAction(s =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    TextBoxLogging.AppendText(s + Environment.NewLine);
-                    if (ScrollToEndCheckBox.IsChecked is true)
-                    {
-                        TextBoxLogging.ScrollToEnd();
-                    }
-                });
-            })
-            .WithLevelLimit(LogLevel.Trace)
-            .Build();
+        App app = (Application.Current as App)!;
+        app.TextBoxLogging = TextBoxLogging;
+        app.ScrollToEndCheckBox = ScrollToEndCheckBox;
+        logger = app.Logger;
         bot = new("ws://127.0.0.1:5000");
         bot.OnLog += s =>
         {
@@ -88,5 +78,11 @@ public partial class MainWindow : Window
         {
             logger.LogInfo("WpfConsole", $"更新失败! 解析值时出错");
         }
+    }
+
+    private void ClearOutPut_Click(object sender, RoutedEventArgs e)
+    {
+        TextBoxLogging.Text = "";
+        logger.LogInfo("WpfConsole", "Wpf控制台清空完成.");
     }
 }

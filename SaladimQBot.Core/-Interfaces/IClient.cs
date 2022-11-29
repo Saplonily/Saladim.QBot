@@ -58,6 +58,28 @@ public interface IClient
     Task RecallMessageAsync(int messageId);
 
     /// <summary>
+    /// 禁言一个群员
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    /// <param name="time">时间</param>
+    Task BanGroupUserAsync(long groupId, long userId, TimeSpan time);
+
+    /// <summary>
+    /// 解禁一个群员
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    Task LiftBanGroupUserAsync(long groupId, long userId);
+
+    /// <summary>
+    /// 获取一个群成员实体
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    IGroupUser GetGroupUser(long groupId, long userId);
+
+    /// <summary>
     /// 开始该Client的连接
     /// </summary>
     /// <returns>状态值</returns>

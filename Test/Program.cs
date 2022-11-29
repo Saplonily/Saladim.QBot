@@ -47,7 +47,7 @@ public static class Program
         #endregion
 
         logger.LogInfo(SecProgram, "Starting...");
-        client = new CqHttpClient("http://127.0.0.1:5700", "http://127.0.0.1:5566", LogLevel.Trace);
+        client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnPost += Client_OnPostAsync;
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
@@ -92,6 +92,7 @@ public static class Program
         {
             string rawString = message.MessageEntity.RawString;
 
+            /**
             if (rawString.Contains("/random"))
             {
                 Random r = new();
@@ -149,7 +150,7 @@ public static class Program
             {
                 var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧");
                 await Task.Delay(1000);
-                await msg.Recall();
+                await msg.RecallAsync();
                 await message.MessageWindow.SendMessageAsync("qwq, 怎么能骂人呢awa");
 
             }
@@ -171,6 +172,29 @@ public static class Program
                     logger.LogInfo("Program", "猜数", $"bot算出来{target}");
                     await Task.Delay(2000);
                     await message.MessageWindow.SendMessageAsync($"猜{target}");
+                }
+            }*/
+            if (message is GroupMessage groupMsg)
+            {
+                if (rawString.Contains("禁言"))
+                {
+                    var userId = (
+                        from node in message.MessageEntity.CqEntity
+                        where node is CqMessageAtNode
+                        let atNode = node.Cast<CqMessageAtNode>()
+                        select atNode.UserId
+                        ).First();
+                    await client.GetGroupUser(groupMsg.Group, userId).BanAsync(new TimeSpan(0, 1, 0));
+                }
+                if (rawString.Contains("解禁"))
+                {
+                    var userId = (
+                        from node in message.MessageEntity.CqEntity
+                        where node is CqMessageAtNode
+                        let atNode = node.Cast<CqMessageAtNode>()
+                        select atNode.UserId
+                        ).First();
+                    await client.GetGroupUser(groupMsg.Group, userId).LiftBanAsync();
                 }
             }
         }

@@ -19,6 +19,8 @@ public class Message : CqEntity, IMessage
 
     public User Sender => ExpSender.Value;
 
+    public User Author => Sender;
+
     public int MessageId { get; protected set; } = default!;
 
     protected internal Expirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
@@ -28,6 +30,11 @@ public class Message : CqEntity, IMessage
     {
         MessageId = messageId;
     }
+
+    public Task RecallAsync()
+        => Client.RecallMessageAsync(this.MessageId);
+
+    #region loadÔÓÆßÔÓ°ËµÄ
 
     internal static Message CreateFromMessagePost(ICqClient client, CqMessagePost post)
         => new Message(client, post.MessageId)
@@ -67,6 +74,8 @@ public class Message : CqEntity, IMessage
         ApiCallResult = this.Client.MakeExpirableApiCallResultData<GetMessageActionResultData>(api);
         return this;
     }
+
+    #endregion
 
     #region IMessage
 

@@ -405,13 +405,81 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     public async Task RecallMessageAsync(int messageId)
     {
         DeleteMessageAction api = new()
-        { 
-            MessageId = messageId 
+        {
+            MessageId = messageId
         };
         await this.CallApiWithCheckingAsync(api);
     }
 
     #endregion
+
+    #endregion
+
+    #region 群的一些互动
+
+    public async Task BanGroupUserAsync(long groupId, long userId, TimeSpan time)
+    {
+        BanGroupUserAction api = new()
+        {
+            GroupId = groupId,
+            UserId = userId,
+            Duration = (int)time.TotalSeconds
+        };
+        await this.CallApiWithCheckingAsync(api);
+    }
+
+    public async Task LiftBanGroupUserAsync(long groupId, long userId)
+    {
+        BanGroupUserAction api = new()
+        {
+            GroupId = groupId,
+            UserId = userId,
+            Duration = 0
+        };
+        await this.CallApiWithCheckingAsync(api);
+    }
+
+    #endregion
+
+    #region 获取实体
+
+    /// <summary>
+    /// 获取一个群用户实体
+    /// </summary>
+    /// <param name="group">群</param>
+    /// <param name="userId">用户Id</param>
+    /// <returns>群用户实体</returns>
+    public GroupUser GetGroupUser(JoinedGroup group, long userId)
+        => GetGroupUser(group.GroupId, userId);
+
+    /// <summary>
+    /// 获取一个群用户实体
+    /// </summary>
+    /// <param name="groupId">群Id</param>
+    /// <param name="user">用户</param>
+    /// <returns>群用户实体</returns>
+    public GroupUser GetGroupUser(long groupId, User user)
+        => GetGroupUser(groupId, user.UserId);
+
+    /// <summary>
+    /// 获取一个群用户实体
+    /// </summary>
+    /// <param name="group">群</param>
+    /// <param name="user">用户</param>
+    /// <returns>群用户实体</returns>
+    public GroupUser GetGroupUser(JoinedGroup group, User user)
+        => GetGroupUser(group.GroupId, user.UserId);
+
+    /// <summary>
+    /// 获取一个群成员实体
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    public GroupUser GetGroupUser(long groupId, long userId)
+        => GroupUser.CreateFromGroupIdAndUserId(this, groupId, userId);
+
+    IGroupUser IClient.GetGroupUser(long groupId, long userId)
+        => GetGroupUser(groupId, userId);
 
     #endregion
 
