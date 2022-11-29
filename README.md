@@ -10,7 +10,7 @@
 
 ### 一些情况简述
 <br>
-目前框架仍为完工,目前未来计划如下(完成度截止2022-11-1):
+目前框架仍为完工,目前未来计划如下:
 
 - [x] 完成基层, 如go-cqhttp的所有post支持,所有api支持
 - [ ] 完成基础应用层, 例如实现一个GroupUser类实现IUser接口,
@@ -34,20 +34,24 @@
 |指令解析管线|×|
 |频道支持|×|
 |Emit虚拟Post|√|
-|重定向ApiCall目标|×|
+|重定向ApiCall目标|_|
 |类似discord.net的实体|*|
+
+- 上述大部分支持会随实体的需求而支持, 例如如果`GroupUser`新增了`BanAsync`方法, 那么同步地, `BanGroupUserAction`这个api会被支持
+
 
 ### 仓库简述
 1. `EmptyTest`项目是一些实验原生.net/C#的一些特性,与本项目无关  
-2. `QBotDotnet.Core`项目是QBotDotnet的基础应用层的抽象,
+2. `SaladimQBot.Core`项目是QBotDotnet的基础应用层的抽象,
 *将* 包含`IUser`,`IClient`等接口或抽象类
 3. `SaladimQBot.GoCqHttp`项目是`Core`项目的go-cqhttp实现, *未来**可能**会加入mirai的实现*, 正在支持Emit发射虚拟Post或重定向ApiCall的目标
 4. `SaladimQBot.GoCqHttpTests`顾名思义是项目 3. 的单元测试,
 大多使用Post/Api的虚拟重定向(即将原本被go-cqhttp的上报会被重定向至另一个模拟出来的),
 `未来也可能加入压力测试等
-5. `SaladimQBot.SharedImplement`共享的一个库, 与项目大致无关, 仅包含极其简单的一些通用实现
-6. `Test` 目前 3. 正在使用的控制台调用测试,在这里你可以找到一些使用的例子
-7. 未来可能会加入的项目:
+5. `SaladimQBot.Shared`共享的一个库, 与项目大致无关, 仅包含极其简单的一些通用实现
+6. `Saladim` 目前 3. 正在使用的控制台调用测试,在这里你可以找到一些使用的例子
+7. `Saladim.Wpf` 与6差不多, 但是是使用wpf构建的gui项目
+8. 未来可能会加入的项目:
     - `SaladimQBot.Mirai` 见3.
     - `SaladimQBot.Extensions.MessagePipeline` 消息处理管线
     - `SaladimQBot.Extensions.CommandPipeline` 消息处理管线更高级封装, 包含简单指令的解析
