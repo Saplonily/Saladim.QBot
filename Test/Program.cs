@@ -261,7 +261,7 @@ public static class Program
                     $"{np6.UserId}发给你的消息{np6.MessageId}被撤回啦",
                 CqNotifyNoticePost np7 =>
                     $"{(np7 is CqPokeNotifyNoticePost pp ? $"{pp.SenderId}戳了戳{pp.TargetId},{pp.GroupId}" :
-                    "unknow notify notice type")}",
+                    "unknown notify notice type")}",
                 CqGroupMemberCardChangedNoticePost np8 =>
                     $"群{np8.GroupId}里的{np8.UserId}的名片从`{np8.CardOld}`变为了`{np8.CardNew}`",
                 _ => $"未知的Notice接受,原始类型str是{np.NoticeType}"
