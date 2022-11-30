@@ -1,12 +1,5 @@
-﻿using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
-using CodingSeb.ExpressionEvaluator;
-using Saladim.SalLogger;
-using SaladimQBot.Core;
+﻿using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
-using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
 
@@ -90,7 +83,7 @@ public static class Program
         Task.Run(OnMessageReceived);
         async void OnMessageReceived()
         {
-            string rawString = message.MessageEntity.RawString;
+
 
             /**
             if (rawString.Contains("/random"))
@@ -174,6 +167,7 @@ public static class Program
                     await message.MessageWindow.SendMessageAsync($"猜{target}");
                 }
             }*/
+            /**
             if (message is GroupMessage groupMsg)
             {
                 if (rawString.Contains("禁言"))
@@ -196,7 +190,7 @@ public static class Program
                         ).First();
                     await client.GetGroupUser(groupMsg.Group, userId).LiftBanAsync();
                 }
-            }
+            }*/
         }
     }
 

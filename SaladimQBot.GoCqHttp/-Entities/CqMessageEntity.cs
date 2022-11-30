@@ -6,14 +6,14 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-[JsonConverter(typeof(CqMessageEntityJsonConverter))]
+[JsonConverter(typeof(CqMessageChainJsonConverter))]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public class CqMessageEntity : List<CqMessageEntityNode>
+public class CqMessageChain : List<CqMessageEntityNode>
 {
-    internal static CqMessageEntity FromIMessageEntity(IMessageEntity entity)
+    internal static CqMessageChain FromIMessageEntity(IMessageEntity entity)
     {
-        if (entity is MessageEntity m) return m.cqEntity;
-        CqMessageEntity cqEntity = new();
+        if (entity is MessageEntity m) return m.cqChainEntity;
+        CqMessageChain cqEntity = new();
         foreach (var node in entity)
         {
             switch (node.NodeType)

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
-using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -60,7 +59,7 @@ public class Message : CqEntity, IMessage
             ).WithNoExpirable();
         ExpMessageEntity = Client.MakeDependencyExpirable(
             ApiCallResult,
-            d => new MessageEntity(d.MessageEntity, MessageEntityHelper.CqEntity2RawString(d.MessageEntity))
+            d => new MessageEntity(d.MessageEntity, MessageChainHelper.ChainToRawString(d.MessageEntity))
             ).WithNoExpirable();
         return this;
     }

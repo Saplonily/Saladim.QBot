@@ -1,21 +1,15 @@
-using System;
-using System.Reflection.Emit;
 using System.Text;
-using System.Web;
-using System.Xml.Linq;
 
 namespace SaladimQBot.GoCqHttp;
 
-using static EnumAttributeCacher;
-
-public static class MessageEntityHelper
+public static class MessageChainHelper
 {
-    public static CqMessageEntity RawString2CqEntity(string rawString)
+    public static CqMessageChain RawStringToChain(string rawString)
     {
         throw new NotImplementedException();
     }
 
-    public static string CqEntity2RawString(CqMessageEntity entity)
+    public static string ChainToRawString(CqMessageChain entity)
     {
         StringBuilder sb = new();
         foreach (var node in entity)

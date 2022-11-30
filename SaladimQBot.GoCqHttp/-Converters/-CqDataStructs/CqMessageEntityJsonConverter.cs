@@ -20,15 +20,15 @@ namespace SaladimQBot.GoCqHttp;
         }
     ]
 */
-public class CqMessageEntityJsonConverter : JsonConverter<CqMessageEntity>
+public class CqMessageChainJsonConverter : JsonConverter<CqMessageChain>
 {
-    public override CqMessageEntity? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override CqMessageChain? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         JsonDocument doc = JsonDocument.ParseValue(ref reader);
         JsonElement root = doc.RootElement;
         if (root.ValueKind != JsonValueKind.Array) return null;
 
-        CqMessageEntity entity = new();
+        CqMessageChain entity = new();
         foreach (var item in root.EnumerateArray())
         {
             //获取cq码类别
@@ -61,7 +61,7 @@ public class CqMessageEntityJsonConverter : JsonConverter<CqMessageEntity>
         return entity;
     }
 
-    public override void Write(Utf8JsonWriter writer, CqMessageEntity value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, CqMessageChain value, JsonSerializerOptions options)
     {
         writer.WriteStartArray();
         foreach (var node in value)

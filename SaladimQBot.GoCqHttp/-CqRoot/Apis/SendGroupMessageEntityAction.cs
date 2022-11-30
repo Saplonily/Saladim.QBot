@@ -10,5 +10,5 @@ public class SendGroupMessageEntityAction : CqApi
     public long GroupId { get; set; }
 
     [Name("message")]
-    public CqMessageEntity Message { get; set; } = default!;
+    public CqMessageChain Message { get; set; } = default!;
 }

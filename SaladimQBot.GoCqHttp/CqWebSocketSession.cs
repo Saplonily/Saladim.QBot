@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -67,7 +66,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
             Started = true;
             ReceivingTask = Task.Run(ReceivingLoop);
         }
-        catch(Exception)
+        catch (Exception)
         {
             Started = false;
             throw;

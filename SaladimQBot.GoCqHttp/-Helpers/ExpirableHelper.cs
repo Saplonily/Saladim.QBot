@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace SaladimQBot.GoCqHttp;
+﻿namespace SaladimQBot.GoCqHttp;
 
 public static class ExpirableHelper
 {

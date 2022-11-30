@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SaladimQBot.GoCqHttp;
 
 namespace SaladimQBot.GoCqHttp.Tests;
 
@@ -11,13 +10,13 @@ public class MessageEntityHelperTests
     {
         //不带接收图片
         {
-            CqMessageEntity entity = new()
+            CqMessageChain entity = new()
             {
                 new CqMessageTextNode("你好这里是文本啊~[&nbsp属于是,]"),
                 new CqMessageAtNode(2748166392),
                 new CqMessageFaceNode(1)
             };
-            string raw = MessageEntityHelper.CqEntity2RawString(entity);
+            string raw = MessageChainHelper.ChainToRawString(entity);
             string except = "你好这里是文本啊~[&nbsp属于是,]".CqEncode() +
                 "[CQ:at,qq=2748166392][CQ:face,id=1]";
             Assert.AreEqual(except, raw);
@@ -25,7 +24,7 @@ public class MessageEntityHelperTests
 
         //带接收图片
         {
-            CqMessageEntity entity = new()
+            CqMessageChain entity = new()
             {
                 new CqMessageTextNode("你好这里是文本啊~[&nbsp属于是,]"),
                 new CqMessageAtNode(2748166392),
@@ -38,7 +37,7 @@ public class MessageEntityHelperTests
                     ImageShowType.Invalid
                 )
             };
-            string raw = MessageEntityHelper.CqEntity2RawString(entity);
+            string raw = MessageChainHelper.ChainToRawString(entity);
             string except = "你好这里是文本啊~[&nbsp属于是,]".CqEncode() +
                 "[CQ:at,qq=2748166392][CQ:face,id=1]";
             except += $"[CQ:image,url={"http://114514,233,[]pwp".CqEncode()}," +
@@ -57,16 +56,16 @@ public class MessageEntityHelperTests
 
         //带未实现CQ码
         {
-            CqMessageEntity entity = new()
+            CqMessageChain entity = new()
             {
                 new CqMessageUnimplementedNode("at",new Dictionary<string,string>()
                 {
                     ["qq"] = "2748166392"
                 }),
-                new CqMessageTextNode("114514[[CQ:at,&qq=2748166392]]") 
+                new CqMessageTextNode("114514[[CQ:at,&qq=2748166392]]")
             };
-            string s = MessageEntityHelper.CqEntity2RawString(entity);
-            Assert.AreEqual("[CQ:at,qq=2748166392]"+ "114514[[CQ:at,&qq=2748166392]]".CqEncode(), s);
+            string s = MessageChainHelper.ChainToRawString(entity);
+            Assert.AreEqual("[CQ:at,qq=2748166392]" + "114514[[CQ:at,&qq=2748166392]]".CqEncode(), s);
         }
     }
 }
@@ -75,6 +74,6 @@ internal static class Extensions
 {
     public static string CqEncode(this string str)
     {
-        return MessageEntityHelper.CqEncode(str);
+        return MessageChainHelper.CqEncode(str);
     }
 }

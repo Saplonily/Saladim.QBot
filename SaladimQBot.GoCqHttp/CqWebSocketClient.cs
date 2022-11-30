@@ -1,12 +1,24 @@
-﻿using System.Net.WebSockets;
-using System.Text.Json;
-using Saladim.SalLogger;
-using SaladimQBot.Shared;
-using SaladimQBot.GoCqHttp.Posts;
-using SaladimQBot.Core;
-using SaladimQBot.GoCqHttp.Apis;
-using System.Text.RegularExpressions;
+﻿
+/* 项目“SaladimQBot.GoCqHttp (netstandard2.0)”的未合并的更改
+在此之前:
+using 
+在此之后:
+using
+*/
 
+/* 项目“SaladimQBot.GoCqHttp (net7.0)”的未合并的更改
+在此之前:
+using 
+在此之后:
+using
+*/
+
+/* 项目“SaladimQBot.GoCqHttp (netstandard2.1)”的未合并的更改
+在此之前:
+using 
+在此之后:
+using
+*/
 namespace SaladimQBot.GoCqHttp;
 
 public sealed class CqWebSocketClient : CqClient

@@ -1,10 +1,9 @@
-﻿using SaladimQBot.GoCqHttp;
-using Saladim.SalLogger;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using CodingSeb.ExpressionEvaluator;
-using SaladimQBot.Core;
+using Saladim.SalLogger;
+using SaladimQBot.GoCqHttp;
 
 namespace SaladimWpf;
 
@@ -82,7 +81,7 @@ public class BotInstance
                 string s = reader.ReadToEnd();
                 JsonDocument doc = JsonDocument.Parse(s);
                 string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
-                CqMessageEntity cqEntity = new()
+                CqMessageChain cqEntity = new()
                 {
                     new CqMessageImageSendNode(imageUrl)
                 };
@@ -109,7 +108,7 @@ public class BotInstance
             if (rawString.StartsWith(commandStart))
             {
                 var replyNode =
-                    (from node in message.MessageEntity.CqEntity
+                    (from node in message.MessageEntity.Chain
                      where node is CqMessageReplyIdNode
                      let replyIdNode = node as CqMessageReplyIdNode
                      select replyIdNode).First();

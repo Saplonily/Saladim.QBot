@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;

@@ -14,7 +14,7 @@ public class CqMessagePost : CqPost
     public Int64 UserId { get; set; }
 
     [Name("message")]
-    public CqMessageEntity MessageEntity { get; set; } = default!;
+    public CqMessageChain MessageEntity { get; set; } = default!;
 
     [Name("raw_message")]
     public string RawMessage { get; set; } = default!;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 using SaladimQBot.Core;
 
 namespace SaladimQBot.GoCqHttp;
@@ -13,18 +8,18 @@ namespace SaladimQBot.GoCqHttp;
 /// </summary>
 public class MessageEntity : IMessageEntity
 {
-    protected internal readonly CqMessageEntity cqEntity;
+    protected internal readonly CqMessageChain cqChainEntity;
 
-    public CqMessageEntity CqEntity { get => cqEntity; }
+    public CqMessageChain Chain { get => cqChainEntity; }
 
     public string RawString { get => rawString.Value; }
 
 
     protected Lazy<string> rawString;
 
-    public MessageEntity(in CqMessageEntity cqEntity, string rawString)
+    public MessageEntity(in CqMessageChain cqEntity, string rawString)
     {
-        this.cqEntity = cqEntity;
+        this.cqChainEntity = cqEntity;
 #if NETSTANDARD2_0
         this.rawString = new Lazy<string>(() => rawString, isThreadSafe: true);
 #elif NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
@@ -34,25 +29,25 @@ public class MessageEntity : IMessageEntity
 
     public MessageEntity(in IMessageEntity entity)
     {
-        cqEntity = CqMessageEntity.FromIMessageEntity(entity);
-        rawString = new Lazy<string>(() => MessageEntityHelper.CqEntity2RawString(cqEntity), isThreadSafe: true);
+        cqChainEntity = CqMessageChain.FromIMessageEntity(entity);
+        rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqChainEntity), isThreadSafe: true);
     }
 
-    public MessageEntity(CqMessageEntity cqEntity)
+    public MessageEntity(CqMessageChain cqEntity)
     {
-        this.cqEntity = cqEntity;
-        this.rawString = new Lazy<string>(() => MessageEntityHelper.CqEntity2RawString(cqEntity), isThreadSafe: true);
+        this.cqChainEntity = cqEntity;
+        this.rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqEntity), isThreadSafe: true);
     }
 
     #region IMessageEntity
 
-    public int Count => cqEntity.Count;
+    public int Count => cqChainEntity.Count;
 
     IEnumerator<IMessageEntityNode> IEnumerable<IMessageEntityNode>.GetEnumerator()
-        => cqEntity.GetEnumerator();
+        => cqChainEntity.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-        => cqEntity.GetEnumerator();
+        => cqChainEntity.GetEnumerator();
 
     #endregion
 }

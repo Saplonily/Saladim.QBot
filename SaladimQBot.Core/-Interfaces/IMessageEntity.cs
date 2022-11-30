@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace SaladimQBot.Core;
+﻿namespace SaladimQBot.Core;
 
 /// <summary>
 /// 消息实体，表现为消息链

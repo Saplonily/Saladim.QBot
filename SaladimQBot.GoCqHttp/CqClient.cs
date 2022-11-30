@@ -1,9 +1,9 @@
-﻿using Saladim.SalLogger;
-using System.Text.Json;
+﻿using System.Text.Json;
+using Saladim.SalLogger;
 using SaladimQBot.Core;
+using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
-using SaladimQBot.GoCqHttp.Apis;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -40,7 +40,6 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[{l}][{s}/{(ss is null ? "" : $"{ss}")}] {content}";
     }
-
 
     #region OnPost和OnLog事件
 
@@ -336,7 +335,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     {
         SendPrivateMessageEntityAction api = new()
         {
-            Message = messageEntity.cqEntity,
+            Message = messageEntity.cqChainEntity,
             UserId = userId
         };
         var rst = await this.CallApiWithCheckingAsync(api);
@@ -376,7 +375,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         SendGroupMessageEntityAction a = new()
         {
             GroupId = groupId,
-            Message = messageEntity.cqEntity
+            Message = messageEntity.cqChainEntity
         };
         var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
         return GroupMessage.CreateFromMessageId(this, result.MessageId);

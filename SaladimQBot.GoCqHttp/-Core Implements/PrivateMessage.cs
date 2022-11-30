@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SaladimQBot.Core;
+﻿using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
 

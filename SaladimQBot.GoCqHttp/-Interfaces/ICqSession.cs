@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace SaladimQBot.GoCqHttp;
+﻿namespace SaladimQBot.GoCqHttp;
 
 public interface ICqSession : IDisposable
 {

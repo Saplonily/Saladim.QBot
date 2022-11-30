@@ -72,7 +72,7 @@ public class CqHttpListenerSession : ICqSession
                     content.Response.Close();
                 }
             }
-            catch (HttpListenerException) 
+            catch (HttpListenerException)
             {
                 break;
             }
