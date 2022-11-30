@@ -12,7 +12,7 @@ public class CqNotifyNoticePostJsonConverter : JsonConverter<CqNotifyNoticePost>
         JsonElement root = JsonDocument.ParseValue(ref reader).RootElement;
         CqJsonPostLoader loader = new(root);
         var notifyType = loader.EnumFromString<CqNotifySubType>(StringConsts.NotifySubTypeProperty);
-        var targetType = CqTypeMapper.FindCalssForCqNotifyNoticePostType(notifyType);
+        var targetType = CqTypeMapper.FindClassForCqNotifyNoticePostType(notifyType);
         if (targetType is null) return null;
         return JsonSerializer.Deserialize(root, targetType, options).AsCast<CqNotifyNoticePost>();
     }

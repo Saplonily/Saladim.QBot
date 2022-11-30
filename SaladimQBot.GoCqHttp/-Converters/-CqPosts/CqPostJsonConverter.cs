@@ -12,7 +12,7 @@ public class CqPostJsonConverter : JsonConverter<CqPost>
         JsonDocument doc = JsonDocument.ParseValue(ref reader);
         CqJsonPostLoader loader = new(doc.RootElement);
         var postType = loader.EnumFromString<CqPostType>(StringConsts.PostTypeProperty);
-        Type? targetType = CqTypeMapper.FindCalssForPostType(postType);
+        Type? targetType = CqTypeMapper.FindClassForPostType(postType);
         if (targetType is null) return null;
         var updatedPost = JsonSerializer.Deserialize(doc, targetType, options);
         return updatedPost.AsCast<CqPost>();

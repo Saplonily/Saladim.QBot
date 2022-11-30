@@ -19,7 +19,7 @@ internal static class CqTypeMapper
 
     #region 上报四类型
 
-    public static Type? FindCalssForPostType(CqPostType postType) => postType switch
+    public static Type? FindClassForPostType(CqPostType postType) => postType switch
     {
         CqPostType.MessageSent or
         CqPostType.Message => typeof(CqMessagePost),
@@ -57,7 +57,7 @@ internal static class CqTypeMapper
         _ => null
     };
 
-    public static Type? FindCalssForCqNotifyNoticePostType(CqNotifySubType notifyType) => notifyType switch
+    public static Type? FindClassForCqNotifyNoticePostType(CqNotifySubType notifyType) => notifyType switch
     {
         CqNotifySubType.GroupHonorChanged => typeof(CqGroupHonorChangedNotifyNoticePost),
         CqNotifySubType.Poke => typeof(CqPokeNotifyNoticePost),
