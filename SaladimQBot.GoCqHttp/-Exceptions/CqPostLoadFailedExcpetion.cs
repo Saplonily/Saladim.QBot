@@ -2,9 +2,9 @@
 
 namespace SaladimQBot.GoCqHttp;
 
-public class CqPostLoadFailedExcpetion : ClientException
+public class CqPostLoadFailedException : ClientException
 {
-    internal CqPostLoadFailedExcpetion(
+    internal CqPostLoadFailedException(
         IClient client,
         string? message = null,
         CqPost? post = null,

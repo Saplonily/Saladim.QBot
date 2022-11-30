@@ -23,7 +23,7 @@ public abstract class CqMessageEntityNode : IMessageEntityNode
     public virtual IDictionary<string, string> GetParamsDictionary()
     {
         JsonNode? node = JsonSerializer.SerializeToNode(this, GetType(), CqJsonOptions.Instance);
-        if (node is null) throw new Exception("Error occured when serialize a CqMessageEntityNode. Node is null.");
+        if (node is null) throw new Exception("Error occurred when serialize a CqMessageEntityNode. Node is null.");
         StringDictionary? dic = JsonSerializer.Deserialize<StringDictionary>(node, CqJsonOptions.Instance);
         if (dic is null) throw new ArgumentException("Failed to serialize a node to params dictionary.");
         return dic;

@@ -7,7 +7,7 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-public delegate void OnCqSessionReceivedHandler(in JsonDocument parsedDocment);
+public delegate void OnCqSessionReceivedHandler(in JsonDocument parsedDocument);
 
 public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 {

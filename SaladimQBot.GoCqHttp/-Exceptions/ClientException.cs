@@ -49,7 +49,7 @@ public class ClientException : Exception
             "Explicit api call failed.",
         ExceptionType.PostParsingFailed =>
             "Post parsing failed, if it isn't caused by a custom post emit, please raise a issue.",
-        _ => throw new ArgumentException(paramName: nameof(type), message: "Unknown excpetion type."),
+        _ => throw new ArgumentException(paramName: nameof(type), message: "Unknown exception type."),
     };
 
     public enum ExceptionType

@@ -12,7 +12,7 @@ public static class ICqClientExtensions
         return result;
     }
 
-    internal static Task<CqApiCallResult> CallApiImplicityWithCheckingAsync(this ICqClient client, CqApi api)
+    internal static Task<CqApiCallResult> CallApiImplicitlyWithCheckingAsync(this ICqClient client, CqApi api)
         => client.CallApiWithCheckingAsync(api, true);
 
     public static Task<CqApiCallResult> CallApiWithCheckingAsync(this ICqClient client, CqApi api)

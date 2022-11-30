@@ -30,7 +30,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
 
     public CqClient(LogLevel logLevelLimit)
     {
-        OnPost += InternalPostProcesser;
+        OnPost += InternalPostProcessor;
         logger = new LoggerBuilder()
                 .WithLevelLimit(logLevelLimit)
                .WithAction(s => OnLog?.Invoke(s))
@@ -163,7 +163,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     {
         if (Started)
         {
-            logger.LogInfo("Client", "Connection", "Stoping connection...");
+            logger.LogInfo("Client", "Connection", "Stopping connection...");
             ApiSession.Dispose();
             PostSession.Dispose();
             PostSession.OnReceived -= OnSessionReceived;
@@ -236,7 +236,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         }
         return CastedExpirable<TResultData, CqApiCallResultData>.MakeFromSource(ex!);
         CqApiCallResultData ApiCallResultDataFactory()
-            => this.CallApiImplicityWithCheckingAsync(api).Result.Data!;
+            => this.CallApiImplicitlyWithCheckingAsync(api).Result.Data!;
 
     }
 
@@ -274,7 +274,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
 
     #endregion
 
-    internal void InternalPostProcesser(CqPost post)
+    internal void InternalPostProcessor(CqPost post)
     {
         switch (post)
         {
