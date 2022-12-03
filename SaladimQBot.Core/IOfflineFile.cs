@@ -1,6 +1,6 @@
 ﻿namespace SaladimQBot.Core;
 
-public interface IOfflineFile
+public interface IOfflineFile : IClientEntity
 {
     string FileName { get; }
 

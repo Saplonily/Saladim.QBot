@@ -3,7 +3,7 @@
 /// <summary>
 /// 一个Q群的文件
 /// </summary>
-public interface IGroupFile
+public interface IGroupFile : IClientEntity
 {
     /// <summary>
     /// 文件Id
