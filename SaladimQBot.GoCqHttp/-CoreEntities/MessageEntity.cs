@@ -50,4 +50,25 @@ public class MessageEntity : IMessageEntity
         => cqChainEntity.GetEnumerator();
 
     #endregion
+
+    public override bool Equals(object? obj)
+    {
+        return obj is MessageEntity entity &&
+               EqualityComparer<Lazy<string>>.Default.Equals(rawString, entity.rawString);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(rawString);
+    }
+
+    public static bool operator ==(MessageEntity? left, MessageEntity? right)
+    {
+        return EqualityComparer<MessageEntity>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(MessageEntity? left, MessageEntity? right)
+    {
+        return !(left == right);
+    }
 }

@@ -145,7 +145,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         catch (AggregateException e)
         {
             if (e.InnerException is not TaskCanceledException)
-                throw e;
+                throw;
         }
         catch (ObjectDisposedException)
         {

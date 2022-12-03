@@ -1,24 +1,5 @@
-﻿
-/* 项目“SaladimQBot.GoCqHttp (netstandard2.0)”的未合并的更改
-在此之前:
-using 
-在此之后:
-using
-*/
+﻿using Saladim.SalLogger;
 
-/* 项目“SaladimQBot.GoCqHttp (net7.0)”的未合并的更改
-在此之前:
-using 
-在此之后:
-using
-*/
-
-/* 项目“SaladimQBot.GoCqHttp (netstandard2.1)”的未合并的更改
-在此之前:
-using 
-在此之后:
-using
-*/
 namespace SaladimQBot.GoCqHttp;
 
 public sealed class CqWebSocketClient : CqClient

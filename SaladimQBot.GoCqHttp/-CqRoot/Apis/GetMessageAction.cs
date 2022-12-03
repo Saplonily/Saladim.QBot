@@ -8,4 +8,15 @@ public class GetMessageAction : CqApi
 
     [Name("message_id")]
     public long MessageId { get; set; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is GetMessageAction action &&
+               this.MessageId == action.MessageId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.MessageId);
+    }
 }

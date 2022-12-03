@@ -27,7 +27,7 @@ public class User : CqEntity, IUser, ICqMessageWindow
 
     protected Expirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;
 
-    protected User(ICqClient client, long userId) : base(client)
+    protected User(CqClient client, long userId) : base(client)
     {
         UserId = userId;
     }
@@ -40,17 +40,22 @@ public class User : CqEntity, IUser, ICqMessageWindow
 
     #region CreateFrom / LoadFrom集合
 
-    internal static User CreateFromMessagePost(in ICqClient client, in CqMessagePost post)
+    internal static User CreateFromMessagePost(in CqClient client, in CqMessagePost post)
         => new User(client, post.UserId)
                 .LoadApiCallResult(post.UserId)
                 .LoadFromUserId()
                 .LoadFromMessageSender(post.Sender);
 
-    internal static User CreateFromNicknameAndId(in ICqClient client, in string nickname, long userId)
+    internal static User CreateFromNicknameAndId(in CqClient client, in string nickname, long userId)
         => new User(client, userId)
                 .LoadApiCallResult(userId)
                 .LoadFromUserId()
                 .LoadNickname(nickname);
+
+    internal static User CreateFromId(in CqClient client, long userId)
+        => new User(client, userId)
+                .LoadApiCallResult(userId)
+                .LoadFromUserId();
 
     protected internal User LoadNickname(in string nickname)
     {
@@ -115,7 +120,7 @@ public class User : CqEntity, IUser, ICqMessageWindow
     int IUser.LoginDays { get => LoginDays.Value; }
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendPrivateMessageAsync(UserId, messageEntity);
+        => await Client.SendPrivateMessageAsync(UserId, new MessageEntity(messageEntity));
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendPrivateMessageAsync(UserId, rawString);

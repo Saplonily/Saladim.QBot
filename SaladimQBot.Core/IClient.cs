@@ -5,6 +5,7 @@
 /// </summary>
 public interface IClient
 {
+    #region 获取消息
     /// <summary>
     /// 使用消息Id获取一个群消息
     /// </summary>
@@ -18,6 +19,9 @@ public interface IClient
     /// <param name="messageId"></param>
     /// <returns></returns>
     IPrivateMessage GetPrivateMessageById(int messageId);
+    #endregion
+
+    #region 发送消息
 
     /// <summary>
     /// 使用消息实体发送私聊消息
@@ -51,6 +55,9 @@ public interface IClient
     /// <returns>该消息实体</returns>
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, string rawString);
 
+    #endregion
+
+    #region 消息/成员处理
     /// <summary>
     /// 撤回一条消息
     /// </summary>
@@ -72,12 +79,37 @@ public interface IClient
     /// <param name="userId">用户Id</param>
     Task LiftBanGroupUserAsync(long groupId, long userId);
 
+    #endregion
+
+    #region 实体获取
+
     /// <summary>
     /// 获取一个群成员实体
     /// </summary>
     /// <param name="groupId">群号</param>
     /// <param name="userId">用户Id</param>
     IGroupUser GetGroupUser(long groupId, long userId);
+
+    /// <summary>
+    /// 获取一个QQ用户实体
+    /// </summary>
+    /// <param name="userId">用户Id</param>
+    IUser GetUser(long userId);
+
+    /// <summary>
+    /// 获取一个群实体, 允许bot没加入
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    IGroup GetGroup(long groupId);
+
+    /// <summary>
+    /// 获取一个bot加入了的群
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    IJoinedGroup GetJoinedGroup(long groupId);
+
+    #endregion
+
 
     /// <summary>
     /// 开始该Client的连接

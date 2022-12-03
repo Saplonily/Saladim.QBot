@@ -21,16 +21,18 @@ public class GroupMessage : Message, IGroupMessage
 
     public new GroupUser Author => Sender;
 
-    protected internal GroupMessage(ICqClient client, int messageId)
+    protected internal GroupMessage(CqClient client, int messageId)
         : base(client, messageId)
     {
     }
 
-    internal static GroupMessage CreateFromGroupMessagePost(ICqClient client, CqGroupMessagePost post)
+    #region load一大堆的
+
+    internal static GroupMessage CreateFromGroupMessagePost(CqClient client, CqGroupMessagePost post)
         => new GroupMessage(client, post.MessageId)
                 .LoadGroupAndSenderFromMessagePost(post);
 
-    internal static new GroupMessage CreateFromMessageId(ICqClient client, int messageId)
+    internal static new GroupMessage CreateFromMessageId(CqClient client, int messageId)
         => new GroupMessage(client, messageId)
                 .LoadGetMessageApiResult().Cast<GroupMessage>()
                 .LoadGroupAndSenderFromMessageId();
@@ -66,6 +68,20 @@ public class GroupMessage : Message, IGroupMessage
         return this;
     }
 
+    #endregion
+
+    public override bool Equals(object? obj)
+    {
+        return obj is GroupMessage message &&
+               base.Equals(obj) &&
+               EqualityComparer<JoinedGroup>.Default.Equals(this.Group, message.Group) &&
+               EqualityComparer<GroupUser>.Default.Equals(this.Sender, message.Sender);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), this.Group, this.Sender);
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IJoinedGroup IGroupMessage.Group { get => ExpGroup.Value; }
@@ -76,4 +92,13 @@ public class GroupMessage : Message, IGroupMessage
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IMessageWindow IMessage.MessageWindow => Group;
 
+    public static bool operator ==(GroupMessage? left, GroupMessage? right)
+    {
+        return EqualityComparer<GroupMessage>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(GroupMessage? left, GroupMessage? right)
+    {
+        return !(left == right);
+    }
 }

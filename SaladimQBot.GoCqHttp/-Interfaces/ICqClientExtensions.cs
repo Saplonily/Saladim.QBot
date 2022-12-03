@@ -3,7 +3,7 @@
 
 public static class ICqClientExtensions
 {
-    internal static async Task<CqApiCallResult> CallApiWithCheckingAsync(this ICqClient client, CqApi api, bool implicitly)
+    internal static async Task<CqApiCallResult> CallApiWithCheckingAsync(this CqClient client, CqApi api, bool implicitly)
     {
         var result = await client.CallApiAsync(api);
         if (result is null) throw new CqApiCallFailedException(client, implicitly, api);
@@ -12,9 +12,9 @@ public static class ICqClientExtensions
         return result;
     }
 
-    internal static Task<CqApiCallResult> CallApiImplicitlyWithCheckingAsync(this ICqClient client, CqApi api)
+    internal static Task<CqApiCallResult> CallApiImplicitlyWithCheckingAsync(this CqClient client, CqApi api)
         => client.CallApiWithCheckingAsync(api, true);
 
-    public static Task<CqApiCallResult> CallApiWithCheckingAsync(this ICqClient client, CqApi api)
+    public static Task<CqApiCallResult> CallApiWithCheckingAsync(this CqClient client, CqApi api)
         => client.CallApiWithCheckingAsync(api, false);
 }

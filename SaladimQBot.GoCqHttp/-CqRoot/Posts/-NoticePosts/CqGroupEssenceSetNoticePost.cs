@@ -13,6 +13,9 @@ public class CqGroupEssenceSetNoticePost : CqNoticePost
     [Name("message_id")]
     public Int32 MessageId { get; set; }
 
+    [Name("group_id")]
+    public Int64 GroupId { get; set; }
+
     [Name("sub_type")]
     public NoticeSubType SubType { get; set; }
 

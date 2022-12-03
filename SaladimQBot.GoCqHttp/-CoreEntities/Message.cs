@@ -24,7 +24,7 @@ public class Message : CqEntity, IMessage
 
     protected internal Expirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
 
-    protected internal Message(ICqClient client, int messageId)
+    protected internal Message(CqClient client, int messageId)
         : base(client)
     {
         MessageId = messageId;
@@ -35,11 +35,11 @@ public class Message : CqEntity, IMessage
 
     #region loadÔÓÆßÔÓ°ËµÄ
 
-    internal static Message CreateFromMessagePost(ICqClient client, CqMessagePost post)
+    internal static Message CreateFromMessagePost(CqClient client, CqMessagePost post)
         => new Message(client, post.MessageId)
             .LoadFromMessagePost(post);
 
-    internal static Message CreateFromMessageId(ICqClient client, int messageId)
+    internal static Message CreateFromMessageId(CqClient client, int messageId)
         => new Message(client, messageId)
             .LoadGetMessageApiResult()
             .LoadFromMessageId();
@@ -87,9 +87,29 @@ public class Message : CqEntity, IMessage
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IMessageWindow IMessage.MessageWindow => Sender;
 
-
     #endregion
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}";
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Message message &&
+               this.MessageId == message.MessageId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.MessageId);
+    }
+
+    public static bool operator ==(Message? left, Message? right)
+    {
+        return EqualityComparer<Message>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(Message? left, Message? right)
+    {
+        return !(left == right);
+    }
 }

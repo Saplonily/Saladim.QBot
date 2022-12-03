@@ -11,6 +11,7 @@ public class GroupUser : User, IGroupUser
 {
     public JoinedGroup Group { get; protected set; } = default!;
 
+    #region Expirable的一些属性
     public Expirable<string> Card { get; protected set; } = default!;
 
     public Expirable<string> Area { get; protected set; } = default!;
@@ -32,10 +33,26 @@ public class GroupUser : User, IGroupUser
     public Expirable<bool> IsAbleToChangeCard { get; protected set; } = default!;
 
     public Expirable<DateTime> MuteExpireTime { get; protected set; } = default!;
+    #endregion
+
+    /// <summary>
+    /// 返回 "Card (Nickname, UserId)" 或 "Nickname (UserId)" 样的字符串,
+    /// 例如 "群废物 (Saplonily, 2748166392)" 和 "Saplonily (2748166392)"
+    /// </summary>
+    public string FullName
+    {
+        get => Card.Value != string.Empty ? $"{Card.Value} ({Nickname.Value}, {UserId})" : $"{Nickname.Value} ({UserId})";
+    }
+
+    /// <inheritdoc cref="FullName"/>
+    public Task<string> FullNameAsync
+    {
+        get => Task.Run(() => FullName, CancellationToken.None);
+    }
 
     protected new Expirable<GetGroupMemberInfoActionResultData> ApiCallResult { get; set; } = default!;
 
-    protected GroupUser(ICqClient client, long groupId, long userId)
+    protected GroupUser(CqClient client, long groupId, long userId)
         : base(client, userId)
     {
         Group = JoinedGroup.CreateFromGroupId(client, groupId);
@@ -49,23 +66,23 @@ public class GroupUser : User, IGroupUser
 
     #region 一堆杂七杂八的Load
 
-    internal static GroupUser CreateFromCqGroupMessagePost(ICqClient client, CqGroupMessagePost messagePost)
+    internal static GroupUser CreateFromCqGroupMessagePost(CqClient client, CqGroupMessagePost messagePost)
         => CreateFromCqGroupMessageSender(client, (CqGroupMessageSender)messagePost.Sender, messagePost.GroupId);
 
-    internal static GroupUser CreateFromCqGroupMessageSender(ICqClient client, CqGroupMessageSender groupSender, long groupId)
+    internal static GroupUser CreateFromCqGroupMessageSender(CqClient client, CqGroupMessageSender groupSender, long groupId)
         => new GroupUser(client, groupId, groupSender.UserId)
                 .LoadApiCallResult(groupId, groupSender.UserId)
                 .LoadFromUserId()
                 .LoadFromCqGroupMessageSender(groupSender)
                 .LoadGroupFromGroupId(groupId);
 
-    internal static GroupUser CreateFromGroupIdAndUserId(ICqClient client, long groupId, long userId)
+    internal static GroupUser CreateFromGroupIdAndUserId(CqClient client, long groupId, long userId)
         => new GroupUser(client, groupId, userId)
                 .LoadApiCallResult(groupId, userId)
                 .LoadFromUserId()
                 .LoadGroupFromGroupId(groupId);
 
-    internal static GroupUser CreateFromGroupIdUserIdAndCard(ICqClient client, long groupId, long userId, string card)
+    internal static GroupUser CreateFromGroupIdUserIdAndCard(CqClient client, long groupId, long userId, string card)
         => new GroupUser(client, groupId, userId)
                 .LoadApiCallResult(groupId, userId)
                 .LoadFromUserId()
@@ -177,8 +194,29 @@ public class GroupUser : User, IGroupUser
 
     #endregion
 
-    private string DebuggerDisplay
+    public override bool Equals(object? obj)
     {
-        get => Card.Value != string.Empty ? $"\"{Card.Value}\" (\"{Nickname.Value}\",{UserId})" : $"\"{Nickname.Value}\" ({UserId})";
+        return obj is GroupUser user &&
+               base.Equals(obj) &&
+               this.UserId == user.UserId &&
+               EqualityComparer<JoinedGroup>.Default.Equals(this.Group, user.Group);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), this.UserId, this.Group);
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => FullName;
+
+    public static bool operator ==(GroupUser? left, GroupUser? right)
+    {
+        return EqualityComparer<GroupUser>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(GroupUser? left, GroupUser? right)
+    {
+        return !(left == right);
     }
 }

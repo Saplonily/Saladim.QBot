@@ -11,6 +11,32 @@ public static class Program
     private static Logger logger = null!;
     private static StreamWriter writer = null!;
     public const string SecProgram = "Program";
+
+    private async static Task ConsoleLoop()
+    {
+        string s;
+        while ((s = Console.ReadLine()!) != "exit")
+        {
+            try
+            {
+                if (s is "stop")
+                {
+                    await client.StopAsync();
+                    logger.LogInfo(SecProgram, "stop动作完成.");
+                }
+                if (s is "start")
+                {
+                    await client.StartAsync();
+                    logger.LogInfo(SecProgram, "start动作完成.");
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogWarn(SecProgram, "Exception", e);
+            }
+        }
+    }
+
     public static async Task<int> Main()
     {
         //大部分情况下你会因为没有这个目录导致程序直接寄
@@ -41,9 +67,7 @@ public static class Program
 
         logger.LogInfo(SecProgram, "Starting...");
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
-        client.OnPost += Client_OnPostAsync;
-        client.OnMessageReceived += Client_OnMessageReceived;
-        client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
+        SubscribeEvents();
 
         bool connected = false;
         while (connected == false)
@@ -76,16 +100,36 @@ public static class Program
         logger.LogInfo(SecProgram, "Main method ended.");
         writer.Dispose();
         return 0;
+
+        static void SubscribeEvents()
+        {
+            client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
+            client.OnGroupMemberIncreased += Client_OnGroupMemberIncreased;
+            client.OnGroupMemberChanged += Client_OnGroupMemberChanged;
+            client.OnGroupMemberDecreased += Client_OnGroupMemberDecreased;
+        }
     }
 
-    private static void Client_OnMessageReceived(Message message)
+    private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)
     {
-        Task.Run(OnMessageReceived);
-        async void OnMessageReceived()
-        {
+        logger.LogInfo("p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}走了");
+    }
 
+    private static void Client_OnGroupMemberChanged(JoinedGroup group, User user, bool isIncrease)
+    {
+        logger.LogInfo("p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}这个人要么退群了要么加群了" +
+            $", 答案是... {(isIncrease ? $"加群!(角色是:{user.Cast<GroupUser>().GroupRole.Value})" : "退群...")}");
+        
+    }
 
-            /**
+    private static void Client_OnGroupMemberIncreased(JoinedGroup group, GroupUser user)
+    {
+        logger.LogInfo("p", $"awa, 群{group.Name.Value}里人了: {user.Nickname.Value}");
+    }
+
+private static void ProcessMessageTest01(Message message)
+    {
+        /**
             if (rawString.Contains("/random"))
             {
                 Random r = new();
@@ -167,7 +211,11 @@ public static class Program
                     await message.MessageWindow.SendMessageAsync($"猜{target}");
                 }
             }*/
-            /**
+    }
+
+    private static void ProcessMesssageTest02(Message message)
+    {
+        /**
             if (message is GroupMessage groupMsg)
             {
                 if (rawString.Contains("禁言"))
@@ -191,7 +239,6 @@ public static class Program
                     await client.GetGroupUser(groupMsg.Group, userId).LiftBanAsync();
                 }
             }*/
-        }
     }
 
     //操控原始上报
@@ -222,12 +269,11 @@ public static class Program
                 );
             if (mpost is CqGroupMessagePost gpost)
             {
-                var gsender = mpost.Sender.AsCast<CqGroupMessageSender>()!;
                 logger.LogDebug("Program", "RawPost", $"这是一条群消息, 群号是{gpost.GroupId}");
                 string s = "/echo ";
                 if (mpost.RawMessage.StartsWith(s))
                 {
-                    _ = client.SendGroupMessageAsync(gpost.GroupId, gpost.RawMessage.Substring(s.Length));
+                    _ = client.SendGroupMessageAsync(gpost.GroupId, gpost.RawMessage[s.Length..]);
                 }
             }
         }
@@ -264,28 +310,4 @@ public static class Program
         return;
     }
 
-    private async static Task ConsoleLoop()
-    {
-        string s;
-        while ((s = Console.ReadLine()!) != "exit")
-        {
-            try
-            {
-                if (s is "stop")
-                {
-                    await client.StopAsync();
-                    logger.LogInfo(SecProgram, "stop动作完成.");
-                }
-                if (s is "start")
-                {
-                    await client.StartAsync();
-                    logger.LogInfo(SecProgram, "start动作完成.");
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogWarn(SecProgram, "Exception", e);
-            }
-        }
-    }
 }

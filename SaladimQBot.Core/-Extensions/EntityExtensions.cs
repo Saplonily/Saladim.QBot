@@ -2,6 +2,8 @@
 
 public static class EntityExtensions
 {
+    #region 消息相关
+
     #region User私聊发送消息
 
     public static Task<IPrivateMessage> SendMessageAsync(this IUser user, IMessageEntity messageEntity)
@@ -25,6 +27,8 @@ public static class EntityExtensions
     public static Task RecallAsync(this IMessage message)
         => message.Client.RecallMessageAsync(message.MessageId);
 
+    #endregion
+
     #region 群操作
 
     #region 操作用户
@@ -36,6 +40,14 @@ public static class EntityExtensions
         => groupUser.Client.LiftBanGroupUserAsync(groupUser.Group.GroupId, groupUser.UserId);
 
     #endregion
+
+    #endregion
+
+    #region 实体额外操作
+
+    public static bool IsFromNonFriends(this IPrivateMessage privateMessage)
+        => privateMessage.TempSource != MessageTempSource.Invalid;
+
 
     #endregion
 }

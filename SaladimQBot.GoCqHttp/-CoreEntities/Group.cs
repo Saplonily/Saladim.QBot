@@ -15,17 +15,17 @@ public class Group : CqEntity, IGroup
 
     protected Expirable<GetGroupInfoActionResultData> ApiCallResultData { get; set; } = default!;
 
-    protected internal Group(ICqClient client, long groupId) : base(client)
+    protected internal Group(CqClient client, long groupId) : base(client)
     {
         GroupId = groupId;
     }
 
     #region CreateFrom / LoadFrom集合
 
-    internal static Group CreateFromCqGroupMessagePost(ICqClient client, CqGroupMessagePost post)
+    internal static Group CreateFromCqGroupMessagePost(CqClient client, CqGroupMessagePost post)
         => CreateFromGroupId(client, post.GroupId);
 
-    internal static Group CreateFromGroupId(ICqClient client, long groupId)
+    internal static Group CreateFromGroupId(CqClient client, long groupId)
         => new Group(client, groupId).LoadFromGroupId(groupId);
 
     protected internal Group LoadFromGroupId(long groupId)
@@ -62,15 +62,16 @@ public class Group : CqEntity, IGroup
         return HashCode.Combine(this.GroupId);
     }
 
-    public static bool operator ==(Group left, Group right)
+    public static bool operator ==(Group? left, Group? right)
     {
         return EqualityComparer<Group>.Default.Equals(left, right);
     }
 
-    public static bool operator !=(Group left, Group right)
+    public static bool operator !=(Group? left, Group? right)
     {
         return !(left == right);
     }
+
 
     #endregion
 }

@@ -14,15 +14,15 @@ public class PrivateMessage : Message, IPrivateMessage
 
     public User PrivateSender { get => ExpPrivateSender.Value; }
 
-    protected internal PrivateMessage(ICqClient client, int messageId) : base(client, messageId)
+    protected internal PrivateMessage(CqClient client, int messageId) : base(client, messageId)
     {
     }
 
-    internal static PrivateMessage CreateFromPrivateMessagePost(ICqClient client, CqPrivateMessagePost post)
+    internal static PrivateMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)
         => new PrivateMessage(client, post.MessageId)
             .LoadFromPrivateMessagePost(post);
 
-    internal static new PrivateMessage CreateFromMessageId(ICqClient client, int messageId)
+    internal static new PrivateMessage CreateFromMessageId(CqClient client, int messageId)
         => new PrivateMessage(client, messageId)
                 .LoadGetMessageApiResult()
                 .LoadFromMessageId().Cast<PrivateMessage>()

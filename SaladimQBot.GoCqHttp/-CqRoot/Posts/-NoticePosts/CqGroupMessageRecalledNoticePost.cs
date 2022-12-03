@@ -3,5 +3,5 @@
 public class CqGroupMessageRecalledNoticePost : CqGroupUserOperatedNoticePost
 {
     [Name("message_id")]
-    public Int64 MessageId { get; set; }
+    public Int32 MessageId { get; set; }
 }

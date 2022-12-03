@@ -49,6 +49,8 @@ public class ClientException : Exception
             "Explicit api call failed.",
         ExceptionType.PostParsingFailed =>
             "Post parsing failed, if it isn't caused by a custom post emit, please raise a issue.",
+        ExceptionType.EntityCreationFailed =>
+            "Failed to create entity.",
         _ => throw new ArgumentException(paramName: nameof(type), message: "Unknown exception type."),
     };
 
@@ -93,6 +95,10 @@ public class ClientException : Exception
         /// <summary>
         /// 解析 上报/api调用结果 时出现错误,小概率是上报出错
         /// </summary>
-        PostParsingFailed
+        PostParsingFailed,
+        /// <summary>
+        /// 在使用原始数据创建实体时出错
+        /// </summary>
+        EntityCreationFailed
     }
 }

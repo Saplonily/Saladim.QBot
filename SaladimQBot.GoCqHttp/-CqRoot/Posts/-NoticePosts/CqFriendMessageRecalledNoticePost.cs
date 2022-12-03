@@ -6,5 +6,5 @@ public class CqFriendMessageRecalledNoticePost : CqNoticePost
     public Int64 UserId { get; set; }
 
     [Name("message_id")]
-    public Int64 MessageId { get; set; }
+    public Int32 MessageId { get; set; }
 }

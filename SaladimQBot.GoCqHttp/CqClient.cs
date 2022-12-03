@@ -1,13 +1,14 @@
 ﻿using System.Text.Json;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
+using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-public abstract class CqClient : ICqClient, IExpirableValueGetter
+public abstract class CqClient : IClient, IExpirableValueGetter
 {
     public abstract ICqSession ApiSession { get; }
 
@@ -268,6 +269,7 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<挂起>")]
     internal Expirable<T> MakeNoneExpirableExpirable<T>(Func<T> valueFactory) where T : notnull
         => new(valueFactory, TimeSpan.FromTicks(-1));
 
@@ -278,18 +280,152 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
         switch (post)
         {
             case CqMessagePost messagePost:
-                switch (post)
+                switch (messagePost)
                 {
                     case CqGroupMessagePost groupMessagePost:
                         GroupMessage gm = GroupMessage.CreateFromGroupMessagePost(this, groupMessagePost);
                         OnMessageReceived?.Invoke(gm);
-                        OnGroupMessageReceived?.Invoke(gm);
+                        OnGroupMessageReceived?.Invoke(gm, gm.Group);
                         break;
 
                     case CqPrivateMessagePost privateMessagePost:
                         PrivateMessage pm = PrivateMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
                         OnMessageReceived?.Invoke(pm);
-                        OnPrivateMessageReceived?.Invoke(pm);
+                        OnPrivateMessageReceived?.Invoke(pm, pm.PrivateSender);
+                        break;
+                }
+                break;
+
+            case CqNoticePost noticePost:
+                switch (noticePost)
+                {
+                    case CqFriendMessageRecalledNoticePost notice:
+                        {
+                            var privateMsg = this.GetPrivateMessageById(notice.MessageId);
+                            OnMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
+                            OnPrivateMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
+                        }
+                        break;
+
+                    case CqGroupMessageRecalledNoticePost notice:
+                        {
+                            var groupMsg = this.GetGroupMessageById(notice.MessageId);
+                            var operatorUser = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            OnMessageRecalled?.Invoke(groupMsg, operatorUser);
+                            OnGroupMessageRecalled?.Invoke(groupMsg, groupMsg.Group, operatorUser);
+                        }
+                        break;
+
+                    case CqFriendAddedNoticePost notice:
+                        OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
+                        break;
+
+                    case CqGroupAdminChangedNoticePost notice:
+                        {
+                            bool isSet = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Set;
+                            bool isCancel = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Cancel;
+                            if (isSet != !isCancel)
+                                throw new ClientException(
+                                    this,
+                                    ClientException.ExceptionType.EntityCreationFailed,
+                                    "GroupAdminChangedNoticePost got a none set none cancel SubType."
+                                    );
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            GroupUser user = this.GetGroupUser(group, notice.UserId);
+                            OnGroupAdminChanged?.Invoke(group, user, isSet);
+                            if (isSet)
+                                OnGroupAdminSet?.Invoke(group, user);
+                            else
+                                OnGroupAdminCancelled?.Invoke(group, user);
+                        }
+                        break;
+
+                    case CqGroupEssenceSetNoticePost notice:
+                        {
+                            bool isAdd = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Add;
+                            bool isDelete = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Delete;
+                            if (isAdd != !isDelete)
+                                throw new ClientException(
+                                    this,
+                                    ClientException.ExceptionType.EntityCreationFailed,
+                                    "GroupEssenceSetNoticePost got a none add none delete SubType."
+                                    );
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            GroupUser user = this.GetGroupUser(group, notice.SenderId);
+                            GroupUser operatorUser = this.GetGroupUser(group, notice.OperatorId);
+                            GroupMessage message = this.GetGroupMessageById(notice.MessageId);
+                            OnGroupEssenceSet?.Invoke(group, operatorUser, user, message, isAdd);
+                            if (isAdd)
+                                OnGroupEssenceAdded?.Invoke(group, operatorUser, user, message);
+                            else
+                                OnGroupEssenceRemoved?.Invoke(group, operatorUser, user, message);
+                        }
+                        break;
+
+                    case CqGroupFileUploadedNoticePost notice:
+                        {
+                            GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            GroupFile groupFile = new(this, notice.File);
+                            OnGroupFileUploaded?.Invoke(group, uploader, groupFile);
+                        }
+                        break;
+
+                    case CqGroupMemberBannedNoticePost notice:
+                        {
+                            bool isBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.Ban;
+                            bool isLiftBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.LiftBan;
+                            if (isBan != !isLiftBan)
+                                throw new ClientException(
+                                    this,
+                                    ClientException.ExceptionType.EntityCreationFailed,
+                                    "GroupMemberBannedNoticePost got a none Ban none LiftBan SubType."
+                                    );
+                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            GroupUser operatorUser = this.GetGroupUser(notice.GroupId, notice.OperatorId);
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+
+                            if (isBan)
+                                OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
+                            else
+                                OnGroupMemberLiftBan?.Invoke(group, user, operatorUser);
+                        }
+                        break;
+
+                    case CqGroupMemberCardChangedNoticePost notice:
+                        {
+                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            //TODO 重构可过期类型(Expirable), 将依赖过期写入Expirable类中
+                            //以能够在上游调用强制过期时下游知道自己过期了
+                            OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
+                        }
+                        break;
+
+                    case CqGroupMemberDecreaseNoticePost notice:
+                        {
+                            User user = this.GetUser(notice.UserId);
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            OnGroupMemberChanged?.Invoke(group, user, false);
+                            OnGroupMemberDecreased?.Invoke(group, user);
+                        }
+                        break;
+
+                    case CqGroupMemberIncreaseNoticePost notice:
+                        {
+                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                            OnGroupMemberChanged?.Invoke(group, user, true);
+                            OnGroupMemberIncreased?.Invoke(group, user);
+                        }
+                        break;
+
+                    case CqOfflineFileUploadedNoticePost notice:
+                        {
+                            User user = this.GetUser(notice.UserId);
+                            OfflineFile offlineFile = new(this, notice.File);
+                            OnOfflineFileReceived?.Invoke(user, offlineFile);
+                        }
                         break;
                 }
                 break;
@@ -298,9 +434,71 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
 
     #region 一堆用户层的事件
 
-    public event Action<Message>? OnMessageReceived;
-    public event Action<GroupMessage>? OnGroupMessageReceived;
-    public event Action<PrivateMessage>? OnPrivateMessageReceived;
+    #region 消息收到
+    public delegate void OnMessageReceivedHandler(Message message);
+    public event OnMessageReceivedHandler? OnMessageReceived;
+    public delegate void OnGroupMessageReceivedHandler(GroupMessage message, JoinedGroup group);
+    public event OnGroupMessageReceivedHandler? OnGroupMessageReceived;
+    public delegate void OnPrivateMessageReceivedHandler(PrivateMessage message, User user);
+    public event OnPrivateMessageReceivedHandler? OnPrivateMessageReceived;
+    #endregion
+
+    #region 消息撤回
+    public delegate void OnMessageRecalledHandler(Message message, User operatorUser);
+    public event OnMessageRecalledHandler? OnMessageRecalled;
+    public delegate void OnPrivateMessageRecalledHandler(PrivateMessage message, User user);
+    public event OnPrivateMessageRecalledHandler? OnPrivateMessageRecalled;
+    public delegate void OnGroupMessageRecalledHandler(GroupMessage message, JoinedGroup group, GroupUser operatorUser);
+    public event OnGroupMessageRecalledHandler? OnGroupMessageRecalled;
+    #endregion
+
+    #region Notice收到
+    //好友添加
+    public delegate void OnFriendAddedHandler(User user);
+    public event OnFriendAddedHandler? OnFriendAdded;
+
+    //群管理员变动
+    public delegate void OnGroupAdminChangedHandler(JoinedGroup group, GroupUser user, bool isSet);
+    public event OnGroupAdminChangedHandler? OnGroupAdminChanged;
+    public delegate void OnGroupAdminSetHandler(JoinedGroup group, GroupUser user);
+    public event OnGroupAdminSetHandler? OnGroupAdminSet;
+    public delegate void OnGroupAdminCancelledHandler(JoinedGroup group, GroupUser user);
+    public event OnGroupAdminCancelledHandler? OnGroupAdminCancelled;
+
+    //群精华变动
+    public delegate void OnGroupEssenceSetHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message, bool isAdd);
+    public event OnGroupEssenceSetHandler? OnGroupEssenceSet;
+    public delegate void OnGroupEssenceAddedHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message);
+    public event OnGroupEssenceAddedHandler? OnGroupEssenceAdded;
+    public delegate void OnGroupEssenceRemovedHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message);
+    public event OnGroupEssenceRemovedHandler? OnGroupEssenceRemoved;
+
+    //群文件上传
+    public delegate void OnGroupFileUploadedHandler(JoinedGroup group, GroupUser uploader, GroupFile groupFile);
+    public event OnGroupFileUploadedHandler? OnGroupFileUploaded;
+
+    //群禁言
+    public delegate void OnGroupMemberBannedHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser, TimeSpan timeSpan);
+    public event OnGroupMemberBannedHandler? OnGroupMemberBanned;
+    public delegate void OnGroupMemberLiftBanHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser);
+    public event OnGroupMemberLiftBanHandler? OnGroupMemberLiftBan;
+
+    //群名片变更
+    public delegate void OnGroupMemberCardChangedHandler(JoinedGroup group, GroupUser groupUser, string from, string to);
+    public event OnGroupMemberCardChangedHandler? OnGroupMemberCardChanged;
+
+    //离线文件收到
+    public delegate void OnOfflineFileReceivedHandler(User user, OfflineFile file);
+    public event OnOfflineFileReceivedHandler? OnOfflineFileReceived;
+
+    //群成员变更
+    public delegate void OnGroupMemberChangedHandler(JoinedGroup group, User user, bool isIncrease);
+    public event OnGroupMemberChangedHandler? OnGroupMemberChanged;
+    public delegate void OnGroupMemberIncreasedHandler(JoinedGroup group, GroupUser user);
+    public event OnGroupMemberIncreasedHandler? OnGroupMemberIncreased;
+    public delegate void OnGroupMemberDecreasedHandler(JoinedGroup group, User user);
+    public event OnGroupMemberDecreasedHandler? OnGroupMemberDecreased;
+    #endregion
 
     #endregion
 
@@ -476,6 +674,39 @@ public abstract class CqClient : ICqClient, IExpirableValueGetter
     /// <param name="userId">用户Id</param>
     public GroupUser GetGroupUser(long groupId, long userId)
         => GroupUser.CreateFromGroupIdAndUserId(this, groupId, userId);
+
+    /// <summary>
+    /// 获取一个用户实体
+    /// </summary>
+    /// <param name="userId">用户Id</param>
+    /// <returns></returns>
+    public User GetUser(long userId)
+        => User.CreateFromId(this, userId);
+
+    /// <summary>
+    /// 获取一个群实体, 注意不会将返回值升级为JoinedGroup
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <returns></returns>
+    public Group GetGroup(long groupId)
+        => Group.CreateFromGroupId(this, groupId);
+
+    /// <summary>
+    /// 获取一个bot加入的群的实体, 注意不会检查是否bot在群里
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <returns></returns>
+    public JoinedGroup GetJoinedGroup(long groupId)
+        => JoinedGroup.CreateFromGroupId(this, groupId);
+
+    IGroup IClient.GetGroup(long groupId)
+        => GetGroup(groupId);
+
+    IJoinedGroup IClient.GetJoinedGroup(long groupId)
+        => GetJoinedGroup(groupId);
+
+    IUser IClient.GetUser(long userId)
+        => GetUser(userId);
 
     IGroupUser IClient.GetGroupUser(long groupId, long userId)
         => GetGroupUser(groupId, userId);

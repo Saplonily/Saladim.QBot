@@ -34,7 +34,8 @@
             </Grid.RowDefinitions>
             <TabControl Grid.Column="1" Grid.RowSpan="2">
                 <TabItem Header="主页">
-                    <StackPanel>
+                    <Border Padding="10">
+                        <StackPanel>
                         <WrapPanel>
                             <Button x:Name="StartClientButton" Content="开启客户端" Click="StartClientButton_ClickAsync"/>
                             <Button x:Name="StopClientButton" Content="关闭客户端" Click="StopClientButton_ClickAsync"/>
@@ -49,6 +50,8 @@
                             <Button x:Name="ClearOutPut" Content="清空控制台" Click="ClearOutPut_Click"/>
                         </WrapPanel>
                     </StackPanel>
+                    </Border>
+
                 </TabItem>
                 <TabItem Header="猜数自动机控制">
                     <StackPanel>

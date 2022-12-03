@@ -36,7 +36,7 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 
     protected Expirable<GetGroupMemberListActionResultData> GetMemberListApiResultData { get; set; } = default!;
 
-    protected internal JoinedGroup(ICqClient client, long groupId) : base(client, groupId)
+    protected internal JoinedGroup(CqClient client, long groupId) : base(client, groupId)
     {
     }
 
@@ -48,12 +48,12 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 
     #region CreateFrom / LoadFrom集合
 
-    internal static new JoinedGroup CreateFromGroupId(ICqClient client, long groupId)
+    internal static new JoinedGroup CreateFromGroupId(CqClient client, long groupId)
         => new JoinedGroup(client, groupId)
                 .LoadFromGroupId(groupId)
                 .LoadMemberList(groupId);
 
-    internal static new JoinedGroup CreateFromCqGroupMessagePost(ICqClient client, CqGroupMessagePost post)
+    internal static new JoinedGroup CreateFromCqGroupMessagePost(CqClient client, CqGroupMessagePost post)
         => CreateFromGroupId(client, post.GroupId);
 
     protected internal new JoinedGroup LoadFromGroupId(long groupId)
@@ -107,7 +107,7 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     IEnumerable<IGroupUser> IJoinedGroup.Members { get => Members.Value; }
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendGroupMessageAsync(GroupId, messageEntity);
+        => await Client.SendGroupMessageAsync(GroupId, new MessageEntity(messageEntity));
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendGroupMessageAsync(GroupId, rawString);
@@ -122,4 +122,26 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"{Name} ({GroupId})";
+
+    public override bool Equals(object? obj)
+    {
+        return obj is JoinedGroup group &&
+               base.Equals(obj) &&
+               this.GroupId == group.GroupId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), this.GroupId);
+    }
+
+    public static bool operator ==(JoinedGroup? left, JoinedGroup? right)
+    {
+        return EqualityComparer<JoinedGroup>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(JoinedGroup? left, JoinedGroup? right)
+    {
+        return !(left == right);
+    }
 }
