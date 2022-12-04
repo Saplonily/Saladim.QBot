@@ -49,7 +49,7 @@ public class Group : CqEntity, IGroup
 
     #endregion
 
-    #region equals重写
+    #region Equals重写
 
     public override bool Equals(object? obj)
     {

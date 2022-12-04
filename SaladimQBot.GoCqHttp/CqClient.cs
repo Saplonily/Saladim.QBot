@@ -39,21 +39,25 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                .Build();
 
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
-            => $"[{l}][{s}/{(ss is null ? "" : $"{ss}")}] {content}";
+            => $"[" +
+            $"{l}][{s}/{(ss is null ? "" : $"{ss}")}" +
+            $"] {content}";
     }
 
     #region OnPost和OnLog事件
 
+    public delegate void OnPostHandler(CqPost post);
     /// <summary>
     /// <para>收到原始上报时发生,CqPost类型参数为实际实体上报类</para>
     /// <para>事件源以「同步」方式触发此事件</para>
     /// </summary>
-    public event Action<CqPost> OnPost;
+    public event OnPostHandler OnPost;
 
+    public delegate void OnLogHandler(string logMessageString);
     /// <summary>
     /// <para>客户端日志事件</para>
     /// </summary>
-    public event Action<string>? OnLog;
+    public event OnLogHandler? OnLog;
 
     #endregion
 
@@ -178,15 +182,112 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     internal void OnSessionReceived(in JsonDocument srcDoc)
     {
-        CqPost? post = JsonSerializer.Deserialize<CqPost>(srcDoc, CqJsonOptions.Instance);
-        if (post is null)
+        //TODO 可选的将所有switch分支抽离为一个函数
+        CqJsonPostLoader loader = new(srcDoc.RootElement);
+        CqPostType postType = loader.EnumFromString<CqPostType>(StringConsts.PostTypeProperty);
+        switch (postType)
         {
-            if (logger.NeedLogging(LogLevel.Warn))
-                logger.LogWarn("Client", "PostReceive", $"Deserialize CqPost failed. " +
-                    $"Raw post string is:\n{JsonSerializer.Serialize(srcDoc)}");
-            return;
-        };
-        OnPost?.Invoke(post);
+            case CqPostType.MessageSent:
+            case CqPostType.Message:
+                {
+                    var subType = loader.EnumFromString<CqMessageSubType>(StringConsts.MessagePostSubTypeProperty);
+                    var targetType = CqTypeMapper.FindClassForCqMessagePostType(subType);
+                    if (targetType is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", $"Not found target type for {subType}");
+                        return;
+                    }
+                    CqMessagePost? messagePost =
+                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqMessagePost>();
+                    if (messagePost is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqMessagePost.");
+                        return;
+                    }
+                    OnPost(messagePost);
+                }
+                break;
+            case CqPostType.Notice:
+                {
+                    var subType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
+                    if (subType == CqNoticeType.SystemNotice)
+                    {
+                        var notifyType = loader.EnumFromString<CqNotifySubType>(StringConsts.NotifySubTypeProperty);
+                        var targetType = CqTypeMapper.FindClassForCqNotifyNoticePostType(notifyType);
+                        if (targetType is null)
+                        {
+                            if (logger.NeedLogging(LogLevel.Warn))
+                                logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNotifyNoticePost.");
+                            return;
+                        }
+                        CqNotifyNoticePost? cqNotifyNoticePost =
+                            JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNotifyNoticePost>();
+                        if (cqNotifyNoticePost is null)
+                        {
+                            if (logger.NeedLogging(LogLevel.Warn))
+                                logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNotifyNoticePost.");
+                            return;
+                        }
+                        OnPost(cqNotifyNoticePost);
+                    }
+                    else if (subType != CqNoticeType.Invalid)
+                    {
+                        var noticeType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
+                        var targetType = CqTypeMapper.FindClassForCqNoticeType(noticeType);
+                        if (targetType is null)
+                        {
+                            if (logger.NeedLogging(LogLevel.Warn))
+                                logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNoticePost.");
+                            return;
+                        }
+                        CqNoticePost? cqNoticePost =
+                            JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNoticePost>();
+                        if (cqNoticePost is null)
+                        {
+                            if (logger.NeedLogging(LogLevel.Warn))
+                                logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNoticePost.");
+                            return;
+                        }
+                        OnPost(cqNoticePost);
+                    }
+                    else
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Invalid CqNoticeType.");
+                        return;
+                    }
+
+                }
+                break;
+            case CqPostType.Request:
+                {
+                    var subType = loader.EnumFromString<CqRequestType>(StringConsts.RequestTypeProperty);
+                    var targetType = CqTypeMapper.FindClassForCqRequestPostType(subType);
+
+                    if (targetType is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Not found targetType for CqRequestType.");
+                        return;
+                    }
+                    CqRequestPost? requestPost =
+                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance)?.Cast<CqRequestPost>();
+                    if (requestPost is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqRequestPost.");
+                        return;
+                    }
+                    OnPost(requestPost);
+                }
+                break;
+            case CqPostType.MetaEvent:
+                //TODO MetaEvent支持
+                break;
+        }
+
     }
 
     #endregion
@@ -317,7 +418,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                         break;
 
                     case CqFriendAddedNoticePost notice:
-                        OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
+                        {
+                            OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
+                        }
                         break;
 
                     case CqGroupAdminChangedNoticePost notice:
@@ -398,6 +501,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                             JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
                             //TODO 重构可过期类型(Expirable), 将依赖过期写入Expirable类中
                             //以能够在上游调用强制过期时下游知道自己过期了
+                            //在这里的例子是群员群名片更改时得让get_group_member_info的所有下游都过期
                             OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
                         }
                         break;
@@ -429,6 +533,8 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                         break;
                 }
                 break;
+
+
         }
     }
 

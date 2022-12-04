@@ -14,13 +14,6 @@ public static class CqJsonOptions
         var o = new JsonSerializerOptions()
         {
             IgnoreReadOnlyProperties = true,
-            Converters =
-            {
-                new CqPostJsonConverter(),
-                new CqMessagePostJsonConverter(),
-                new CqNoticePostJsonConverter(),
-                new CqNotifyNoticePostJsonConverter(),
-            },
             //不要转义中文什么的
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs)
         };

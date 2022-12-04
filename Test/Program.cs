@@ -107,7 +107,13 @@ public static class Program
             client.OnGroupMemberIncreased += Client_OnGroupMemberIncreased;
             client.OnGroupMemberChanged += Client_OnGroupMemberChanged;
             client.OnGroupMemberDecreased += Client_OnGroupMemberDecreased;
+            client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
         }
+    }
+
+    private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
+    {
+        logger.LogInfo("Program", $"{message.Group.Name.Value} {message.Author.FullName}: {message.MessageEntity.RawString}");
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)
@@ -117,9 +123,10 @@ public static class Program
 
     private static void Client_OnGroupMemberChanged(JoinedGroup group, User user, bool isIncrease)
     {
-        logger.LogInfo("p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}这个人要么退群了要么加群了" +
-            $", 答案是... {(isIncrease ? $"加群!(角色是:{user.Cast<GroupUser>().GroupRole.Value})" : "退群...")}");
-        
+        logger.LogInfo(
+            "p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}这个人要么退群了要么加群了" +
+            $", 答案是... {(isIncrease ? $"加群!(角色是:{user.Cast<GroupUser>().GroupRole.Value})" : "退群...")}"
+            );
     }
 
     private static void Client_OnGroupMemberIncreased(JoinedGroup group, GroupUser user)
@@ -127,7 +134,7 @@ public static class Program
         logger.LogInfo("p", $"awa, 群{group.Name.Value}里人了: {user.Nickname.Value}");
     }
 
-private static void ProcessMessageTest01(Message message)
+    private static void ProcessMessageTest01(Message message)
     {
         /**
             if (rawString.Contains("/random"))

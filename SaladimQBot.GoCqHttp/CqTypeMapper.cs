@@ -17,7 +17,7 @@ internal static class CqTypeMapper
         _ => typeof(CqMessageUnimplementedNode),
     };
 
-    #region 上报四类型
+    #region 上报五类型
 
     public static Type? FindClassForPostType(CqPostType postType) => postType switch
     {
@@ -65,6 +65,15 @@ internal static class CqTypeMapper
         CqNotifySubType.Title => typeof(CqTitleChangedNotifyNoticePost),
         _ => null
     };
+
+    public static Type? FindClassForCqRequestPostType(CqRequestType requestType) => requestType switch
+    {
+        CqRequestType.Friend => typeof(CqFriendRequestPost),
+        CqRequestType.Group => typeof(CqGroupRequestPost),
+        CqRequestType.Invalid or
+        _ => null
+    };
+
 
     #endregion
 }
