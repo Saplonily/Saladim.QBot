@@ -13,7 +13,7 @@ public class MessageChainTextNode : MessageChainNode, IMessageChainTextNode
 
     public string Text { get; set; }
 
-    internal const string TextProperty = "text";
+    internal const string TextPropertyName = "text";
 
     public MessageChainTextNode(CqClient client, string text) : base(client)
     {
@@ -24,7 +24,7 @@ public class MessageChainTextNode : MessageChainNode, IMessageChainTextNode
     {
         StringDictionary dic = new()
         {
-            ["text"] = this.Text
+            [TextPropertyName] = this.Text
         };
         return new(NodeType, dic);
     }
