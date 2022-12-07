@@ -1,9 +1,11 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace SaladimQBot.GoCqHttp;
 
+[DebuggerDisplay("httpSession, Started={Started}, url={goCqHttpAddressBaseUrl}")]
 public class CqHttpRequestorSession : ICqSession, IDisposable
 {
     protected HttpClient httpClient = null!;

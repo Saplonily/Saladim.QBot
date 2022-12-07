@@ -47,7 +47,7 @@ public class OfflineFile : CqEntity, IOfflineFile
 
     public static bool operator ==(OfflineFile? left, OfflineFile? right)
     {
-        return EqualityComparer<OfflineFile>.Default.Equals(left, right);
+        return EqualityComparer<OfflineFile>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(OfflineFile? left, OfflineFile? right)

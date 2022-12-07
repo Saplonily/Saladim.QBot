@@ -4,7 +4,7 @@ using SaladimQBot.Core;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("text: {Text}")]
-public class CqMessageTextNode : CqMessageEntityNode, IMessageTextNode
+public class CqMessageTextNode : CqMessageChainNodeModel
 {
     [Ignore]
     public override MessageNodeType NodeType { get => MessageNodeType.Text; }

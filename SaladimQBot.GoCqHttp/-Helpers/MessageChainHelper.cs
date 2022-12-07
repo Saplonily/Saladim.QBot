@@ -2,28 +2,33 @@ using System.Text;
 
 namespace SaladimQBot.GoCqHttp;
 
-public static class MessageChainHelper
+public static class MessageChainModelHelper
 {
-    public static CqMessageChain RawStringToChain(string rawString)
+    public static CqMessageChainModel RawStringToChain(string rawString)
     {
+        //TODO : RawStringToChain
         throw new NotImplementedException();
     }
 
-    public static string ChainToRawString(CqMessageChain entity)
+    public static string ChainToRawString(CqMessageChainModel entity)
     {
         StringBuilder sb = new();
-        foreach (var node in entity)
+        foreach (var node in entity.ChainNodeModels)
         {
             sb.Append(node.CqStringify());
         }
         return sb.ToString();
     }
 
-    internal static string CqStringify(this CqMessageEntityNode node) => node switch
+    internal static string CqStringify(this CqMessageChainNodeModel node) => node.CqCodeType switch
     {
-        CqMessageTextNode textNode => CqEncode(textNode.Text),
-        CqMessageUnimplementedNode unimplNode => ParamsDicToCqString(unimplNode.Params, unimplNode.Name),
-        _ => ParamsDicToCqString(node.GetParamsDictionary(), node.CqCodeType)
+        CqCodeType.Text => CqEncode(node.Params["text"]),
+        CqCodeType.Unimplemented => ParamsDicToCqString(
+            node.Params,
+            node.RawCqCodeName ??
+            throw new InvalidOperationException("Unimplemented MessageChainNodeModel must have rawCqCodeName")
+            ),
+        _ => ParamsDicToCqString(node.Params, node.CqCodeType)
     };
 
     internal static string ParamsDicToCqString(IDictionary<string, string> paramDic, string cqCodeName)
@@ -52,4 +57,9 @@ public static class MessageChainHelper
               .Replace("&#91;", "[")
               .Replace("&#93;", "]")
               .Replace("&#44;", ",");
+
+    public static ForwardEntity GetForwardEntity(CqClient client, string forwardId)
+    {
+        throw new NotImplementedException();
+    }
 }

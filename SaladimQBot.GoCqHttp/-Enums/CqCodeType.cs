@@ -23,4 +23,6 @@ public enum CqCodeType
     Reply,
     [NameIn("face")]
     Face,
+    [NameIn("forward")]
+    Forward
 }

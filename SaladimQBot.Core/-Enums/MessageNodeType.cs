@@ -13,5 +13,6 @@ public enum MessageNodeType
     Image,
     Record,
     Reply,
-    Face
+    Face,
+    Forward
 }

@@ -81,7 +81,7 @@ public class BotInstance
                 string s = reader.ReadToEnd();
                 JsonDocument doc = JsonDocument.Parse(s);
                 string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
-                CqMessageChain cqEntity = new()
+                CqMessageChainModel cqEntity = new()
                 {
                     new CqMessageImageSendNode(imageUrl)
                 };

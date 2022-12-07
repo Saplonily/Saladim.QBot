@@ -7,7 +7,7 @@ namespace SaladimQBot.GoCqHttp.Apis;
 public class GetMessageActionResultData : CqApiCallResultData
 {
     [Name("message")]
-    public CqMessageChain MessageEntity { get; set; } = default!;
+    public CqMessageChainModel MessageEntity { get; set; } = default!;
 
     [Name("message_id")]
     public long MessageId { get; set; }

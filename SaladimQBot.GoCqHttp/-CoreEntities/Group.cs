@@ -64,7 +64,7 @@ public class Group : CqEntity, IGroup
 
     public static bool operator ==(Group? left, Group? right)
     {
-        return EqualityComparer<Group>.Default.Equals(left, right);
+        return EqualityComparer<Group>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(Group? left, Group? right)

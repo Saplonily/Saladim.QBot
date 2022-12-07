@@ -212,7 +212,7 @@ public class GroupUser : User, IGroupUser
 
     public static bool operator ==(GroupUser? left, GroupUser? right)
     {
-        return EqualityComparer<GroupUser>.Default.Equals(left, right);
+        return EqualityComparer<GroupUser>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(GroupUser? left, GroupUser? right)

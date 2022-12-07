@@ -23,7 +23,7 @@ public class User : CqEntity, IUser, ICqMessageWindow
 
     public Expirable<int> LoginDays { get; protected set; } = default!;
 
-    public string CqAt { get => new CqMessageAtNode(this.UserId).CqStringify(); }
+    public string CqAt => MessageChainModelHelper.CqStringify(new MessageChainAtNode(Client, UserId, Nickname.Value).ToModel());
 
     protected Expirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;
 
@@ -120,7 +120,7 @@ public class User : CqEntity, IUser, ICqMessageWindow
     int IUser.LoginDays { get => LoginDays.Value; }
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendPrivateMessageAsync(UserId, new MessageEntity(messageEntity));
+        => await Client.SendPrivateMessageAsync(UserId, new MessageEntity(Client, messageEntity));
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendPrivateMessageAsync(UserId, rawString);

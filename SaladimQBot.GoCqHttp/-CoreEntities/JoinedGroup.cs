@@ -107,7 +107,7 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     IEnumerable<IGroupUser> IJoinedGroup.Members { get => Members.Value; }
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendGroupMessageAsync(GroupId, new MessageEntity(messageEntity));
+        => await Client.SendGroupMessageAsync(GroupId, new MessageEntity(Client, messageEntity));
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendGroupMessageAsync(GroupId, rawString);
@@ -137,7 +137,7 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 
     public static bool operator ==(JoinedGroup? left, JoinedGroup? right)
     {
-        return EqualityComparer<JoinedGroup>.Default.Equals(left, right);
+        return EqualityComparer<JoinedGroup>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(JoinedGroup? left, JoinedGroup? right)

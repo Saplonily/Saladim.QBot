@@ -7,7 +7,7 @@ public class SendPrivateMessageEntityAction : CqApi
     public override Type ApiResultDataType { get => typeof(SendMessageActionResultData); }
 
     [Name("message")]
-    public CqMessageChain Message { get; set; } = default!;
+    public CqMessageChainModel Message { get; set; } = default!;
 
     [Name("user_id")]
     public long UserId { get; set; } = -1;

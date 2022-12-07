@@ -94,7 +94,7 @@ public class GroupMessage : Message, IGroupMessage
 
     public static bool operator ==(GroupMessage? left, GroupMessage? right)
     {
-        return EqualityComparer<GroupMessage>.Default.Equals(left, right);
+        return EqualityComparer<GroupMessage>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(GroupMessage? left, GroupMessage? right)

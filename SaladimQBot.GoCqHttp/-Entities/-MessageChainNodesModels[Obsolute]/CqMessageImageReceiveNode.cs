@@ -7,7 +7,7 @@ namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("[Image:{Type,nq},{SubType,nq}]")]
 [JsonConverter(typeof(CqMessageImageReceiveNodeJsonConverter))]
-public class CqMessageImageReceiveNode : CqMessageEntityNode, IMessageImageReceiveNode
+public class CqMessageImageReceiveNode : CqMessageChainNodeModel
 {
     public const string FilePropertyName = "file";
     public const string SubTypePropertyName = "subType";

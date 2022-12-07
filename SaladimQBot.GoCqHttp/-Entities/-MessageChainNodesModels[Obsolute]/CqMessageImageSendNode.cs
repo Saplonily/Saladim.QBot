@@ -2,7 +2,7 @@
 
 namespace SaladimQBot.GoCqHttp;
 
-public class CqMessageImageSendNode : CqMessageEntityNode, IMessageImageSendNode
+public class CqMessageImageSendNode : CqMessageChainNodeModel
 {
     public override MessageNodeType NodeType { get => MessageNodeType.Image; }
 

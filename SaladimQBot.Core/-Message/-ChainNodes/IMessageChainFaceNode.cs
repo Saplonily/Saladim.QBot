@@ -1,6 +1,6 @@
 ﻿namespace SaladimQBot.Core;
 
-public interface IMessageFaceNode : IMessageEntityNode
+public interface IMessageChainFaceNode : IMessageChainNode
 {
     int FaceId { get; set; }
 }

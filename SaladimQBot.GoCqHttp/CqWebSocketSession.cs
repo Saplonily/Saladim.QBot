@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -8,6 +9,7 @@ namespace SaladimQBot.GoCqHttp;
 
 public delegate void OnCqSessionReceivedHandler(in JsonDocument parsedDocument);
 
+[DebuggerDisplay("wsSession, Started={Started}, Uri={Uri}")]
 public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 {
     public const int BufferSize = 1 * Size.MiB;

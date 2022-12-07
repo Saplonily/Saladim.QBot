@@ -6,7 +6,7 @@ namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("[Unimpl:{Name,nq}]")]
 [JsonConverter(typeof(CqMessageUnimplementedNodeJsonConverter))]
-public class CqMessageUnimplementedNode : CqMessageEntityNode, IMessageUnimplementedNode
+public class CqMessageUnimplementedNode : CqMessageChainNodeModel
 {
     public override MessageNodeType NodeType { get => MessageNodeType.Unimplemented; }
 

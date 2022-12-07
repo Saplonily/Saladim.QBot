@@ -1,12 +1,15 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 
 namespace SaladimQBot.GoCqHttp;
 
+[DebuggerDisplay("httpSession, Started={Started}, url={baseUrl}")]
 public class CqHttpListenerSession : ICqSession
 {
     protected HttpListener listener;
     protected Task? listenTask;
+    protected string baseUrl;
 
     public bool Started { get; protected set; }
 
@@ -20,6 +23,7 @@ public class CqHttpListenerSession : ICqSession
     public CqHttpListenerSession(string goCqHttpBaseUrl)
     {
         listener = new HttpListener();
+        baseUrl = goCqHttpBaseUrl;
         listener.Prefixes.Add(goCqHttpBaseUrl + "/");
     }
 

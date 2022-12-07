@@ -4,19 +4,6 @@ namespace SaladimQBot.GoCqHttp;
 
 internal static class CqTypeMapper
 {
-    public static Type? FindClassForCqCodeType(CqCodeType cqCode) => cqCode switch
-    {
-        CqCodeType.Text => typeof(CqMessageTextNode),
-        CqCodeType.At => typeof(CqMessageAtNode),
-        CqCodeType.Image => typeof(CqMessageImageReceiveNode),
-        CqCodeType.Reply => typeof(CqMessageReplyIdNode),
-        CqCodeType.Face => typeof(CqMessageFaceNode),
-        CqCodeType.Record or
-        CqCodeType.Unimplemented or
-        CqCodeType.Invalid or
-        _ => typeof(CqMessageUnimplementedNode),
-    };
-
     #region 上报五类型
 
     public static Type? FindClassForPostType(CqPostType postType) => postType switch

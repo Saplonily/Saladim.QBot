@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System.Diagnostics;
 using SaladimQBot.Core;
 
 namespace SaladimQBot.GoCqHttp;
@@ -6,20 +6,19 @@ namespace SaladimQBot.GoCqHttp;
 /// <summary>
 /// 消息实体
 /// </summary>
-public class MessageEntity : IMessageEntity
+[DebuggerDisplay("{rawString.Value}")]
+public class MessageEntity : CqEntity, IMessageEntity
 {
-    protected internal readonly CqMessageChain cqChainEntity;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    protected Lazy<string> rawString;
 
-    public CqMessageChain Chain { get => cqChainEntity; }
+    public MessageChain Chain { get; protected set; }
 
     public string RawString { get => rawString.Value; }
 
-
-    protected Lazy<string> rawString;
-
-    public MessageEntity(in CqMessageChain cqEntity, string rawString)
+    public MessageEntity(CqClient client, in CqMessageChainModel chainModel, string rawString) : base(client)
     {
-        this.cqChainEntity = cqEntity;
+        this.Chain = MessageChain.FromModel(client, chainModel);
 #if NETSTANDARD2_0
         this.rawString = new Lazy<string>(() => rawString, isThreadSafe: true);
 #elif NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
@@ -27,29 +26,34 @@ public class MessageEntity : IMessageEntity
 #endif
     }
 
-    public MessageEntity(in IMessageEntity entity)
+    internal MessageEntity(CqClient client, CqMessageChainModel chainModel) : base(client)
     {
-        cqChainEntity = CqMessageChain.FromIMessageEntity(entity);
-        rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqChainEntity), isThreadSafe: true);
+        this.Chain = MessageChain.FromModel(client, chainModel);
+        this.rawString = new Lazy<string>(() => MessageChainModelHelper.ChainToRawString(chainModel), isThreadSafe: true);
     }
 
-    public MessageEntity(CqMessageChain cqEntity)
+    public MessageEntity(CqClient client, in IMessageEntity entity) : base(client)
     {
-        this.cqChainEntity = cqEntity;
-        this.rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqEntity), isThreadSafe: true);
+        if (entity is MessageEntity thisEntity)
+        {
+            Chain = thisEntity.Chain;
+            rawString = thisEntity.rawString;
+        }
+        //TODO 支持其他的实体
+        throw new Exception("Check todo!");
+        /*Chain = MessageChain.FromModel(CqMessageChainModel.FromIMessageEntity(entity));
+        rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqMessageChain), isThreadSafe: true);*/
     }
 
-    #region IMessageEntity
+    public MessageEntity(CqClient client, MessageChain chain, string rawString) : this(client, chain.ToModel(), rawString)
+    {
+    }
 
-    public int Count => cqChainEntity.Count;
+    public MessageEntity(CqClient client, MessageChain chain) : this(client, chain.ToModel())
+    {
+    }
 
-    IEnumerator<IMessageEntityNode> IEnumerable<IMessageEntityNode>.GetEnumerator()
-        => cqChainEntity.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => cqChainEntity.GetEnumerator();
-
-    #endregion
+    #region 重写
 
     public override bool Equals(object? obj)
     {
@@ -64,11 +68,16 @@ public class MessageEntity : IMessageEntity
 
     public static bool operator ==(MessageEntity? left, MessageEntity? right)
     {
-        return EqualityComparer<MessageEntity>.Default.Equals(left, right);
+        return EqualityComparer<MessageEntity>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(MessageEntity? left, MessageEntity? right)
     {
         return !(left == right);
     }
+
+    #endregion
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    IMessageChain IMessageEntity.Chain => Chain;
 }

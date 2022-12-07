@@ -16,9 +16,16 @@ public interface IClient
     /// <summary>
     /// 使用消息Id获取一个私聊消息
     /// </summary>
-    /// <param name="messageId"></param>
-    /// <returns></returns>
+    /// <param name="messageId">消息id</param>
+    /// <returns>消息实体</returns>
     IPrivateMessage GetPrivateMessageById(int messageId);
+
+    /// <summary>
+    /// 使用消息Id获取一个消息, 应返回IMessage的子类
+    /// </summary>
+    /// <param name="messageId">消息id</param>
+    /// <returns>消息实体</returns>
+    IMessage GetMessageById(int messageId);
     #endregion
 
     #region 发送消息
@@ -109,7 +116,6 @@ public interface IClient
     IJoinedGroup GetJoinedGroup(long groupId);
 
     #endregion
-
 
     /// <summary>
     /// 开始该Client的连接

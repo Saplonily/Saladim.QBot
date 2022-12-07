@@ -12,6 +12,8 @@ public class Message : CqEntity, IMessage
 
     public Expirable<User> ExpSender { get; protected set; } = default!;
 
+    public Expirable<bool>? IsFromGroup { get; protected set; } = null;
+
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
     public virtual ICqMessageWindow MessageWindow => Sender;
@@ -47,7 +49,7 @@ public class Message : CqEntity, IMessage
     internal Message LoadFromMessagePost(CqMessagePost post)
     {
         ExpSender = Client.MakeNoneExpirableExpirable(User.CreateFromMessagePost(Client, post));
-        ExpMessageEntity = Client.MakeNoneExpirableExpirable(new MessageEntity(post.MessageEntity, post.RawMessage));
+        ExpMessageEntity = Client.MakeNoneExpirableExpirable(new MessageEntity(Client, post.MessageChainModel, post.RawMessage));
         return this;
     }
 
@@ -59,7 +61,11 @@ public class Message : CqEntity, IMessage
             ).WithNoExpirable();
         ExpMessageEntity = Client.MakeDependencyExpirable(
             ApiCallResult,
-            d => new MessageEntity(d.MessageEntity, MessageChainHelper.ChainToRawString(d.MessageEntity))
+            d => new MessageEntity(Client, d.MessageEntity, MessageChainModelHelper.ChainToRawString(d.MessageEntity))
+            ).WithNoExpirable();
+        IsFromGroup = Client.MakeDependencyExpirable(
+            ApiCallResult,
+            d => d.IsGroupMessage
             ).WithNoExpirable();
         return this;
     }
@@ -105,7 +111,7 @@ public class Message : CqEntity, IMessage
 
     public static bool operator ==(Message? left, Message? right)
     {
-        return EqualityComparer<Message>.Default.Equals(left, right);
+        return EqualityComparer<Message>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(Message? left, Message? right)

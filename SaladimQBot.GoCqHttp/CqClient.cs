@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
@@ -8,6 +9,7 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+[DebuggerDisplay("CqClient, Started={Started}, StartedBefore={StartedBefore}")]
 public abstract class CqClient : IClient, IExpirableValueGetter
 {
     public abstract ICqSession ApiSession { get; }
@@ -622,6 +624,12 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     public PrivateMessage GetPrivateMessageById(int messageId)
         => PrivateMessage.CreateFromMessageId(this, messageId);
+
+    IMessage IClient.GetMessageById(int messageId)
+        => GetMessageById(messageId);
+
+    public Message GetMessageById(int messageId)
+        => Message.CreateFromMessageId(this, messageId);
     #endregion
 
     #region 发消息
@@ -629,7 +637,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     #region 私聊
 
     async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IMessageEntity messageEntity)
-        => await SendPrivateMessageAsync(userId, new MessageEntity(messageEntity));
+        => await SendPrivateMessageAsync(userId, new MessageEntity(this, messageEntity));
 
     async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, string rawString)
         => await SendPrivateMessageAsync(userId, rawString);
@@ -639,7 +647,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     {
         SendPrivateMessageEntityAction api = new()
         {
-            Message = messageEntity.cqChainEntity,
+            Message = messageEntity.Chain.ToModel(),
             UserId = userId
         };
         var rst = await this.CallApiWithCheckingAsync(api);
@@ -668,7 +676,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #region 群聊
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IMessageEntity messageEntity)
-        => await SendGroupMessageAsync(groupId, new MessageEntity(messageEntity));
+        => await SendGroupMessageAsync(groupId, new MessageEntity(this, messageEntity));
 
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, string rawString)
         => await SendGroupMessageAsync(groupId, rawString);
@@ -679,7 +687,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         SendGroupMessageEntityAction a = new()
         {
             GroupId = groupId,
-            Message = messageEntity.cqChainEntity
+            Message = messageEntity.Chain.ToModel()
         };
         var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
         return GroupMessage.CreateFromMessageId(this, result.MessageId);

@@ -111,9 +111,27 @@ public static class Program
         }
     }
 
-    private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
+    private static async void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
-        logger.LogInfo("Program", $"{message.Group.Name.Value} {message.Author.FullName}: {message.MessageEntity.RawString}");
+        if (message.MessageEntity.RawString.Contains("saladimTEST") && message.Sender.UserId != 2259113381)
+        {
+            logger.LogInfo(
+                "Program",
+                $"{message.Group.Name.Value} {message.Author.FullName}: " +
+                $"{message.MessageEntity.RawString}"
+                );
+            MessageBuilder b = new(client);
+            b.WithReply(message)
+             .WithText("你好啊~")
+             .WithAt(message.Author)
+             .WithTextLine("这是一条用MessageBuilder build出来的消息哦~")
+             .WithFace(18)
+             .WithTextLine("下面是sll的头像:")
+             .WithImage("https://i1.hdslb.com/bfs/face/b3a81393bf7606828ff2dca24f007d535567b77d.jpg")
+             .Build();
+            MessageEntity entity = b.Build();
+            await message.MessageWindow.SendMessageAsync(entity);
+        }
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)

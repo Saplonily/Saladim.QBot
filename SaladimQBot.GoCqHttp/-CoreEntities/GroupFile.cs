@@ -40,7 +40,7 @@ public class GroupFile : CqEntity, IGroupFile
 
     public static bool operator ==(GroupFile? left, GroupFile? right)
     {
-        return EqualityComparer<GroupFile>.Default.Equals(left, right);
+        return EqualityComparer<GroupFile>.Default.Equals(left!, right!);
     }
 
     public static bool operator !=(GroupFile? left, GroupFile? right)

@@ -5,7 +5,7 @@ using SaladimQBot.Core;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("[{NodeType,nq}:{MessageId,nq}]")]
-public class CqMessageReplyIdNode : CqMessageEntityNode, IMessageReplyIdNode
+public class CqMessageReplyIdNode : CqMessageChainNodeModel
 {
     [Ignore]
     public override MessageNodeType NodeType { get => (MessageNodeType)CqCodeType.Reply; }

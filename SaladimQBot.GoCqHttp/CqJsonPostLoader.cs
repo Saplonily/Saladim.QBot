@@ -12,9 +12,13 @@ public sealed class CqJsonPostLoader
         Element = element;
     }
 
+    public CqJsonPostLoader Sub(string keyName) => new(Element.GetProperty(keyName));
+
     public Int32 Int32(string keyName) => Element.GetProperty(keyName).GetInt32();
 
     public Int64 Int64(string keyName) => Element.GetProperty(keyName).GetInt64();
+
+    public string? String(string keyName) => Element.GetProperty(keyName).GetString();
 
     public int EnumFromString(Type enumType, string keyName)
     {
