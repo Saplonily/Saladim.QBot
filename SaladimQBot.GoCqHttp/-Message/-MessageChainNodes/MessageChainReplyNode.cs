@@ -23,16 +23,5 @@ public class MessageChainReplyNode : MessageChainNode, IMessageChainReplyNode
         return new(NodeType, dic);
     }
 
-    IMessage IMessageChainReplyNode.MessageBeReplied
-    {
-        get => MessageBeReplied;
-        set
-        {
-            if (!ReferenceEquals(value.Client, this.Client))
-            {
-                throw new InvalidOperationException("The node and the message must in the same client.");
-            }
-            this.MessageBeReplied = value.Cast<Message>();
-        }
-    }
+    IMessage IMessageChainReplyNode.MessageBeReplied => MessageBeReplied;
 }

@@ -72,22 +72,6 @@ public class BotInstance
                 await message.MessageWindow.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
             }
 
-            commandStart = "/来点图";
-            if (rawString.StartsWith(commandStart))
-            {
-                HttpClient client = new();
-                var result = client.GetAsync("https://img.xjh.me/random_img.php?return=json").Result;
-                StreamReader reader = new(result.Content.ReadAsStream());
-                string s = reader.ReadToEnd();
-                JsonDocument doc = JsonDocument.Parse(s);
-                string imageUrl = "http:" + doc.RootElement.GetProperty("img").GetString()!;
-                CqMessageChainModel cqEntity = new()
-                {
-                    new CqMessageImageSendNode(imageUrl)
-                };
-                await message.MessageWindow.SendMessageAsync(new MessageEntity(cqEntity));
-            }
-
             commandStart = "/算 ";
             if (rawString.StartsWith(commandStart))
             {
@@ -101,20 +85,6 @@ public class BotInstance
                 catch (Exception e)
                 {
                     logger.LogWarn("Program", "Calculate", e);
-                }
-            }
-
-            commandStart = "/撤回";
-            if (rawString.StartsWith(commandStart))
-            {
-                var replyNode =
-                    (from node in message.MessageEntity.Chain
-                     where node is CqMessageReplyIdNode
-                     let replyIdNode = node as CqMessageReplyIdNode
-                     select replyIdNode).First();
-                if (replyNode is not null)
-                {
-                    _ = client.RecallMessageAsync(replyNode.MessageId);
                 }
             }
 

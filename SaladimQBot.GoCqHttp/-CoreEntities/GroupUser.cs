@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
@@ -12,6 +13,8 @@ public class GroupUser : User, IGroupUser
     public JoinedGroup Group { get; protected set; } = default!;
 
     #region Expirable的一些属性
+    public new Expirable<string> Nickname { get; protected set; } = default!;
+
     public Expirable<string> Card { get; protected set; } = default!;
 
     public Expirable<string> Area { get; protected set; } = default!;
@@ -118,6 +121,8 @@ public class GroupUser : User, IGroupUser
         base.LoadFromUserId();
         var d = ApiCallResult;
         var c = Client;
+        Sex = c.MakeDependencyExpirable(d, d => d.Sex);
+        Age = c.MakeDependencyExpirable(d, d => d.Age);
         Card = c.MakeDependencyExpirable(d, d => d.Card);
         Area = c.MakeDependencyExpirable(d, d => d.Area);
         JoinTime = c.MakeDependencyExpirable(d, d => DateTimeHelper.GetFromUnix(d.JoinTime));
@@ -125,6 +130,7 @@ public class GroupUser : User, IGroupUser
         GroupLevel = c.MakeDependencyExpirable(d, d => d.Level);
         GroupTitle = c.MakeDependencyExpirable(d, d => d.Title);
         IsUnFriendly = c.MakeDependencyExpirable(d, d => d.Unfriendly);
+        Nickname = Client.MakeDependencyExpirable(d, d => d.Nickname);
         MuteExpireTime = c.MakeDependencyExpirable(d, d => DateTimeHelper.GetFromUnix(d.ShutUpTimeStamp));
         IsAbleToChangeCard = c.MakeDependencyExpirable(d, d => d.CardChangeable);
         LastMessageSentTime = c.MakeDependencyExpirable(d, d => DateTimeHelper.GetFromUnix(d.LastSentTime));

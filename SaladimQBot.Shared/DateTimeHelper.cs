@@ -7,4 +7,9 @@ public static class DateTimeHelper
 
     public static DateTime GetFromUnix(uint unixTime)
         => GetFromUnix((long)unixTime);
+
+    public static long ToUnix(DateTime dateTime)
+    {
+        return (dateTime.ToUniversalTime().Ticks - 621355968000000000) / 10000000;
+    }
 }

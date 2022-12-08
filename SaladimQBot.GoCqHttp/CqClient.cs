@@ -706,6 +706,25 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         return GroupMessage.CreateFromMessageId(this, result.MessageId);
     }
 
+    async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IForwardEntity forwardEntity)
+    {
+        if (forwardEntity is ForwardEntity entity && ReferenceEquals(forwardEntity.Client, this))
+            return await SendGroupMessageAsync(groupId, entity);
+        else
+            throw new InvalidOperationException("Only accept send forwardEntity that this client own.");
+    }
+
+    public async Task<GroupMessage> SendGroupMessageAsync(long groupId, ForwardEntity forwardEntity)
+    {
+        SendForwardMessageToGroupAction api = new()
+        {
+            GroupId = groupId,
+            ForwardEntity = forwardEntity.ToModel()
+        };
+        var result = (await this.CallApiWithCheckingAsync(api)).Data!.Cast<SendMessageActionResultData>();
+        return this.GetGroupMessageById(result.MessageId);
+    }
+
     #endregion
 
     #region 通用

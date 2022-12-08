@@ -2,5 +2,5 @@
 
 public interface IMessageChainFaceNode : IMessageChainNode
 {
-    int FaceId { get; set; }
+    int FaceId { get; }
 }

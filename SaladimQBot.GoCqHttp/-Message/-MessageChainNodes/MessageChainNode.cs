@@ -39,9 +39,12 @@ public abstract class MessageChainNode : CqEntity, IMessageChainNode
             CqCodeType.Reply =>
                 new MessageChainReplyNode(client, client.GetMessageById(int.Parse(model.Params["id"]))),
 
+            CqCodeType.Forward =>
+                new MessageChainForwardNode(client, new ForwardEntity(client, model.Params["id"])),
+
             _ =>
                 new MessageChainUnimplementedNode(client, model.RawCqCodeName!, model.Params),
-        }; ;
+        };
     }
 
     internal abstract CqMessageChainNodeModel ToModel();

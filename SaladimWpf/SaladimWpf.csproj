@@ -6,6 +6,13 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<Title>标题</Title>
+		<PackageId>ID</PackageId>
+		<Authors>作者</Authors>
+		<Company>公司</Company>
+		<Product>产品</Product>
+		<Description>说明</Description>
+		<Copyright>版权</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>

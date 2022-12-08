@@ -2,5 +2,4 @@
 
 public interface IForwardNode
 {
-    IForwardEntity ForwardEntity { get; }
 }

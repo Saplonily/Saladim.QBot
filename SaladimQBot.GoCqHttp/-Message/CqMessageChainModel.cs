@@ -23,7 +23,7 @@ public class CqMessageChainModel
                 switch (item.CqCodeType)
                 {
                     case CqCodeType.Text:
-                        sb.Append(item.Params[MessageChainTextNode.TextProperty]);
+                        sb.Append(item.Params[MessageChainTextNode.TextPropertyName]);
                         break;
                     default:
                         sb.Append('[')

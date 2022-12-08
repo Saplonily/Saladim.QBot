@@ -62,6 +62,14 @@ public interface IClient
     /// <returns>该消息实体</returns>
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, string rawString);
 
+    /// <summary>
+    /// 向群里发送转发实体
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <param name="forwardEntity"></param>
+    /// <returns></returns>
+    Task<IGroupMessage> SendGroupMessageAsync(long groupId, IForwardEntity forwardEntity);
+
     #endregion
 
     #region 消息/成员处理

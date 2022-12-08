@@ -38,11 +38,6 @@ public class MessageChainAtNode : MessageChainNode, IMessageChainAtNode
         return new(NodeType, dic);
     }
 
-    IUser IMessageChainAtNode.User
-    {
-        get => User;
-        set => User = value is User user ?
-            user :
-            Client.GetUser(value.UserId);
-    }
+    IUser IMessageChainAtNode.User => User;
+
 }
