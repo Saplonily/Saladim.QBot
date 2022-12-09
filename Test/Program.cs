@@ -118,9 +118,12 @@ public static class Program
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
         MessageBuilder b = new(client);
         b.WithTextLine("这是一条消息");
-        ForwardContentNode node1 = new("这是Sender昵称1", message.Sender, b.Build(), DateTime.Now - TimeSpan.FromHours(2));
-        ForwardEntity entity = new(client, new ForwardContentNode[] { node1 });
-        await client.SendGroupMessageAsync(group.GroupId,entity);
+        ForwardEntityBuilder fb = new(client);
+        fb.AddMessage("这是Sender昵称1", message.Sender, b.Build(), DateTime.Now.AddHours(-3));
+        b.WithText($"群名是 {group.Name.Value}");
+        fb.AddMessage("这是Sender昵称2", message.Sender, b.Build(), DateTime.Now.AddMonths(1));
+        fb.AddMessage(message);
+        await client.SendGroupMessageAsync(group.GroupId, fb.Build());
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)

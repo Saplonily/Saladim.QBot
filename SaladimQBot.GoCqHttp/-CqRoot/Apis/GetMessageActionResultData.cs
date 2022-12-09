@@ -21,6 +21,9 @@ public class GetMessageActionResultData : CqApiCallResultData
     [Name("sender")]
     public SenderOfGottenMessage Sender { get; set; } = default!;
 
+    [Name("time")]
+    public long Time { get; set; } = -1;
+
     public class SenderOfGottenMessage
     {
         [Name("nickname")]

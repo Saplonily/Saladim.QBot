@@ -16,6 +16,7 @@ public class PrivateMessage : Message, IPrivateMessage
 
     protected internal PrivateMessage(CqClient client, int messageId) : base(client, messageId)
     {
+        IsFromGroup = client.MakeNoneExpirableExpirable(false);
     }
 
     internal static PrivateMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)

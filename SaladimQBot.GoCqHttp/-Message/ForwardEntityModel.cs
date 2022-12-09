@@ -47,7 +47,8 @@ public class ForwardEntityNodeModel
         {
             ["name"] = senderName,
             ["uin"] = userId,
-            ["content"] = chainModel
+            ["content"] = chainModel,
+            ["time"] = time
         };
     }
 }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
+using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -13,6 +14,8 @@ public class Message : CqEntity, IMessage
     public Expirable<User> ExpSender { get; protected set; } = default!;
 
     public Expirable<bool>? IsFromGroup { get; protected set; } = null;
+
+    public Expirable<DateTime> SendTime { get; protected set; } = default!;
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
@@ -50,6 +53,7 @@ public class Message : CqEntity, IMessage
     {
         ExpSender = Client.MakeNoneExpirableExpirable(User.CreateFromMessagePost(Client, post));
         ExpMessageEntity = Client.MakeNoneExpirableExpirable(new MessageEntity(Client, post.MessageChainModel, post.RawMessage));
+        SendTime = Client.MakeNoneExpirableExpirable(DateTimeHelper.GetFromUnix(post.Time));
         return this;
     }
 
@@ -66,6 +70,10 @@ public class Message : CqEntity, IMessage
         IsFromGroup = Client.MakeDependencyExpirable(
             ApiCallResult,
             d => d.IsGroupMessage
+            ).WithNoExpirable();
+        SendTime = Client.MakeDependencyExpirable(
+            ApiCallResult,
+            d => DateTimeHelper.GetFromUnix(d.Time)
             ).WithNoExpirable();
         return this;
     }
@@ -93,7 +101,13 @@ public class Message : CqEntity, IMessage
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IMessageWindow IMessage.MessageWindow => Sender;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    DateTime IMessage.SendTime => SendTime.Value;
+
+
     #endregion
+
+    #region ÖØÐ´¼°ÔÓÆßÔÓ°ËµÄ
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}";
@@ -118,4 +132,6 @@ public class Message : CqEntity, IMessage
     {
         return !(left == right);
     }
+
+    #endregion
 }

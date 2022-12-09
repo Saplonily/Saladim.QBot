@@ -9,4 +9,6 @@ public interface IMessage : IClientEntity
     IUser Sender { get; }
 
     IMessageWindow MessageWindow { get; }
+
+    DateTime SendTime { get; }
 }

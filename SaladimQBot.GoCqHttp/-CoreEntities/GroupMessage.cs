@@ -24,6 +24,7 @@ public class GroupMessage : Message, IGroupMessage
     protected internal GroupMessage(CqClient client, int messageId)
         : base(client, messageId)
     {
+        IsFromGroup = client.MakeNoneExpirableExpirable(true);
     }
 
     #region load一大堆的

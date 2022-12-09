@@ -53,6 +53,22 @@ public class GroupUser : User, IGroupUser
         get => Task.Run(() => FullName, CancellationToken.None);
     }
 
+    /// <summary>
+    /// 返回群名片, 如果群名片为空则返回昵称
+    /// </summary>
+    public string CardOrNickname
+    {
+        get => Card.Value != string.Empty ? Card.Value : Nickname.Value;
+    }
+
+    /// <summary>
+    /// 返回群名片, 如果群名片为空则返回昵称
+    /// </summary>
+    public Task<string> CardOrNicknameAsync
+    {
+        get => Task.Run(() => CardOrNickname);
+    }
+
     protected new Expirable<GetGroupMemberInfoActionResultData> ApiCallResult { get; set; } = default!;
 
     protected GroupUser(CqClient client, long groupId, long userId)
