@@ -35,18 +35,9 @@ public class BotInstance
         {
             if (message is GroupMessage groupMsg)
             {
-                string nameFormat = string.Empty;
-                if (await groupMsg.Sender.Card.ValueAsync != string.Empty)
-                {
-                    nameFormat = $"{await groupMsg.Sender.Card.ValueAsync}" +
-                        $"({await groupMsg.Sender.Nickname.ValueAsync})";
-                }
-                else
-                {
-                    nameFormat = await groupMsg.Sender.Nickname.ValueAsync;
-                }
                 logger.LogInfo(
-                    "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) {nameFormat} 说: " +
+                    "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
+                    $"{groupMsg.Author.FullName} 说: " +
                     $"{groupMsg.MessageEntity.RawString}"
                     );
             }
@@ -66,7 +57,8 @@ public class BotInstance
             {
                 Random r = new();
                 int num = r.Next(0, 100);
-                await message.MessageWindow.SendMessageAsync($"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~");
+                string s = $"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~";
+                await message.MessageWindow.SendMessageAsync(s);
             }
 
             commandStart = "/算 ";
@@ -82,16 +74,19 @@ public class BotInstance
                 catch (Exception e)
                 {
                     logger.LogWarn("Program", "Calculate", e);
+                    string s = $"错误发生了, 以下是错误信息:\n{e.Message}\n{e.StackTrace}";
+                    await message.MessageWindow.SendMessageAsync(s);
                 }
             }
 
             commandStart = "/狠狠骂我";
-            if (rawString.StartsWith("狠狠骂我"))
+            if (rawString.StartsWith(commandStart))
             {
                 var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧");
-                await Task.Delay(1000);
+                await Task.Delay(2000);
                 await msg.RecallAsync();
-                await message.MessageWindow.SendMessageAsync("qwq, 怎么能骂人呢awa");
+                await Task.Delay(2000);
+                await message.MessageWindow.SendMessageAsync("qwq我刚才肯定没有骂人");
 
             }
 

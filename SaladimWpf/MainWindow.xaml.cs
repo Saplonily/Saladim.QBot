@@ -21,6 +21,10 @@ public partial class MainWindow : Window
         {
             logger.LogRaw(LogLevel.Info, s);
         };
+        bot.OnClientLog += s =>
+        {
+            logger.LogInfo("Client", s);
+        };
     }
 
     private async void StartClientButton_ClickAsync(object sender, RoutedEventArgs e)
