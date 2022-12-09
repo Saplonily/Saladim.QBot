@@ -10,7 +10,7 @@ public class ForwardEntityModel : IEnumerable<ForwardEntityNodeModel>
     public ForwardEntityModel(ForwardEntity entity)
     {
         var messages = entity.Nodes.Value;
-        nodeModels = 
+        nodeModels =
             from msg in messages
             let node = msg.AsCast<ForwardContentNode>() ??
             throw new InvalidOperationException("Only content forward node is supported ToModel.")

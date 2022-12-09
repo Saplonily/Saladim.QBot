@@ -5,7 +5,8 @@ obj/
 .vscode/
 
 # 一些无关这个项目的实验项目
-EmptyTest/
+# 不屏蔽了, vs会叫找不到项目
+#EmptyTest/
 
 # 单元测试结果
 TestResults/

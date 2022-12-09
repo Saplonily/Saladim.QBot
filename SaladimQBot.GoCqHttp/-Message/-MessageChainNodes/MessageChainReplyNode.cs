@@ -1,5 +1,4 @@
 ﻿using SaladimQBot.Core;
-using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 

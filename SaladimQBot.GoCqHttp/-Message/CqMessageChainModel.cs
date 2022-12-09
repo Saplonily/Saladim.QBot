@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Serialization;
-using SaladimQBot.Core;
-using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 

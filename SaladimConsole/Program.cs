@@ -1,7 +1,5 @@
-﻿using System.Text;
-using Saladim.SalLogger;
+﻿using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
-using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
 

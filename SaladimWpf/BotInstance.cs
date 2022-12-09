@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Net.Http;
-using System.Text.Json;
-using CodingSeb.ExpressionEvaluator;
+﻿using CodingSeb.ExpressionEvaluator;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 

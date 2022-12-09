@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using SaladimQBot.Core;
+﻿using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.Shared;
 

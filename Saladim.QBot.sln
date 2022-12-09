@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmptyTest", "EmptyTest\Empt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.GoCqHttp", "SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj", "{9237368C-335E-406C-B623-1F8E1DBA9FD5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saladim", "Test\Saladim.csproj", "{1B858AA3-15A0-4FBE-82E7-346AFDF791B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimConsole", "SaladimConsole\SaladimConsole.csproj", "{1B858AA3-15A0-4FBE-82E7-346AFDF791B3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.Core", "SaladimQBot.Core\SaladimQBot.Core.csproj", "{09E162B2-3A57-452A-85FC-E987FEA08B92}"
 EndProject

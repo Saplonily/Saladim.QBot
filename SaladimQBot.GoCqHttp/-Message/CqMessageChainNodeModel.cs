@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
-using SaladimQBot.Core;
+﻿using SaladimQBot.Core;
 using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
