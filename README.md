@@ -5,15 +5,17 @@
 </div>
 <br>
 
-### 快速开始
+## 快速开始
 > **见[doc/fast-start.md](./doc/fast-start.md)**
+
+## 介绍
 
 ### 一些情况简述
 <br>
 目前框架仍为完工,目前未来计划如下:
 
 - [x] 完成基层, 如go-cqhttp的所有post支持,所有api支持
-- [ ] 完成基础应用层, 例如实现一个GroupUser类实现IUser接口,
+- [x] 完成基础应用层, 例如实现一个GroupUser类实现IUser接口,
 包含`SendPrivateMessage`方法、`Name`,`NickName`等属性这一类(类似于隔壁[Discord.net](https://github.com/discord-net/Discord.Net))
 - [ ] 完成高级应用层, 例如消息/命令解析处理管道等
 
@@ -57,4 +59,10 @@
     - `SaladimQBot.Extensions.CommandPipeline` 消息处理管线更高级封装, 包含简单指令的解析
 
 目前TODO:
-- [ ] 完成应用层(即IUser,IMessage,IGroupMessage等的实现)
+- [x] 完成应用层(即IUser,IMessage,IGroupMessage等的实现)
+- [ ] 更深层次的应用层
+
+### 联系我们
+> 如果你贡献了任何代码你可以在这里写下你的名字及联系方式和少量描述
+
+- Saplonily [Saplonily@outlook.com](mailto:Saplonily@outlook.com)
