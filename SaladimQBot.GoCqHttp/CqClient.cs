@@ -18,6 +18,10 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     public abstract TimeSpan ExpireTimeSpan { get; }
 
+    public User Self => lazySelf.Value;
+
+    internal Lazy<User> lazySelf;
+
     /// <summary>
     /// 该Client之前是否尝试开启过
     /// </summary>
@@ -34,11 +38,18 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public CqClient(LogLevel logLevelLimit)
     {
         OnPost += InternalPostProcessor;
-        logger = new LoggerBuilder()
+        logger =
+            new LoggerBuilder()
                 .WithLevelLimit(logLevelLimit)
-               .WithAction(s => OnLog?.Invoke(s))
-               .WithFormatter(ClientLogFormatter)
-               .Build();
+                .WithAction(s => OnLog?.Invoke(s))
+                .WithFormatter(ClientLogFormatter)
+                .Build();
+        lazySelf = new(() =>
+        {
+            GetLoginAction a = new();
+            var (_, d) = this.CallApiImplicitlyWithCheckingAsync<GetLoginActionResultData>(a).Result;
+            return this.GetUser(d.UserId);
+        }, true);
 
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[" +
@@ -141,6 +152,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             await ApiSession.StartAsync();
             logger.LogInfo("Client", "Connection", "Connecting post session...");
             await PostSession.StartAsync();
+            logger.LogInfo("Client", "Connection", "Connection completed.");
 
             PostSession.OnReceived += OnSessionReceived;
 
@@ -159,7 +171,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 innerException: ex,
                 message: msg
                 );
-            logger.LogWarn("Client", "Connection", $"Connected failed. Please check the thrown Exception.");
+            logger.LogWarn("Client", "Connection", $"Connection failed. Please check the thrown Exception.");
             throw clientException;
         }
         return;
@@ -845,6 +857,8 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         => GetGroupUser(groupId, userId);
 
     #endregion
+
+    IUser IClient.Self => Self;
 
     #endregion
 }

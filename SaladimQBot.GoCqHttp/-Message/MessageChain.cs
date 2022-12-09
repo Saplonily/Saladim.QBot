@@ -45,6 +45,76 @@ public class MessageChain : CqEntity, IMessageChain
         return chainModel;
     }
 
+    public T First<T>() where T : MessageChainNode
+        => (T)this.MessageChainNodes.First(n => n is T);
+
+    public T? FirstOrNull<T>() where T : MessageChainNode
+    => (T?)this.MessageChainNodes.FirstOrDefault(n => n is T);
+
+    public IEnumerable<T> AllOf<T>() where T : MessageChainNode
+        => this.MessageChainNodes.Where(n => n is T).Select(n => (T)n);
+
+    public MessageChainAtNode FirstAt()
+        => this.First<MessageChainAtNode>();
+
+    public MessageChainForwardNode FirstForward()
+        => this.First<MessageChainForwardNode>();
+
+    public MessageChainImageNode FirstImage()
+        => this.First<MessageChainImageNode>();
+
+    public MessageChainReplyNode FirstReply()
+        => this.First<MessageChainReplyNode>();
+
+    public MessageChainTextNode FirstText()
+        => this.First<MessageChainTextNode>();
+
+    public MessageChainAtNode? FirstAtOrNull()
+        => this.FirstOrNull<MessageChainAtNode>();
+
+    public MessageChainForwardNode? FirstForwardOrNull()
+        => this.FirstOrNull<MessageChainForwardNode>();
+
+    public MessageChainImageNode? FirstImageOrNull()
+        => this.FirstOrNull<MessageChainImageNode>();
+
+    public MessageChainReplyNode? FirstReplyOrNull()
+        => this.FirstOrNull<MessageChainReplyNode>();
+
+    public MessageChainTextNode? FirstTextOrNull()
+        => this.FirstOrNull<MessageChainTextNode>();
+
+    public IEnumerable<MessageChainAtNode> AllAt()
+        => this.AllOf<MessageChainAtNode>();
+
+    public IEnumerable<MessageChainImageNode> AllImage()
+        => this.AllOf<MessageChainImageNode>();
+
+    public IEnumerable<MessageChainTextNode> AllText()
+        => this.AllOf<MessageChainTextNode>();
+
+    public bool Mentioned(User user)
+        => this.AllAt().Where(n => n.User == user).Select(n => n).Any();
+
+    /// <summary>
+    /// <para>是否该消息链中包含回复该消息</para>
+    /// <para>
+    /// 警告: 因为go-cqhttp的bug: 使用消息id获取的消息链中不包含reply节点,
+    /// 所以请勿对 使用消息id获取的消息实体 / 使用SendMessageAsync函数发送消息后的返回值使用该判断函数
+    /// 这会导致该函数返回false
+    /// </para>
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    public bool Replied(Message message)
+    {
+        var n = this.FirstReplyOrNull();
+        if (n is null) return false;
+        if (n.MessageBeReplied == message) return true;
+        return false;
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay
     {
         get

@@ -34,15 +34,13 @@ public class MessageEntity : CqEntity, IMessageEntity
 
     public MessageEntity(CqClient client, in IMessageEntity entity) : base(client)
     {
-        if (entity is MessageEntity thisEntity)
+        if (entity is MessageEntity thisEntity && ReferenceEquals(entity.Client, this.Client))
         {
             Chain = thisEntity.Chain;
             rawString = thisEntity.rawString;
+            return;
         }
-        //TODO 支持其他的实体
-        throw new Exception("Check todo!");
-        /*Chain = MessageChain.FromModel(CqMessageChainModel.FromIMessageEntity(entity));
-        rawString = new Lazy<string>(() => MessageChainHelper.ChainToRawString(cqMessageChain), isThreadSafe: true);*/
+        throw new InvalidOperationException("Cannot create a messageEntity with two different client.");
     }
 
     public MessageEntity(CqClient client, MessageChain chain, string rawString) : this(client, chain.ToModel(), rawString)
@@ -52,6 +50,9 @@ public class MessageEntity : CqEntity, IMessageEntity
     public MessageEntity(CqClient client, MessageChain chain) : this(client, chain.ToModel())
     {
     }
+
+    public static MessageEntity FromText(CqClient client, string text)
+        => new(client, new MessageChain(client, new MessageChainNode[] { new MessageChainTextNode(client, text) }));
 
     #region 重写
 

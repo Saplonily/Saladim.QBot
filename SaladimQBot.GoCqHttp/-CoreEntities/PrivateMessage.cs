@@ -19,6 +19,22 @@ public class PrivateMessage : Message, IPrivateMessage
         IsFromGroup = client.MakeNoneExpirableExpirable(false);
     }
 
+    public async Task<PrivateMessage> ReplyAsync(MessageEntity msg)
+    {
+        msg.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(Client, this));
+        var sentMessage = await this.Author.SendMessageAsync(msg);
+        return sentMessage;
+    }
+
+    public async Task<PrivateMessage> ReplyAsync(string rawString)
+    {
+        var newString = ((new MessageChainReplyNode(Client, this)).ToModel().CqStringify()) + rawString;
+        var sentMessage = await this.Author.SendMessageAsync(newString);
+        return sentMessage;
+    }
+
+    #region load一大堆
+
     internal static PrivateMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)
         => new PrivateMessage(client, post.MessageId)
             .LoadFromPrivateMessagePost(post);
@@ -41,6 +57,8 @@ public class PrivateMessage : Message, IPrivateMessage
         TempSource = MessageTempSource.Invalid;
         return this;
     }
+
+    #endregion
 
     #region IPrivateMessage
 

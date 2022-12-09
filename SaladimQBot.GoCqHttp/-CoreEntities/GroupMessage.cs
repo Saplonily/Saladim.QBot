@@ -27,6 +27,28 @@ public class GroupMessage : Message, IGroupMessage
         IsFromGroup = client.MakeNoneExpirableExpirable(true);
     }
 
+    /// <summary>
+    /// 回复一个群消息,
+    /// 注意回复过程中不要再次引用消息实体,
+    /// 回复过程中会向消息链前端加入回复节点
+    /// </summary>
+    /// <param name="msg">使用的消息实体</param>
+    /// <returns>发送的消息</returns>
+    public async Task<GroupMessage> ReplyAsync(MessageEntity msg)
+    {
+        msg.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(Client, this));
+        var sentMessage = await this.Group.SendMessageAsync(msg);
+        msg.Chain.MessageChainNodes.RemoveAt(0);
+        return sentMessage;
+    }
+
+    public async Task<GroupMessage> ReplyAsync(string rawString)
+    {
+        var newString = ((new MessageChainReplyNode(Client, this)).ToModel().CqStringify()) + rawString;
+        var sentMessage = await this.Group.SendMessageAsync(newString);
+        return sentMessage;
+    }
+
     #region load一大堆的
 
     internal static GroupMessage CreateFromGroupMessagePost(CqClient client, CqGroupMessagePost post)

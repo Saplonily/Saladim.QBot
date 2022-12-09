@@ -46,6 +46,9 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     public Task<GroupMessage> SendMessageAsync(string rawString)
         => Client.SendGroupMessageAsync(this.GroupId, rawString);
 
+    public Task<GroupMessage> SendMessageAsync(ForwardEntity entity)
+        => Client.SendGroupMessageAsync(this.GroupId, entity);
+
     #region CreateFrom / LoadFrom集合
 
     internal static new JoinedGroup CreateFromGroupId(CqClient client, long groupId)

@@ -126,6 +126,11 @@ public interface IClient
     #endregion
 
     /// <summary>
+    /// bot号本身的实体
+    /// </summary>
+    IUser Self { get; }
+
+    /// <summary>
     /// 开始该Client的连接
     /// </summary>
     /// <returns>状态值</returns>

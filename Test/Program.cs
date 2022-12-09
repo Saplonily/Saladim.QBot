@@ -115,15 +115,13 @@ public static class Program
 
     private static async void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
+        var chain = message.MessageEntity.Chain;
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
-        MessageBuilder b = new(client);
-        b.WithTextLine("这是一条消息");
-        ForwardEntityBuilder fb = new(client);
-        fb.AddMessage("这是Sender昵称1", message.Sender, b.Build(), DateTime.Now.AddHours(-3));
-        b.WithText($"群名是 {group.Name.Value}");
-        fb.AddMessage("这是Sender昵称2", message.Sender, b.Build(), DateTime.Now.AddMonths(1));
-        fb.AddMessage(message);
-        await client.SendGroupMessageAsync(group.GroupId, fb.Build());
+        if (chain.Mentioned(client.Self))
+        {
+            await message.ReplyAsync("qwq, 你@我了");
+        }
+        await message.ReplyAsync("awa");
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)

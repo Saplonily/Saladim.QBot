@@ -3,7 +3,7 @@
 /// <summary>
 /// 消息实体，表现为消息链
 /// </summary>
-public interface IMessageEntity
+public interface IMessageEntity : IClientEntity
 {
     /// <summary>
     /// 该消息实体的消息链
