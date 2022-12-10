@@ -44,7 +44,7 @@
 
 ### 仓库简述
 1. `EmptyTest`项目是一些实验原生.net/C#的一些特性,与本项目无关  
-2. `SaladimQBot.Core`项目是QBotDotnet的基础应用层的抽象,
+2. `SaladimQBot.Core`项目是Saladim.QBot的基础应用层的抽象,
 *将* 包含`IUser`,`IClient`等接口或抽象类
 3. `SaladimQBot.GoCqHttp`项目是`Core`项目的go-cqhttp实现, *未来**可能**会加入mirai的实现*, 正在支持Emit发射虚拟Post或重定向ApiCall的目标
 4. `SaladimQBot.GoCqHttpTests`顾名思义是项目 3. 的单元测试,
