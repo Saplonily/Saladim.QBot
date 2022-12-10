@@ -172,6 +172,7 @@ public class BotInstance
             }
             #endregion
 
+            #region auto猜数游戏
             //auto猜数游戏
             if (OpenGuessNumberBot && rawString.Contains("您猜了") && rawString.Contains("但是猜的数"))
             {
@@ -189,6 +190,7 @@ public class BotInstance
                     await message.MessageWindow.SendMessageAsync($"猜{target}");
                 }
             }
+            #endregion
         }
     }
 

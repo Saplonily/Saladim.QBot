@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
+    <PackageReference Include="SaladimQBot.GoCqHttp" Version="0.1.0" />
   </ItemGroup>
 
 </Project>

@@ -28,10 +28,7 @@ public abstract class MessageChainNode : CqEntity, IMessageChainNode
                     ),
 
             CqCodeType.Face =>
-                new MessageChainFaceNode(
-                    client,
-                    int.Parse(model.Params["id"])
-                    ),
+                new MessageChainFaceNode(client, int.Parse(model.Params["id"])),
 
             CqCodeType.Image =>
                 new MessageChainImageNode(client, model.Params["file"]),

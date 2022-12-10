@@ -1,13 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<TargetFrameworks>net7.0;net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Title>SLL.QBotDotnet</Title>
+		<Title>SaladimQBot.Core</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
+		<Version>0.1.0</Version>
+		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

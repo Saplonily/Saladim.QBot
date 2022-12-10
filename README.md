@@ -5,8 +5,11 @@
 </div>
 <br>
 
-## 快速开始
-> **见[doc/fast-start.md](./doc/fast-start.md)**
+## 文档
+
+**快速开始**: ***[doc/fast-start.md](./doc/fast-start.md)***
+
+**StepByStep文档(施工中)**: ***[doc/sbs/index](./doc/sbs/index.md)***
 
 ## 介绍
 
@@ -51,8 +54,8 @@
 大多使用Post/Api的虚拟重定向(即将原本被go-cqhttp的上报会被重定向至另一个模拟出来的),
 `未来也可能加入压力测试等
 5. `SaladimQBot.Shared`共享的一个库, 与项目大致无关, 仅包含极其简单的一些通用实现
-6. `Saladim` 目前 3. 正在使用的控制台调用测试,在这里你可以找到一些使用的例子
-7. `Saladim.Wpf` 与6差不多, 但是是使用wpf构建的gui项目
+6. `SaladimConsole` 目前 3. 正在使用的控制台调用测试,在这里你可以找到一些使用的例子
+7. `SaladimWpf` 与6差不多, 但是是使用wpf构建的gui项目
 8. 未来可能会加入的项目:
     - `SaladimQBot.Mirai` 见3.
     - `SaladimQBot.Extensions.MessagePipeline` 消息处理管线
