@@ -79,6 +79,92 @@ public class MessageEntity : CqEntity, IMessageEntity
 
     #endregion
 
+    #region chain迁移过来的
+
+    public T First<T>() where T : MessageChainNode
+        => (T)this.Chain.MessageChainNodes.First(n => n is T);
+
+    public T? FirstOrNull<T>() where T : MessageChainNode
+    => (T?)this.Chain.MessageChainNodes.FirstOrDefault(n => n is T);
+
+    public IEnumerable<T> AllOf<T>() where T : MessageChainNode
+        => this.Chain.MessageChainNodes.Where(n => n is T).Select(n => (T)n);
+
+    public MessageChainAtNode FirstAt()
+        => this.First<MessageChainAtNode>();
+
+    public MessageChainForwardNode FirstForward()
+        => this.First<MessageChainForwardNode>();
+
+    public MessageChainImageNode FirstImage()
+        => this.First<MessageChainImageNode>();
+
+    public MessageChainReplyNode FirstReply()
+        => this.First<MessageChainReplyNode>();
+
+    public MessageChainTextNode FirstText()
+        => this.First<MessageChainTextNode>();
+
+    public MessageChainAtNode? FirstAtOrNull()
+        => this.FirstOrNull<MessageChainAtNode>();
+
+    public MessageChainForwardNode? FirstForwardOrNull()
+        => this.FirstOrNull<MessageChainForwardNode>();
+
+    public MessageChainImageNode? FirstImageOrNull()
+        => this.FirstOrNull<MessageChainImageNode>();
+
+    public MessageChainReplyNode? FirstReplyOrNull()
+        => this.FirstOrNull<MessageChainReplyNode>();
+
+    public MessageChainTextNode? FirstTextOrNull()
+        => this.FirstOrNull<MessageChainTextNode>();
+
+    /// <summary>
+    /// 消息的所有@
+    /// </summary>
+    public IEnumerable<MessageChainAtNode> AllAt()
+        => this.AllOf<MessageChainAtNode>();
+
+    public IEnumerable<MessageChainImageNode> AllImage()
+        => this.AllOf<MessageChainImageNode>();
+
+    public IEnumerable<MessageChainTextNode> AllText()
+        => this.AllOf<MessageChainTextNode>();
+
+    /// <summary>
+    /// 消息是否提及某个用户
+    /// </summary>
+    /// <param name="user">目标用户</param>
+    public bool Mentioned(User user)
+        => this.AllAt().Where(n => n.User == user).Select(n => n).Any();
+
+    /// <summary>
+    /// 消息是否@了bot
+    /// </summary>
+    public bool MentionedSelf()
+        => this.Mentioned(Client.Self);
+
+    /// <summary>
+    /// <para>是否该消息中包含回复该消息</para>
+    /// <para>
+    /// 警告: 因为go-cqhttp的bug: 使用消息id获取的消息链中不包含reply节点,
+    /// 所以请勿对 使用消息id获取的消息实体 / 使用SendMessageAsync函数发送消息后的返回值使用该判断函数
+    /// 这会导致该函数返回false
+    /// </para>
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns>消息是否被回复</returns>
+    public bool Replied(Message message)
+    {
+        var n = this.FirstReplyOrNull();
+        if (n is null) return false;
+        if (n.MessageBeReplied == message) return true;
+        return false;
+    }
+
+    #endregion
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IMessageChain IMessageEntity.Chain => Chain;
 }

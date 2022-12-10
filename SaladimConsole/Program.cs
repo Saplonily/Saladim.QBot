@@ -113,13 +113,12 @@ public static class Program
 
     private static async void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
-        var chain = message.MessageEntity.Chain;
+        var entity = message.MessageEntity;
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
-        if (chain.Mentioned(client.Self))
+        if (entity.Mentioned(client.Self))
         {
-            await message.ReplyAsync("qwq, 你@我了");
+            await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.");
         }
-        await message.ReplyAsync("awa");
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)

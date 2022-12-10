@@ -16,7 +16,9 @@ public partial class App : Application
     public App()
     {
         DateTime now = DateTime.Now;
-        string path = @"D:\Projects\Saladim.QBot\Logs";
+        string path = @"Logs\";
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
         string unindexedFileName = $"{now.Year}.{now.Month}.{now.Day}";
         string filePath = string.Empty;
         int index = 0;
