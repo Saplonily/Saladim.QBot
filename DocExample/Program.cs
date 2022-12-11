@@ -27,7 +27,7 @@ internal class Program
 
     private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
-        message.Group.SendMessageAsync($"{message.Author.MuteExpireTime.Value}");
+        //message.Group.SendMessageAsync($"{message.Author.MuteExpireTime.Value}");
     }
 
     private static async void Client_OnMessageReceived(Message message)
@@ -36,7 +36,7 @@ internal class Program
         string command = "/echo ";
         if (rawString.StartsWith(command))
         {
-            await message.MessageWindow.SendMessageAsync(rawString[command.Length..]);
+            await message.MessageWindow.SendMessageAsync(rawString.Substring(command.Length));
         }
         /*
         var chain = message.MessageEntity.Chain;
