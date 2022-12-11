@@ -36,28 +36,37 @@
                 <TabItem Header="主页">
                     <Border Padding="10">
                         <StackPanel>
-                        <WrapPanel>
-                            <Button x:Name="StartClientButton" Content="开启客户端" Click="StartClientButton_ClickAsync"/>
-                            <Button x:Name="StopClientButton" Content="关闭客户端" Click="StopClientButton_ClickAsync"/>
-                        </WrapPanel>
-                        <WrapPanel>
-                            <CheckBox x:Name="ScrollToEndCheckBox" Margin="5"
-                                      VerticalContentAlignment="Center" VerticalAlignment="Center">
-                                新日志自动滚动到底部
-                            </CheckBox>
-                        </WrapPanel>
-                        <WrapPanel>
-                            <Button x:Name="ClearOutPut" Content="清空控制台" Click="ClearOutPut_Click"/>
-                        </WrapPanel>
-                    </StackPanel>
+                            <WrapPanel>
+                                <CheckBox x:Name="ClientStateCheckBox"
+                                      Content="客户端开启状态" Margin="5"
+                                      VerticalAlignment="Center"
+                                      VerticalContentAlignment="Center"
+                                      Checked="ClientStateCheckBox_Checked"
+                                      Unchecked="ClientStateCheckBox_Unchecked"/>
+                            </WrapPanel>
+                            <WrapPanel>
+                                <CheckBox x:Name="ScrollToEndCheckBox" Margin="5"
+                                      VerticalContentAlignment="Center" VerticalAlignment="Center"
+                                      IsChecked="True">
+                                    新日志自动滚动到底部
+                                </CheckBox>
+                            </WrapPanel>
+                            <WrapPanel>
+                                <Button x:Name="ClearOutPutButton" Content="清空控制台" Click="ClearOutPutButton_Click"/>
+                                <Button x:Name="FlushLogButton" Content="Flush日志输出流" Click="FlushLogButton_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
                     </Border>
-
                 </TabItem>
                 <TabItem Header="猜数自动机控制">
                     <StackPanel>
                         <WrapPanel>
-                            <Button x:Name="StartGuessNumBotButton" Content="开启" Click="StartGuessNumBotButton_Click"/>
-                            <Button x:Name="StopGuessNumBotButton" Content="关闭" Click="StopGuessNumBotButton_Click"/>
+                            <CheckBox x:Name="GuessNumBotCheckBox"
+                                      Content="猜数自动机开启状态"
+                                      VerticalAlignment="Center"
+                                      VerticalContentAlignment="Center"
+                                      Checked="GuessNumBotCheckBox_Checked"
+                                      Unchecked="GuessNumBotCheckBox_Unchecked"/>
                         </WrapPanel>
                         <WrapPanel>
                             <TextBlock Text="猜数延迟(ms):" TextAlignment="Center" VerticalAlignment="Center"/>

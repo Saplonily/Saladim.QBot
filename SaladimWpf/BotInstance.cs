@@ -20,6 +20,7 @@ public class BotInstance
     public event Action<string>? OnLog;
 
     public bool OpenGuessNumberBot { get; set; }
+
     public int GuessNumberBotDelay { get; set; }
 
     public BotInstance(string address)

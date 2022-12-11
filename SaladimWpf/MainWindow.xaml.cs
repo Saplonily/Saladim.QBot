@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
+using SaladimQBot.Shared;
 
 namespace SaladimWpf;
 
@@ -27,8 +28,44 @@ public partial class MainWindow : Window
         };
     }
 
-    private async void StartClientButton_ClickAsync(object sender, RoutedEventArgs e)
+    private void UpdateGuessNumBotDelay_Click(object sender, RoutedEventArgs e)
     {
+        e.Handled = true;
+        if (int.TryParse(GuessNumBotDelayTextBox.Text, out int v))
+        {
+            bot.GuessNumberBotDelay = v;
+            logger.LogInfo("WpfConsole", $"更新完成! 延迟为{v}ms");
+        }
+        else
+        {
+            logger.LogInfo("WpfConsole", $"更新失败! 解析值时出错");
+        }
+    }
+
+    private void ClearOutPutButton_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        TextBoxLogging.Text = "";
+        logger.LogInfo("WpfConsole", "Wpf控制台清空完成.");
+    }
+
+    private void GuessNumBotCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        bot.OpenGuessNumberBot = true;
+        logger.LogInfo("WpfConsole", "开启自动猜数.");
+    }
+
+    private void GuessNumBotCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        bot.OpenGuessNumberBot = false;
+        logger.LogInfo("WpfConsole", "关闭自动猜数.");
+    }
+
+    private async void ClientStateCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
         logger.LogInfo("WpfConsole", "开启Client中...");
         try
         {
@@ -42,8 +79,9 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "开启完成.");
     }
 
-    private async void StopClientButton_ClickAsync(object sender, RoutedEventArgs e)
+    private async void ClientStateCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
+        e.Handled = true;
         logger.LogInfo("WpfConsole", "关闭Client中...");
         try
         {
@@ -57,34 +95,10 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "关闭完成.");
     }
 
-    private void StartGuessNumBotButton_Click(object sender, RoutedEventArgs e)
+    private void FlushLogButton_Click(object sender, RoutedEventArgs e)
     {
-        bot.OpenGuessNumberBot = true;
-        logger.LogInfo("WpfConsole", "开启自动猜数.");
-    }
-
-    private void StopGuessNumBotButton_Click(object sender, RoutedEventArgs e)
-    {
-        bot.OpenGuessNumberBot = false;
-        logger.LogInfo("WpfConsole", "关闭自动猜数.");
-    }
-
-    private void UpdateGuessNumBotDelay_Click(object sender, RoutedEventArgs e)
-    {
-        if (int.TryParse(GuessNumBotDelayTextBox.Text, out int v))
-        {
-            bot.GuessNumberBotDelay = v;
-            logger.LogInfo("WpfConsole", $"更新完成! 延迟为{v}ms");
-        }
-        else
-        {
-            logger.LogInfo("WpfConsole", $"更新失败! 解析值时出错");
-        }
-    }
-
-    private void ClearOutPut_Click(object sender, RoutedEventArgs e)
-    {
-        TextBoxLogging.Text = "";
-        logger.LogInfo("WpfConsole", "Wpf控制台清空完成.");
+        e.Handled = true;
+        logger.LogInfo("WpfConsole", "Flush完成.");
+        App.Current.Cast<App>().streamWriter.Flush();
     }
 }
