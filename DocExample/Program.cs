@@ -9,6 +9,7 @@ internal class Program
     {
         CqClient client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnMessageReceived += Client_OnMessageReceived;
+        client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
         client.OnLog += Console.WriteLine;
 
         await client.StartAsync();
@@ -18,13 +19,22 @@ internal class Program
         await client.StopAsync();
     }
 
-    private static void Client_OnMessageReceived(Message message)
+    private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
-        var chain = message.MessageEntity.Chain;
-        var allAtNode = chain.AllAt();
-        foreach(var atNode in allAtNode)
+        message.Group.SendMessageAsync($"{message.Author.MuteExpireTime.Value}");
+    }
+
+    private static async void Client_OnMessageReceived(Message message)
+    {
+        string rawString = message.MessageEntity.RawString.Trim();
+        string command = "/echo ";
+        if (rawString.StartsWith(command))
         {
-            Console.WriteLine($"{atNode.User.Nickname.Value}被@了");
+            await message.MessageWindow.SendMessageAsync(rawString[command.Length..]);
         }
+        /*
+        var chain = message.MessageEntity.Chain;
+        var allImageNode = chain.AllImage();
+        await message.MessageWindow.SendMessageAsync($"一条消息被发送出来了, 它包含{allImageNode.Count()}个图片节点.");*/
     }
 }

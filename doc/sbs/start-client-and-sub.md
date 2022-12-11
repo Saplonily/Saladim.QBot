@@ -1,9 +1,8 @@
 # Saladim.QBot docs
 
 ## 启动Client并订阅事件
-
 ### 启动Client
-
+---
 client对象是本框架的核心, 用于和gocq沟通, 接收的上报由它调度并引发事件, 调用的api由它序列化发送出去. 在GoCqHttp实现里为`CqClient`抽象类.  
 首先不用质疑的是新建一个示例并接收:
 ```cs
@@ -49,8 +48,10 @@ cqClient.OnLog += Console.WriteLine();
     - 检查本机网络是否正常
 如果你遇到了其余的异常但是不能自己处理你可以可选的联系作者(非框架问题不保证完全解决)
 
-### 订阅事件
-
+### 订阅事件以及处理事件
+---
+#### 订阅和打印
+---
 一切正常后, 我们可以开始订阅收到消息时触发的事件了, 
 首先我们订阅收到消息事件, 这个事件会在收到私聊/群聊消息时触发
 ```cs
@@ -75,5 +76,25 @@ Saplonily 说: 这是给你私聊的消息
     - 如果否, 检查一下是否正确配置这个环境
 
 如果你依旧遇到了无法解决的问题你可以联系作者(同样的, 非框架问题可能也不会确保完全解决).
+
+#### 回应消息
+---
+只能接受来自群或者私聊的消息很无聊, 这确实, 所以现在我们来尝试回应一下这些消息.
+首先就像我们在*快速开始*里面做的一样, 做一个简单的复读指令"/echo 复读的内容"
+```cs
+string rawString = message.MessageEntity.RawString.Trim();
+string command = "/echo ";
+if (rawString.StartsWith(command))
+{
+    await message.MessageWindow.SendMessageAsync(rawString[command.Length..]);
+}
+```
+效果会和快速开始的一样, 大概可以这样形容:
+```
+You: /echo repeat this message!!!
+Bot: repeat this message!!!
+```
+现在我们有时间来解释一下它到底干了什么, 首先我们获取了rawString, 然后去除前后的空格, 然后我们检测是否是/echo 开头的, 是则获取对应要复读的内容. 
+接下来是这段代码的关键, 我们获取了这个消息的"消息窗口", 在代码里它是实现了`IMessageWindow`的实体, 一般地, `User`和`JoinedGroup`这两个实体实现了"消息窗口", 如果该消息是私聊消息, 那么对应的消息窗口是一个`User`实例, 向它发送消息会被转发至向这个用户发送私聊消息, 如果是群聊消息, 那么对应的是一个`JoinedGroup`实例, 同样的发消息会被转发至向群里发送群消息. 通过这个机制你可以很容易的同时兼顾私聊和群聊的指令. 
 
 最后修改: 2022-12-10 20:05:06

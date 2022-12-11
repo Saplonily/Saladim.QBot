@@ -1,5 +1,5 @@
 # Saladim.QBot docs
-## 实体及可过期类型
+## 实体, 更多事件及可过期类型
 
 ### 消息实体及从消息获取实体
 在前面我们订阅了消息收到事件, 然后粗略的过了一下如何获取消息的一些内容, 现在让我们深入探索一下.  
@@ -95,17 +95,91 @@ var allAtNode = entity.AllAt();
 
 
 ### 细分消息事件
-在前面我们订阅了`OnMessageReceived`事件, 该事件在私聊, 群聊消息收到时都会触发, 但是由于是更广泛的事件, 所以我们不能直接从这个事件中获取更详细的信息, 一般我们可以订阅更加详细的事件, 比如说`OnGroupMessageReceived`事件, 像这样:
+在前面我们订阅了`OnMessageReceived`事件, 该事件在私聊, 群聊消息收到时都会触发, ,但是由于是更广泛的事件, 所以我们不能直接从这个事件中获取更详细的信息比如到底是群消息呢还是私聊消息呢, 群号是什么又或者私聊的具体的人是谁, 一般地我们可以订阅更加详细的事件, 比如说`OnGroupMessageReceived`事件, 像这样:
 ```cs
 client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
 
 //函数签名如下:
 void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
 ```
-其中顾名思义`message`是对应的群消息, `group`是收到消息的群实体
-TODO ...
+当然地, `OnGroupMessageReceived`和`OnMessageReceived`会在群消息收到时同时触发, 所以你无需担心某个事件会不会被截断.
+其中顾名思义`message`是对应的群消息, `group`是收到消息的群实体, 由于`message`类型升级为了`GroupMessage`, 所以我们拥有更多属性可以使用, 常用的大概会有:
+
+- `Group`, 该消息所在群聊
+- `Author`(别名`Sender`), 该消息的发送者(细化为`GroupUser`类型)
+
+`Group`属性是个`JoinedGroup`实例, 所以我们可以显式的向群里发送消息而不是使用消息窗口:
+```cs
+message.Group.SendMessageAsync("你好这是一条在群里的消息");
+```
+`JoinedGroup`类型的实例`Group`有很多很实用的属性, 它们大概有:
+- `CreateTime`, 群创建的时间, 获取失败时会是`DateTime.MinValue`
+- `Name`, 群名
+- `GroupId`, 群号
+- `GroupLevel`, 群等级
+- `MaxMembersCount`, 群最大成员数
+- `MembersCount`, 群人数
+- `Members`, 群成员集合
+
+上述所有属性都是可过期类型, 所以你需要使用`Value`来获取它的值
+
+然后是`GroupUser`类型的`message.Author`, 它是`User`类型的子类, 它包含一系列关于这个用户在群里的信息, 常见的大概有:
+
+- `Card`, 群名片的值, 没设置时为`string.Empty`
+- `LastMessageSentTime`, 最后一条消息的发送时间
+- `JoinTime`, 加群时间
+- `GroupRole`, 群角色, 枚举类型, 可为`Owner`,`Admin`,`Member`
+- `GroupTitle`, 群头衔
+- `GroupLevel`, 群等级
+- `MuteExpireTime`, 禁言到期时间, 非禁言状态时值为`1970-01-01 上午 8:00:00
+`
+- `IsAbleToChangeCard`, 是否允许改变群名片
+- `CardOrNickname`, 群名片或者昵称, 在群名片为空时返回`Nickname`
+- `FullName`, 返回 "群名片(昵称, qq号)" 或名片为空时 "昵称(qq号)" 格式的字符串
+
+上述属性除后三个外其余都是可过期类型
+
+同样地, 你也可以订阅私聊信息:
+```cs
+void Client_OnPrivateMessageReceived(PrivateMessage message, User user)
+```
+
+此外还有更多很常见的事件, 比如:
+- `OnMessageRecalled`, 消息被撤回
+- `OnPrivateMessageRecalled`, 私聊消息被撤回
+- `OnGroupMemberBanned`, 群成员被禁言
+- `OnGroupMemberCardChanged`, 群成员名片变更
+- `OnGroupFileUploaded`, 群文件上传
+- `OnGroupMemberIncreased`, 群成员增加
+- `OnGroupMemberLiftBan`, 群成员被解禁
+- `OnGroupAdminChanged`, 群管理员变更
+- `OnGroupEssenceAdded`, 群精华消息增加
+- `OnOfflineFileReceived`, 收到私聊离线文件
+
+以及其他更多事件
+
 ### 主动从client获取实体
-TODO ...
+大部分实体你都可以从`client`触发的事件中获取, 但有时可能你有这样的需求: 用户发送一条带qq号的消息, 然后bot发送一条带@的消息(我们还没开始了解如何构建一个复杂的消息, 你现在只需理解构建带@的消息需要一个`User`实体). 这时候我们没有从消息得来的实体, 所以我们要主动请求一个实体. 还记得之前的`CqClient`实例吗? 我们现在要再次使用它:
+```cs
+var someGroup = client.GetGroup(1145141919);
+```
+上述代码使用client获取了一个群实体, 其中群号是`1145141919`, 现在我们使用这个实体就能像之前操作接收事件时的操作一样了.
+这是一些常见的获取实体操作:
+- `GetGroupUser`, 获取一个群用户
+- `GetJoinedGroup`, 获取一个bot号加入了的群
+- `GetGroup`, 获取一个群, 允许bot不在群内
+- `GetUser`, 获取一个用户
+
+上述实体你均可以放心的储存它们, 并且随时使用`Equals`或`==`,`!=`来比较, 或使用`GetHashCode`, 它们都使用了判断是否id相等来重写它们.
 
 ### 可过期类型
-TODO ...
+
+这里只是简单说一下, 在应用层你不用很关心可过期类型内部是怎么工作的  
+除了`Value`属性, 还有一个`ValueAsync`属性, 当使用`Value`属性取值时如果值过期会阻塞调用, 同时开始调用api来获取新值, 虽然通常这不会耗费多余1s的时间, 但是有时你可能需要异步的取值操作, 所以你可以使用`ValueAsync`来取值, 它会立即返回一个返回值为新值的`Task`, 所以你可以将方法设为异步方法并且使用`await`关键字来等待值.  
+此外还有一些属性, 不过我们一般很少会见到它们:
+- `ExpireTime`, 它表示这个值会在什么时候过期.
+- `HasValueCache`, 表示是否拥有值缓存, 在取值完成后值会被缓存下来, 直到值过期时再次尝试获取值.
+- `IsExpired`, 值是否过期
+- `TimeSpanExpired`, 重获值后值的有效长度
+
+最后修改: 2022-12-11 12:38:17
