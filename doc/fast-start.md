@@ -19,7 +19,6 @@ account: # 账号相关
   password: '' # 密码为空时使用扫码登录
 ```
 - 更改如下消息上报数据类型为`array`
-message:
 ```yml
   post-format: array
 ```
@@ -43,7 +42,8 @@ message:
 
 ### 引用本项目
 
-这里推荐使用nuget包的方式, 首先打开本项目的`Saladim.QBot.sln`解决方案, 然后选择`SaladimQBot.GoCqHttp`项目进行编译打包. 获取包后安装到实例项目.
+这里推荐使用nuget包的方式, 写作文档时使用的是v0.1.0-alpha版本, 你可以选择在[github release](https://github.com/saladim-org/Saladim.QBot/releases/tag/v0.1.0-alpha)上下载它(注意把所有包下载下来), 或者你可以选择手动编译项目:  
+首先打开本项目的`Saladim.QBot.sln`解决方案, 然后选择`SaladimQBot.GoCqHttp`,`SaladimQBot.Core`,`SaladimQBot.Shared`项目进行编译打包. 获取包后安装``SaladimQBot.GoCqHttp`到实例项目, 应该会自动将其依赖安装.
 
 ## 构建Client
 
@@ -77,6 +77,7 @@ await client.StopAsync();
 ```log
 [Info][Client/Connection] Connecting api session...
 [Info][Client/Connection] Connecting post session...
+[Info][Client/Connection] Connection completed.
 ```
 如果之后没有报错信息显示或异常抛出那么说明程序与cq服务端连接成功
 
@@ -95,6 +96,7 @@ Console.WriteLine($"{nickName}({userId})说: {rawString}");
 Saplonily(2748166392)说: hi~
 Saplonily(2748166392)说: [CQ:at,qq=2748166392] 这是含CQ码的消息
 ```
+(注: qq消息中的特殊部分会被解析为cq码, 详情请见后述文档)
 
 现在我们尝试做个简单的指令: `/echo <需要重复的消息>`,
 没错, 是个简单的复读指令, 首先我们先简单判断一下消息是否符合该指令:
@@ -123,4 +125,7 @@ Saplonily(2748166392)说: /echo 复读这条消息罢
 ![echo例子图片](./echo-sample.png)
 
 到此, 你已经完成了快速开始的教程!  
-后续文档正在写作中, 随时欢迎帮助我们完善文档!
+后续文档正在写作中, 随时欢迎帮助我们完善文档!  
+现在你可以选择继续阅读[StepByStep文档](./sbs/index.md).
+
+最后修改: 2022-12-11 12:47:21
