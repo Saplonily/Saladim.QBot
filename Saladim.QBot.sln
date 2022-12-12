@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocExample", "DocExample\Do
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{05FB3223-288E-44C3-87EC-FB9EAA1CE59B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaladimWpf", "SaladimWpf\SaladimWpf.csproj", "{C11A1A6A-01B5-48E1-9094-E4A572491661}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimWpf", "SaladimWpf\SaladimWpf.csproj", "{C11A1A6A-01B5-48E1-9094-E4A572491661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

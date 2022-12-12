@@ -119,6 +119,8 @@ public static class Program
         {
             await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.");
         }
+        //nothing
+        Console.WriteLine();
     }
 
     private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)
