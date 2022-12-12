@@ -8,8 +8,4 @@
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="SaladimQBot.GoCqHttp" Version="0.1.0" />
-	</ItemGroup>
-
 </Project>

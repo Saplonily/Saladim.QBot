@@ -10,7 +10,7 @@ internal class Program
         CqClient client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
-        client.OnF
+        client.OnFr
         
         client.OnLog += Console.WriteLine;
 
