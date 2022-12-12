@@ -3,7 +3,7 @@
 /// <summary>
 /// 一个QQ用户
 /// </summary>
-public interface IUser : IClientEntity, IMessageWindow
+public interface IUser : IClientEntity
 {
     /// <summary>
     /// QQ号

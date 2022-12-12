@@ -13,13 +13,13 @@ public class GroupMessage : Message, IGroupMessage
 
     public Expirable<GroupUser> ExpGroupSender { get; protected set; } = default!;
 
-    public override ICqMessageWindow MessageWindow => Group;
-
     public JoinedGroup Group => ExpGroup.Value;
 
     public new GroupUser Sender => ExpGroupSender.Value;
 
     public new GroupUser Author => Sender;
+
+    public override ICqMessageWindow MessageWindow => Group;
 
     protected internal GroupMessage(CqClient client, int messageId)
         : base(client, messageId)
@@ -111,9 +111,6 @@ public class GroupMessage : Message, IGroupMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IGroupUser IGroupMessage.Sender { get => ExpGroupSender.Value; }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IMessageWindow IMessage.MessageWindow => Group;
 
     public static bool operator ==(GroupMessage? left, GroupMessage? right)
     {

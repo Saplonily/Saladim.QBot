@@ -10,7 +10,7 @@ internal class Program
         CqClient client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
-        client.OnPrivateMessageReceived += Client_OnPrivateMessageReceived;
+        client.OnF
         
         client.OnLog += Console.WriteLine;
 
@@ -19,15 +19,6 @@ internal class Program
         Console.ReadLine();
 
         await client.StopAsync();
-    }
-
-    private static void Client_OnPrivateMessageReceived(PrivateMessage message, User user)
-    {
-    }
-
-    private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
-    {
-        //message.Group.SendMessageAsync($"{message.Author.MuteExpireTime.Value}");
     }
 
     private static async void Client_OnMessageReceived(Message message)

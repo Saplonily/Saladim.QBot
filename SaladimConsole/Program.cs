@@ -108,7 +108,19 @@ public static class Program
             client.OnGroupMemberChanged += Client_OnGroupMemberChanged;
             client.OnGroupMemberDecreased += Client_OnGroupMemberDecreased;
             client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
+            client.OnGroupAllUserBanned += Client_OnGroupAllUserBanned;
+            client.OnFriendMessageReceived += Client_OnFriendMessageReceived;
         }
+    }
+
+    private static void Client_OnFriendMessageReceived(FriendMessage message, FriendUser friendUser)
+    {
+        logger.LogInfo("Program", $"好友{friendUser.Nickname.Value}给你发消息了: {message.MessageEntity.RawString}");
+    }
+
+    private static void Client_OnGroupAllUserBanned(JoinedGroup group, GroupUser operatorUser)
+    {
+        logger.LogInfo("Program", $"{group.Name.Value}里的屑{operatorUser.FullName}打开了全员禁言.");
     }
 
     private static async void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
@@ -118,6 +130,14 @@ public static class Program
         if (entity.Mentioned(client.Self))
         {
             await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.");
+        }
+        if (message.MessageEntity.RawString.Contains("qwq"))
+        {
+            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime.Value}的时候发的.");
+        }
+        if(message.MessageEntity.Chain.AllAt().Any(n => n.User is null))
+        {
+            await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?");
         }
         //nothing
         Console.WriteLine();

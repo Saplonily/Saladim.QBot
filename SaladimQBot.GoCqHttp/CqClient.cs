@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
+using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
@@ -43,17 +44,20 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 .WithAction(s => OnLog?.Invoke(s))
                 .WithFormatter(ClientLogFormatter)
                 .Build();
-        lazySelf = new(() =>
-        {
-            GetLoginAction a = new();
-            var (_, d) = this.CallApiImplicitlyWithCheckingAsync<GetLoginActionResultData>(a).Result;
-            return this.GetUser(d.UserId);
-        }, true);
+        lazySelf = new(LazySelfFactory, true);
 
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[" +
             $"{l}][{s}/{(ss is null ? "" : $"{ss}")}" +
             $"] {content}";
+    }
+
+    private User LazySelfFactory()
+    {
+        GetLoginAction a = new();
+        var (_, d) = this.CallApiImplicitlyWithCheckingAsync<GetLoginActionResultData>(a).Result;
+        return this.GetUser(d.UserId);
+
     }
 
     #region OnPost和OnLog事件
@@ -147,6 +151,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     {
         try
         {
+            //我觉得会有人会换bot号所以我们需要每次都刷新一遍自己(
+            lazySelf = new(LazySelfFactory, true);
+
             logger.LogInfo("Client", "Connection", "Connecting api session...");
             await ApiSession.StartAsync();
             logger.LogInfo("Client", "Connection", "Connecting post session...");
@@ -403,9 +410,21 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                         break;
 
                     case CqPrivateMessagePost privateMessagePost:
-                        PrivateMessage pm = PrivateMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
-                        OnMessageReceived?.Invoke(pm);
-                        OnPrivateMessageReceived?.Invoke(pm, pm.PrivateSender);
+                        if (privateMessagePost.TempSource is MessageTempSource.Invalid)
+                        {
+                            FriendMessage fm = FriendMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
+                            OnMessageReceived?.Invoke(fm);
+                            OnPrivateMessageReceived?.Invoke(fm, fm.Sender);
+                            OnFriendMessageReceived?.Invoke(fm, fm.Sender);
+                            //ftm (无端联想)
+                            //我sll不是跨啊(
+                        }
+                        else
+                        {
+                            PrivateMessage pm = PrivateMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
+                            OnMessageReceived?.Invoke(pm);
+                            OnPrivateMessageReceived?.Invoke(pm, pm.Sender);
+                        }
                         break;
                 }
                 break;
@@ -497,14 +516,24 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                                     ClientException.ExceptionType.EntityCreationFailed,
                                     "GroupMemberBannedNoticePost got a none Ban none LiftBan SubType."
                                     );
-                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                             GroupUser operatorUser = this.GetGroupUser(notice.GroupId, notice.OperatorId);
                             JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-
-                            if (isBan)
-                                OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
+                            //确保不是全员禁言
+                            if (notice.UserId != 0)
+                            {
+                                GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                                if (isBan)
+                                    OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
+                                else
+                                    OnGroupMemberBanLifted?.Invoke(group, user, operatorUser);
+                            }
                             else
-                                OnGroupMemberLiftBan?.Invoke(group, user, operatorUser);
+                            {
+                                if (isBan)
+                                    OnGroupAllUserBanned?.Invoke(group, operatorUser);
+                                else
+                                    OnGroupAllUserBanLifted?.Invoke(group, operatorUser);
+                            }
                         }
                         break;
 
@@ -560,6 +589,8 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public event OnGroupMessageReceivedHandler? OnGroupMessageReceived;
     public delegate void OnPrivateMessageReceivedHandler(PrivateMessage message, User user);
     public event OnPrivateMessageReceivedHandler? OnPrivateMessageReceived;
+    public delegate void OnFriendMessageReceivedHandler(FriendMessage message, FriendUser friendUser);
+    public event OnFriendMessageReceivedHandler? OnFriendMessageReceived;
     #endregion
 
     #region 消息撤回
@@ -599,8 +630,13 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     //群禁言
     public delegate void OnGroupMemberBannedHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser, TimeSpan timeSpan);
     public event OnGroupMemberBannedHandler? OnGroupMemberBanned;
-    public delegate void OnGroupMemberLiftBanHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser);
-    public event OnGroupMemberLiftBanHandler? OnGroupMemberLiftBan;
+    public delegate void OnGroupMemberBanLiftedHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser);
+    public event OnGroupMemberBanLiftedHandler? OnGroupMemberBanLifted;
+    //special: 全员禁言
+    public delegate void OnGroupAllUserBannedHandler(JoinedGroup group, GroupUser operatorUser);
+    public event OnGroupAllUserBannedHandler? OnGroupAllUserBanned;
+    public delegate void OnGroupAllUserBanLiftedHandler(JoinedGroup group, GroupUser operatorUser);
+    public event OnGroupAllUserBanLiftedHandler? OnGroupAllUserBanLifted;
 
     //群名片变更
     public delegate void OnGroupMemberCardChangedHandler(JoinedGroup group, GroupUser groupUser, string from, string to);
@@ -641,25 +677,38 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     public Message GetMessageById(int messageId)
         => Message.CreateFromMessageId(this, messageId);
+
+    IFriendMessage IClient.GetFriendMessageById(int messageId)
+        => GetFriendMessageById(messageId);
+
+    public FriendMessage GetFriendMessageById(int messageId)
+        => FriendMessage.CreateFromMessageId(this, messageId);
     #endregion
 
     #region 发消息
 
     #region 私聊
 
-    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IMessageEntity messageEntity)
-        => await SendPrivateMessageAsync(userId, new MessageEntity(this, messageEntity));
+    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, long? groupId, IMessageEntity messageEntity)
+        => await SendPrivateMessageAsync(userId, groupId, new MessageEntity(this, messageEntity));
 
-    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, string rawString)
-        => await SendPrivateMessageAsync(userId, rawString);
+    async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, long? groupId, string rawString)
+        => await SendPrivateMessageAsync(userId, groupId, rawString);
 
-    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, IMessageEntity)"/>
-    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, MessageEntity messageEntity)
+    async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, IMessageEntity messageEntity)
+        => await SendFriendMessageAsync(friendUserId, new MessageEntity(this, messageEntity));
+
+    async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, string rawString)
+        => await SendFriendMessageAsync(friendUserId, rawString);
+
+    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, long?, IMessageEntity)"/>
+    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, MessageEntity messageEntity)
     {
         SendPrivateMessageEntityAction api = new()
         {
             Message = messageEntity.Chain.ToModel(),
-            UserId = userId
+            UserId = userId,
+            GroupId = groupId
         };
         var rst = await this.CallApiWithCheckingAsync(api);
 
@@ -668,13 +717,14 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         return msg;
     }
 
-    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, string)"/>
-    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, string rawString)
+    /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long,long?, string)"/>
+    public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, string rawString)
     {
         SendPrivateMessageAction api = new()
         {
             Message = rawString,
-            UserId = userId
+            UserId = userId,
+            GroupId = groupId
         };
         var rst = await this.CallApiWithCheckingAsync(api);
 
@@ -682,6 +732,11 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             PrivateMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
         return msg;
     }
+
+    public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, MessageEntity messageEntity)
+        => (await SendPrivateMessageAsync(friendUserId, null, messageEntity)).Cast<FriendMessage>();
+    public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, string rawString)
+        => (await SendPrivateMessageAsync(friendUserId, null, rawString)).Cast<FriendMessage>();
 
     #endregion
 
@@ -843,6 +898,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public JoinedGroup GetJoinedGroup(long groupId)
         => JoinedGroup.CreateFromGroupId(this, groupId);
 
+    public FriendUser GetFriendUser(long friendUserId)
+        => FriendUser.CreateFromId(this, friendUserId);
+
     IGroup IClient.GetGroup(long groupId)
         => GetGroup(groupId);
 
@@ -854,6 +912,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     IGroupUser IClient.GetGroupUser(long groupId, long userId)
         => GetGroupUser(groupId, userId);
+
+    IFriendUser IClient.GetFriendUser(long friendUserId)
+        => GetFriendUser(friendUserId);
 
     #endregion
 

@@ -3,7 +3,8 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-//TODO 重构Expirable
+//NOTODO 重构Expirable
+//2022-12-12 暂时不打算重构
 
 /// <summary>
 /// 会过期的值类型

@@ -12,8 +12,15 @@ public class CqMessageSenderJsonConverter : JsonConverter<CqMessageSender>
 
         var sender = JsonSerializer.Deserialize<CqMessageSender>(doc, options);
 
-        return doc.RootElement.ExistsProperty(StringConsts.GroupSenderIdentifier) ?
-            JsonSerializer.Deserialize<CqGroupMessageSender>(doc, options) : sender;
+        if (doc.RootElement.ExistsProperty(StringConsts.GroupSenderIdentifier))
+        {
+            return JsonSerializer.Deserialize<CqGroupMessageSender>(doc, options);
+        }
+        if (doc.RootElement.ExistsProperty(StringConsts.GroupTempMessageSenderIdentifier))
+        {
+            return JsonSerializer.Deserialize<CqGroupTempMessageSender>(doc, options);
+        }
+        return sender;
     }
 
     public override void Write(Utf8JsonWriter writer, CqMessageSender value, JsonSerializerOptions options)
