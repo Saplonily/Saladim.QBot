@@ -404,6 +404,11 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 switch (messagePost)
                 {
                     case CqGroupMessagePost groupMessagePost:
+                        if (groupMessagePost.AnonymousSender is not null)
+                        {
+                            logger.LogInfo("Client", "PostProcessor", "Anonymous message received. But not supported for now.");
+                            return;
+                        }
                         GroupMessage gm = GroupMessage.CreateFromGroupMessagePost(this, groupMessagePost);
                         OnMessageReceived?.Invoke(gm);
                         OnGroupMessageReceived?.Invoke(gm, gm.Group);
