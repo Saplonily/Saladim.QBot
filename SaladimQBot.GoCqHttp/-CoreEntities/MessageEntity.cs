@@ -133,14 +133,17 @@ public class MessageEntity : CqEntity, IMessageEntity
         => this.AllOf<MessageChainTextNode>();
 
     /// <summary>
-    /// 消息是否提及某个用户
+    /// 消息是否提及某个用户 (不包含@全体成员)
     /// </summary>
     /// <param name="user">目标用户</param>
     public bool Mentioned(User user)
-        => this.AllAt().Where(n => n.User == user).Select(n => n).Any();
+        => this.AllAt().Where(n => !n.IsMentionAllUser && n.User! == user).Any();
+
+    public bool MentionedAllUser()
+        => this.AllAt().Where(n => n.IsMentionAllUser).Any();
 
     /// <summary>
-    /// 消息是否@了bot
+    /// 消息是否@了bot (不包含@全体成员)
     /// </summary>
     public bool MentionedSelf()
         => this.Mentioned(Client.Self);

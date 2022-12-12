@@ -19,7 +19,8 @@ public class Message : CqEntity, IMessage
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
-    public virtual ICqMessageWindow MessageWindow => Sender;
+    public virtual ICqMessageWindow MessageWindow =>
+        throw new InvalidOperationException("Raw Message hasn't MessageWindow.");
 
     public User Sender => ExpSender.Value;
 
@@ -97,9 +98,6 @@ public class Message : CqEntity, IMessage
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     IUser IMessage.Sender => Sender;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    IMessageWindow IMessage.MessageWindow => Sender;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     DateTime IMessage.SendTime => SendTime.Value;

@@ -11,4 +11,7 @@ public class SendPrivateMessageEntityAction : CqApi
 
     [Name("user_id")]
     public long UserId { get; set; } = -1;
+
+    [Name("group_id")]
+    public long? GroupId { get; set; } = null;
 }

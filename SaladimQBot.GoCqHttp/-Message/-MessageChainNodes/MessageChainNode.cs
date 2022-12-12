@@ -21,12 +21,13 @@ public abstract class MessageChainNode : CqEntity, IMessageChainNode
                 new MessageChainTextNode(client, model.Params["text"]),
 
             CqCodeType.At =>
-                //model.Params["qq"] != "all" ? 
+                model.Params["qq"] != "all" ?
                 new MessageChainAtNode(
                     client,
                     long.Parse(model.Params["qq"]),
                     model.Params.TryGetValue("name", out var v) ? v : ""
-                    ),
+                    ) :
+                new MessageChainAtNode(client, null),
 
             CqCodeType.Face =>
                 new MessageChainFaceNode(client, int.Parse(model.Params["id"])),

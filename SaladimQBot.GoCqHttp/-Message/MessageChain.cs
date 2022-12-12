@@ -94,7 +94,7 @@ public class MessageChain : CqEntity, IMessageChain
         => this.AllOf<MessageChainTextNode>();
 
     public bool Mentioned(User user)
-        => this.AllAt().Where(n => n.User == user).Select(n => n).Any();
+        => this.AllAt().Where(n => n.User is not null && n.User == user).Select(n => n).Any();
 
     /// <summary>
     /// <para>是否该消息链中包含回复该消息</para>

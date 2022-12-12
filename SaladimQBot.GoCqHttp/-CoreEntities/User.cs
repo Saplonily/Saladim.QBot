@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net.Sockets;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
@@ -7,7 +8,7 @@ using SaladimQBot.Shared;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("{Nickname,nq} ({UserId,nq})")]
-public class User : CqEntity, IUser, ICqMessageWindow
+public class User : CqEntity, IUser
 {
     public long UserId { get; protected set; }
 
@@ -32,11 +33,27 @@ public class User : CqEntity, IUser, ICqMessageWindow
         UserId = userId;
     }
 
-    public Task<PrivateMessage> SendMessageAsync(MessageEntity messageEntity)
-        => Client.SendPrivateMessageAsync(UserId, messageEntity);
+    /// <summary>
+    /// <para>向一个用户发送一条消息, 可能为临时消息</para>
+    /// <para>截止2022-12-12仍存在bug, 请勿调用此方法, 详见 https://github.com/Mrs4s/go-cqhttp/issues/1331</para>
+    /// </summary>
+    /// <param name="groupId">若为临时消息时显示的群来源</param>
+    /// <param name="messageEntity">消息实体</param>
+    /// <returns>消息实体</returns>
+    [Obsolete("请勿使用此方法, 可能会导致账号冻结, 具体消息请见 SaladimQBot.GoCqHttp.User的方法 SendMessageAsync的xml注释")]
+    public Task<PrivateMessage> SendMessageAsync(long? groupId, MessageEntity messageEntity)
+        => Client.SendPrivateMessageAsync(UserId, groupId, messageEntity);
 
-    public Task<PrivateMessage> SendMessageAsync(string rawString)
-        => Client.SendPrivateMessageAsync(UserId, rawString);
+    /// <summary>
+    /// <para>向一个用户发送一条消息, 可能为临时消息</para>
+    /// <para>截止2022-12-12仍存在bug, 请勿调用此方法, 详见 https://github.com/Mrs4s/go-cqhttp/issues/1331</para>
+    /// </summary>
+    /// <param name="groupId">若为临时消息时显示的群来源</param>
+    /// <param name="rawString">消息文本</param>
+    /// <returns>消息实体</returns>
+    [Obsolete("请勿使用此方法, 可能会导致账号冻结, 具体消息请见 SaladimQBot.GoCqHttp.User的方法 SendMessageAsync的xml注释")]
+    public Task<PrivateMessage> SendMessageAsync(long? groupId, string rawString)
+        => Client.SendPrivateMessageAsync(UserId, groupId, rawString);
 
     #region CreateFrom / LoadFrom集合
 
@@ -118,18 +135,6 @@ public class User : CqEntity, IUser, ICqMessageWindow
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     int IUser.LoginDays { get => LoginDays.Value; }
-
-    async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendPrivateMessageAsync(UserId, new MessageEntity(Client, messageEntity));
-
-    async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
-        => await Client.SendPrivateMessageAsync(UserId, rawString);
-
-    async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
-        => await SendMessageAsync(messageEntity);
-
-    async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
-        => await SendMessageAsync(rawString);
 
     #endregion
 

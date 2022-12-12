@@ -24,6 +24,8 @@ public static class StringConsts
     //2022-10-20 16:19:09 Saplonily
     public const string GroupSenderIdentifier = "role";
 
+    public const string GroupTempMessageSenderIdentifier = "group_id";
+
     public const string CqCodeTypeProperty = "type";
     public const string CqCodeParamsProperty = "data";
 

@@ -21,6 +21,13 @@ public interface IClient
     IPrivateMessage GetPrivateMessageById(int messageId);
 
     /// <summary>
+    /// 使用消息Id获取一个好友消息
+    /// </summary>
+    /// <param name="messageId">消息id</param>
+    /// <returns>消息实体</returns>
+    IFriendMessage GetFriendMessageById(int messageId);
+
+    /// <summary>
     /// 使用消息Id获取一个消息, 应返回IMessage的子类
     /// </summary>
     /// <param name="messageId">消息id</param>
@@ -34,17 +41,35 @@ public interface IClient
     /// 使用消息实体发送私聊消息
     /// </summary>
     /// <param name="userId">对方qq号</param>
+    /// <param name="groupId">作为临时会话时的来源群</param>
     /// <param name="messageEntity">消息实体</param>
     /// <returns>该消息实体</returns>
-    Task<IPrivateMessage> SendPrivateMessageAsync(long userId, IMessageEntity messageEntity);
+    Task<IPrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, IMessageEntity messageEntity);
 
     /// <summary>
     /// 使用原始字符串发送私聊消息
     /// </summary>
     /// <param name="userId">对方qq号</param>
+    /// <param name="groupId">作为临时会话时的来源群</param>
     /// <param name="rawString">消息实体</param>
     /// <returns>该消息实体</returns>
-    Task<IPrivateMessage> SendPrivateMessageAsync(long userId, string rawString);
+    Task<IPrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, string rawString);
+
+    /// <summary>
+    /// 使用消息实体发送好友消息
+    /// </summary>
+    /// <param name="friendUserId">对方qq号</param>
+    /// <param name="messageEntity">消息实体</param>
+    /// <returns>该消息实体</returns>
+    Task<IFriendMessage> SendFriendMessageAsync(long friendUserId, IMessageEntity messageEntity);
+
+    /// <summary>
+    /// 使用原始字符串发送好友消息
+    /// </summary>
+    /// <param name="friendUserId">对方qq号</param>
+    /// <param name="rawString">消息实体</param>
+    /// <returns>该消息实体</returns>
+    Task<IFriendMessage> SendFriendMessageAsync(long friendUserId, string rawString);
 
     /// <summary>
     /// 使用消息实体发送群消息
@@ -122,6 +147,12 @@ public interface IClient
     /// </summary>
     /// <param name="groupId">群号</param>
     IJoinedGroup GetJoinedGroup(long groupId);
+
+    /// <summary>
+    /// 获取一个bot的好友
+    /// </summary>
+    /// <param name="userId">好友id</param>
+    IFriendUser GetFriendUser(long friendUserId);
 
     #endregion
 
