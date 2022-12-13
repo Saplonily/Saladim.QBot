@@ -10,13 +10,13 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
 
     public string Comment { get; protected set; } = default!;
 
-    public FriendAddRequestProcessStatus ProcessState { get; protected set; }
+    public RequestProcessStatus ProcessState { get; protected set; }
 
     protected internal string Flag { get; protected set; } = default!;
 
     protected FriendAddRequest(CqClient client) : base(client)
     {
-        ProcessState = FriendAddRequestProcessStatus.Idle;
+        ProcessState = RequestProcessStatus.Idle;
     }
 
     public async Task<FriendUser> ApproveAsync()
@@ -24,7 +24,7 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         lock (this)
         {
             MakeSureStatusIsIdle();
-            ProcessState = FriendAddRequestProcessStatus.Approved;
+            ProcessState = RequestProcessStatus.Approved;
         }
         SetFriendAddRequestAction api = new()
         {
@@ -40,7 +40,7 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         lock (this)
         {
             MakeSureStatusIsIdle();
-            ProcessState = FriendAddRequestProcessStatus.Disapproved;
+            ProcessState = RequestProcessStatus.Disapproved;
         }
         SetFriendAddRequestAction api = new()
         {
@@ -53,9 +53,9 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
 
     protected void MakeSureStatusIsIdle()
     {
-        if (ProcessState is not FriendAddRequestProcessStatus.Idle)
+        if (ProcessState is not RequestProcessStatus.Idle)
         {
-            string text = ProcessState is FriendAddRequestProcessStatus.Approved ?
+            string text = ProcessState is RequestProcessStatus.Approved ?
                 "This request has been approved." :
                 "This request has been disapproved.";
             throw new InvalidOperationException(text);
@@ -73,11 +73,4 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
 
     async Task<IFriendUser> IFriendAddRequest.ApproveAsync()
         => await ApproveAsync().ConfigureAwait(false);
-}
-
-public enum FriendAddRequestProcessStatus
-{
-    Idle,
-    Approved,
-    Disapproved
 }

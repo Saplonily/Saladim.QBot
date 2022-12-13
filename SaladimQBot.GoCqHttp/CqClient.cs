@@ -595,6 +595,20 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                         OnFriendAddRequested?.Invoke(r);
                     }
                     break;
+                    case CqGroupRequestPost request:
+                    {
+                        if (request.SubType is CqGroupRequestPost.RequestSubType.Add)
+                        {
+                            var r = GroupJoinRequest.CreateFromPost(this, request);
+                            OnGroupJoinRequested?.Invoke(r);
+                        }
+                        else if (request.SubType is CqGroupRequestPost.RequestSubType.Invite)
+                        {
+                            var r = GroupInviteRequest.CreateFromPost(this, request);
+                            OnGroupInviteRequested?.Invoke(r);
+                        }
+                    }
+                    break;
                 }
                 break;
         }
@@ -677,8 +691,14 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #region 请求
 
+    //加好友请求
     public delegate void OnFriendAddRequestedHandler(FriendAddRequest request);
     public event OnFriendAddRequestedHandler? OnFriendAddRequested;
+    public delegate void OnGroupJoinRequestedHandler(GroupJoinRequest request);
+    public event OnGroupJoinRequestedHandler? OnGroupJoinRequested;
+    public delegate void OnGroupInviteRequestedHandler(GroupInviteRequest request);
+    public event OnGroupInviteRequestedHandler? OnGroupInviteRequested;
+
 
     #endregion
 

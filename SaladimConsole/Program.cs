@@ -112,8 +112,14 @@ public static class Program
             client.OnGroupAllUserBanned += Client_OnGroupAllUserBanned;
             client.OnFriendMessageReceived += Client_OnFriendMessageReceived;
             client.OnFriendAddRequested += Client_OnFriendAddRequested;
-            client.OnFriendAddRequested += Client_OnFriendAddRequested;
+            client.OnGroupInviteRequested += Client_OnGroupInviteRequested;
         }
+    }
+
+    private static async void Client_OnGroupInviteRequested(GroupInviteRequest request)
+    {
+        logger.LogInfo("Program", $"{request.User.Nickname.Value}邀请你加入群{request.Group.Name.Value}.");
+        await request.ApproveAsync().ConfigureAwait(false);
     }
 
     private static async void Client_OnFriendAddRequested(FriendAddRequest request)
@@ -136,11 +142,12 @@ public static class Program
     {
         var entity = message.MessageEntity;
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
+        logger.LogInfo("Program", $"{message.Sender.FullName}说: {group.GroupId}");
         if (entity.Mentioned(client.Self))
         {
             await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.").ConfigureAwait(false);
         }
-        if (message.MessageEntity.RawString.Contains("qwq"))
+        if (message.MessageEntity.RawString.Contains("/qwq"))
         {
             await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime.Value}的时候发的.").ConfigureAwait(false);
         }
@@ -148,19 +155,41 @@ public static class Program
         {
             await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
         }
-        if (message.MessageEntity.RawString.Contains("临时虚拟一条加好友请求"))
+        if (message.MessageEntity.RawString.Contains("/虚拟一条消息"))
         {
             if (client.PostSession is CqWebSocketSession ws)
             {
                 string json = """
                     {
-                        "post_type":"request",
-                        "request_type":"friend",
-                        "time":1670902817,
-                        "self_id":2259113381,
-                        "user_id":2748166392,
-                        "comment":"",
-                        "flag":"1670902816000000"
+                    	"post_type": "message",
+                    	"message_type": "group",
+                    	"time": 1670920313,
+                    	"self_id": 2259113381,
+                    	"sub_type": "normal",
+                    	"font": 0,
+                    	"group_id": 860355679,
+                    	"message": [{
+                    		"type": "text",
+                    		"data": {
+                    			"text": "；"
+                    		}
+                    	}],
+                    	"message_seq": 179252,
+                    	"raw_message": "；",
+                    	"message_id": 435047497,
+                    	"anonymous": null,
+                    	"sender": {
+                    		"age": 0,
+                    		"area": "",
+                    		"card": "qwq这是自定义的名片",
+                    		"level": "",
+                    		"nickname": "sll",
+                    		"role": "member",
+                    		"sex": "unknown",
+                    		"title": "群发情机",
+                    		"user_id": 2748166392
+                    	},
+                    	"user_id": 1219377169
                     }
                     """;
                 JsonDocument doc = JsonDocument.Parse(json);

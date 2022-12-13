@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -20,9 +21,19 @@ public class CqEnumJsonConverter : JsonConverter<Enum>
     }
 
     public override void Write(Utf8JsonWriter writer, Enum value, JsonSerializerOptions options)
-        => throw new NotSupportedException();
+    {
+        object v = EnumAttributeCacher.GetAttrFromEnum(value.GetType(), value.Cast<int>());
+        if (v is string)
+        {
+            writer.WriteStringValue(v.Cast<string>());
+        }
+        if (v is int)
+        {
+            writer.WriteNumberValue(v.Cast<int>());
+        }
+    }
 
     public override bool CanConvert(Type typeToConvert)
-    => typeof(Enum).IsAssignableFrom(typeToConvert);
+        => typeof(Enum).IsAssignableFrom(typeToConvert);
 
 }
