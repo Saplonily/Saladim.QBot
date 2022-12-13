@@ -19,7 +19,7 @@
             </LinearGradientBrush>
             <Style TargetType="Button">
                 <Setter Property="Padding" Value="5,0,5,0"/>
-                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Margin" Value="5,0,5,0"/>
                 <Setter Property="MinWidth" Value="80"/>
             </Style>
         </Grid.Resources>
@@ -36,22 +36,22 @@
                 <TabItem Header="主页">
                     <Border Padding="10">
                         <StackPanel>
-                            <WrapPanel>
+                            <WrapPanel Margin="5">
                                 <CheckBox x:Name="ClientStateCheckBox"
-                                      Content="客户端开启状态" Margin="5"
+                                      Content="客户端开启状态" 
                                       VerticalAlignment="Center"
                                       VerticalContentAlignment="Center"
                                       Checked="ClientStateCheckBox_Checked"
                                       Unchecked="ClientStateCheckBox_Unchecked"/>
                             </WrapPanel>
-                            <WrapPanel>
-                                <CheckBox x:Name="ScrollToEndCheckBox" Margin="5"
+                            <WrapPanel Margin="5">
+                                <CheckBox x:Name="ScrollToEndCheckBox"
                                       VerticalContentAlignment="Center" VerticalAlignment="Center"
                                       IsChecked="True">
                                     新日志自动滚动到底部
                                 </CheckBox>
                             </WrapPanel>
-                            <WrapPanel>
+                            <WrapPanel Margin="5">
                                 <Button x:Name="ClearOutPutButton" Content="清空控制台" Click="ClearOutPutButton_Click"/>
                                 <Button x:Name="FlushLogButton" Content="Flush日志输出流" Click="FlushLogButton_Click"/>
                             </WrapPanel>
@@ -59,21 +59,23 @@
                     </Border>
                 </TabItem>
                 <TabItem Header="猜数自动机控制">
-                    <StackPanel>
-                        <WrapPanel>
-                            <CheckBox x:Name="GuessNumBotCheckBox"
+                    <Border Padding="10">
+                        <StackPanel>
+                            <WrapPanel Margin="5">
+                                <CheckBox x:Name="GuessNumBotCheckBox"
                                       Content="猜数自动机开启状态"
                                       VerticalAlignment="Center"
                                       VerticalContentAlignment="Center"
                                       Checked="GuessNumBotCheckBox_Checked"
                                       Unchecked="GuessNumBotCheckBox_Unchecked"/>
-                        </WrapPanel>
-                        <WrapPanel>
-                            <TextBlock Text="猜数延迟(ms):" TextAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBox x:Name="GuessNumBotDelayTextBox" Text="" MinWidth="120" Margin="5"/>
-                            <Button x:Name="UpdateGuessNumBotDelay" Content="更新延迟" Click="UpdateGuessNumBotDelay_Click"/>
-                        </WrapPanel>
-                    </StackPanel>
+                            </WrapPanel>
+                            <WrapPanel Margin="5">
+                                <TextBlock Text="猜数延迟(ms):" TextAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBox x:Name="GuessNumBotDelayTextBox" Text="" MinWidth="120" Margin="5"/>
+                                <Button x:Name="UpdateGuessNumBotDelay" Content="更新延迟" Click="UpdateGuessNumBotDelay_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
                 </TabItem>
             </TabControl>
             <TextBlock Text="控制台日志" TextAlignment="Center" VerticalAlignment="Center" FontSize="20"/>

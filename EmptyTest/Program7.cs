@@ -1,4 +1,19 @@
-﻿/*NormalStruct n = new(2);
+﻿SomeClass s = new();
+s.Prop = 1;
+Console.WriteLine(s.Prop);
+
+public class SomeClass
+{
+    private int prop = 0;
+
+    public int Prop
+    {
+        get => prop;
+        set => prop = value;
+    }
+}
+
+/*NormalStruct n = new(2);
 ISayable u = n;
 ISayable u2 = n;
 n.Value = 4;

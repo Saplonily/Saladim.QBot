@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -6,6 +8,8 @@ using CodingSeb.ExpressionEvaluator;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
+using System.Drawing;
+using System.Net;
 
 namespace SaladimWpf;
 
@@ -14,6 +18,7 @@ public class BotInstance
     protected HttpClient httpClient;
     protected CqClient cqClient;
     protected Logger logger;
+    protected HttpListener httpListener;
 
     public event Action<string>? OnClientLog;
 
@@ -35,6 +40,51 @@ public class BotInstance
             .Build();
 
         cqClient.OnMessageReceived += Client_OnMessageReceived;
+
+        httpListener = new();
+        httpListener.Prefixes.Add("http://127.0.0.1:5702/");
+        httpListener.Start();
+        Task.Run(ListenerLoop);
+    }
+
+    private void ListenerLoop()
+    {
+        while (true)
+        {
+            var context = httpListener.GetContext();
+            var imgName = context.Request.QueryString["img_name"];
+            var fileName = $"tempImages\\{imgName}";
+            if (File.Exists(fileName))
+            {
+                using FileStream fs = new(fileName, FileMode.Open, FileAccess.Read);
+                var res = context.Response;
+                res.ContentType = "image/bmp";
+                res.StatusCode = 200;
+                CopyStream(fs, context.Response.OutputStream);
+                res.Close();
+                continue;
+            }
+            else
+            {
+                var res = context.Response;
+                res.ContentType = "text/plain";
+                res.StatusCode = 404;
+                using StreamWriter sw = new(context.Response.OutputStream, Encoding.UTF8);
+                sw.WriteLine("图片未找到");
+                sw.Close();
+                context.Response.Close();
+                continue;
+            }
+        }
+    }
+    public static void CopyStream(Stream input, Stream output)
+    {
+        byte[] buffer = new byte[3 * SaladimQBot.Shared.Size.KiB];
+        int read;
+        while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            output.Write(buffer, 0, read);
+        }
     }
 
     private async void Client_OnMessageReceived(Message message)
@@ -42,6 +92,7 @@ public class BotInstance
         await Task.Run(OnMessageReceived);
         async void OnMessageReceived()
         {
+            #region log
             if (message is GroupMessage groupMsg)
             {
                 logger.LogInfo(
@@ -57,6 +108,7 @@ public class BotInstance
                     $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
                     );
             }
+            #endregion
 
             string rawString = message.MessageEntity.RawString.Trim();
             string commandStart = string.Empty;
@@ -173,6 +225,30 @@ public class BotInstance
             }
             #endregion
 
+            #region /来点颜色
+
+            commandStart = "/来点颜色";
+            if (rawString.StartsWith(commandStart))
+            {
+                Debug.Assert(OperatingSystem.IsWindows());
+                var bitmap = new Bitmap(50, 50);
+                var graphics = Graphics.FromImage(bitmap);
+                var color = GetRandomColor();
+                graphics.DrawRectangle(new Pen(color, 256), new Rectangle(0, 0, 256, 256));
+                if (!Directory.Exists("tempImages")) Directory.CreateDirectory("tempImages");
+                var imgName = $"{DateTime.Now.Ticks - 638064687298838726L}.png";
+                var fileName = $"tempImages\\{imgName}";
+                bitmap.Save(fileName);
+                MessageEntity entity = new MessageEntityBuilder(cqClient)
+                    .WithImage("http://127.0.0.1:5702/?img_name=" + imgName)
+                    .WithTextLine($"\nRGB: {color.R},{color.G},{color.B}")
+                    .WithText($"HEX: #{color.R:X}{color.G:X}{color.B:X}")
+                    .Build();
+                await message.MessageWindow.SendMessageAsync(entity);
+            }
+
+            #endregion
+
             #region auto猜数游戏
             //auto猜数游戏
             if (OpenGuessNumberBot && rawString.Contains("您猜了") && rawString.Contains("但是猜的数"))
@@ -193,6 +269,12 @@ public class BotInstance
             }
             #endregion
         }
+    }
+
+    private static Color GetRandomColor()
+    {
+        Random r = new((int)DateTime.Now.Ticks);
+        return Color.FromArgb(r.Next(0, 256), r.Next(0, 256), r.Next(0, 256));
     }
 
     public async Task StartAsync()

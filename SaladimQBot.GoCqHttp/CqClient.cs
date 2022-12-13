@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
@@ -706,6 +707,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, string rawString)
         => await SendFriendMessageAsync(friendUserId, rawString);
 
+
     /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, long?, IMessageEntity)"/>
     public async Task<PrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, MessageEntity messageEntity)
     {
@@ -738,10 +740,33 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         return msg;
     }
 
+    /// <inheritdoc cref="IClient.SendFriendMessageAsync(long, IMessageEntity)"/>
     public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, MessageEntity messageEntity)
-        => (await SendPrivateMessageAsync(friendUserId, null, messageEntity)).Cast<FriendMessage>();
+    {
+        SendPrivateMessageEntityAction api = new()
+        {
+            Message = messageEntity.Chain.ToModel(),
+            UserId = friendUserId
+        };
+        var rst = await this.CallApiWithCheckingAsync(api);
+
+        FriendMessage msg = FriendMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
+        return msg;
+    }
+
+    /// <inheritdoc cref="IClient.SendFriendMessageAsync(long, IMessageEntity)"/>
     public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, string rawString)
-        => (await SendPrivateMessageAsync(friendUserId, null, rawString)).Cast<FriendMessage>();
+    {
+        SendPrivateMessageAction api = new()
+        {
+            Message = rawString,
+            UserId = friendUserId
+        };
+        var rst = await this.CallApiWithCheckingAsync(api);
+
+        FriendMessage msg = FriendMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
+        return msg;
+    }
 
     #endregion
 
@@ -922,6 +947,8 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         => GetFriendUser(friendUserId);
 
     #endregion
+
+    #region 好友请求/加群请求
 
     IUser IClient.Self => Self;
 
