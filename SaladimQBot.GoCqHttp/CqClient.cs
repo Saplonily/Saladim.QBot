@@ -19,6 +19,10 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     public abstract TimeSpan ExpireTimeSpan { get; }
 
+    //TODO 改为SelfUser类型
+    /// <summary>
+    /// Client自身用户
+    /// </summary>
     public User Self => lazySelf.Value;
 
     internal Lazy<User> lazySelf;
