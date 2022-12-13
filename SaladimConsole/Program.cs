@@ -1,4 +1,5 @@
-﻿using Saladim.SalLogger;
+﻿using System.Text.Json;
+using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
@@ -21,12 +22,12 @@ public static class Program
             {
                 if (s is "stop")
                 {
-                    await client.StopAsync();
+                    await client.StopAsync().ConfigureAwait(false);
                     logger.LogInfo(SecProgram, "stop动作完成.");
                 }
                 if (s is "start")
                 {
-                    await client.StartAsync();
+                    await client.StartAsync().ConfigureAwait(false);
                     logger.LogInfo(SecProgram, "start动作完成.");
                 }
             }
@@ -74,7 +75,7 @@ public static class Program
         {
             try
             {
-                await client.StartAsync();
+                await client.StartAsync().ConfigureAwait(false);
                 logger.LogInfo(SecProgram, "cq客户端连接成功.");
                 connected = true;
             }
@@ -87,11 +88,11 @@ public static class Program
             }
         }
 
-        await ConsoleLoop();
+        await ConsoleLoop().ConfigureAwait(false);
 
         try
         {
-            await client.StopAsync();
+            await client.StopAsync().ConfigureAwait(false);
         }
         catch (ClientException e)
         {
@@ -110,7 +111,15 @@ public static class Program
             client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
             client.OnGroupAllUserBanned += Client_OnGroupAllUserBanned;
             client.OnFriendMessageReceived += Client_OnFriendMessageReceived;
+            client.OnFriendAddRequested += Client_OnFriendAddRequested;
+            client.OnFriendAddRequested += Client_OnFriendAddRequested;
         }
+    }
+
+    private static async void Client_OnFriendAddRequested(FriendAddRequest request)
+    {
+        logger.LogInfo("Program", $"有人想加你好友, 叫做{request.User.Nickname.Value}, 验证消息:\"{request.Comment}\"");
+        await request.ApproveAsync().ConfigureAwait(false);
     }
 
     private static void Client_OnFriendMessageReceived(FriendMessage message, FriendUser friendUser)
@@ -129,15 +138,34 @@ public static class Program
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
         if (entity.Mentioned(client.Self))
         {
-            await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.");
+            await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.").ConfigureAwait(false);
         }
         if (message.MessageEntity.RawString.Contains("qwq"))
         {
-            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime.Value}的时候发的.");
+            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime.Value}的时候发的.").ConfigureAwait(false);
         }
-        if(message.MessageEntity.Chain.AllAt().Any(n => n.User is null))
+        if (message.MessageEntity.Chain.AllAt().Any(n => n.User is null))
         {
-            await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?");
+            await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
+        }
+        if (message.MessageEntity.RawString.Contains("临时虚拟一条加好友请求"))
+        {
+            if (client.PostSession is CqWebSocketSession ws)
+            {
+                string json = """
+                    {
+                        "post_type":"request",
+                        "request_type":"friend",
+                        "time":1670902817,
+                        "self_id":2259113381,
+                        "user_id":2748166392,
+                        "comment":"",
+                        "flag":"1670902816000000"
+                    }
+                    """;
+                JsonDocument doc = JsonDocument.Parse(json);
+                ws.EmitOnReceived(doc);
+            }
         }
         //nothing
         Console.WriteLine();

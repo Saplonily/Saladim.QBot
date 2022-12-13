@@ -64,7 +64,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         try
         {
             MakeWebSocketAvailable();
-            await webSocket.ConnectAsync(Uri, token);
+            await webSocket.ConnectAsync(Uri, token).ConfigureAwait(false);
             Started = true;
             ReceivingTask = Task.Run(ReceivingLoop);
         }
@@ -190,7 +190,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         string json = rootObj.ToJsonString();
 
         ArraySegment<byte> seg = new(Encoding.GetBytes(json));
-        await webSocket.SendAsync(seg, WebSocketMessageType.Text, true, CancellationToken.None);
+        await webSocket.SendAsync(seg, WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
 
         CqApiCallResult? result = new();
         JsonDocument? docForDeserialize = null;

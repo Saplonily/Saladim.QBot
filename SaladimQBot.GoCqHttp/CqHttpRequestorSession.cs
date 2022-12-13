@@ -34,9 +34,9 @@ public class CqHttpRequestorSession : ICqSession, IDisposable
         string jsonString = apiParamsNode.ToJsonString();
         StringContent content = new(jsonString);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        var response = await httpClient.PostAsync(url, content);
+        var response = await httpClient.PostAsync(url, content).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        JsonDocument doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        JsonDocument doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
         return CqApiJsonSerializer.DeserializeApiResult(doc, api);
     }
 

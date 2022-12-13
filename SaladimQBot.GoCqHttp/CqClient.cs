@@ -94,7 +94,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 "Client", "ApiCall", $"Ready for api '{api.ApiName}' call: " +
                 $"{CqApiJsonSerializer.SerializeApiParamsToNode(api).ToJsonString(CqJsonOptions.Instance)}"
                 );
-        return await ApiSession.CallApiAsync(api);
+        return await ApiSession.CallApiAsync(api).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     /// <returns></returns>
     public async Task<(CqApiCallResult?, T?)> CallApiAsync<T>(CqApi api) where T : CqApiCallResultData
     {
-        var result = await CallApiAsync(api);
+        var result = await CallApiAsync(api).ConfigureAwait(false);
         return (result, result?.Data as T);
     }
 
@@ -156,9 +156,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             lazySelf = new(LazySelfFactory, true);
 
             logger.LogInfo("Client", "Connection", "Connecting api session...");
-            await ApiSession.StartAsync();
+            await ApiSession.StartAsync().ConfigureAwait(false);
             logger.LogInfo("Client", "Connection", "Connecting post session...");
-            await PostSession.StartAsync();
+            await PostSession.StartAsync().ConfigureAwait(false);
             logger.LogInfo("Client", "Connection", "Connection completed.");
 
             PostSession.OnReceived += OnSessionReceived;
@@ -210,100 +210,100 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         {
             case CqPostType.MessageSent:
             case CqPostType.Message:
+            {
+                var subType = loader.EnumFromString<CqMessageSubType>(StringConsts.MessagePostSubTypeProperty);
+                var targetType = CqTypeMapper.FindClassForCqMessagePostType(subType);
+                if (targetType is null)
                 {
-                    var subType = loader.EnumFromString<CqMessageSubType>(StringConsts.MessagePostSubTypeProperty);
-                    var targetType = CqTypeMapper.FindClassForCqMessagePostType(subType);
-                    if (targetType is null)
-                    {
-                        if (logger.NeedLogging(LogLevel.Warn))
-                            logger.LogWarn("Client", "PostParsing", $"Not found target type for {subType}");
-                        return;
-                    }
-                    CqMessagePost? messagePost =
-                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqMessagePost>();
-                    if (messagePost is null)
-                    {
-                        if (logger.NeedLogging(LogLevel.Warn))
-                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqMessagePost.");
-                        return;
-                    }
-                    OnPost(messagePost);
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostParsing", $"Not found target type for {subType}");
+                    return;
                 }
-                break;
+                CqMessagePost? messagePost =
+                    JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqMessagePost>();
+                if (messagePost is null)
+                {
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqMessagePost.");
+                    return;
+                }
+                OnPost(messagePost);
+            }
+            break;
             case CqPostType.Notice:
+            {
+                var subType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
+                if (subType == CqNoticeType.SystemNotice)
                 {
-                    var subType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
-                    if (subType == CqNoticeType.SystemNotice)
-                    {
-                        var notifyType = loader.EnumFromString<CqNotifySubType>(StringConsts.NotifySubTypeProperty);
-                        var targetType = CqTypeMapper.FindClassForCqNotifyNoticePostType(notifyType);
-                        if (targetType is null)
-                        {
-                            if (logger.NeedLogging(LogLevel.Warn))
-                                logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNotifyNoticePost.");
-                            return;
-                        }
-                        CqNotifyNoticePost? cqNotifyNoticePost =
-                            JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNotifyNoticePost>();
-                        if (cqNotifyNoticePost is null)
-                        {
-                            if (logger.NeedLogging(LogLevel.Warn))
-                                logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNotifyNoticePost.");
-                            return;
-                        }
-                        OnPost(cqNotifyNoticePost);
-                    }
-                    else if (subType != CqNoticeType.Invalid)
-                    {
-                        var noticeType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
-                        var targetType = CqTypeMapper.FindClassForCqNoticeType(noticeType);
-                        if (targetType is null)
-                        {
-                            if (logger.NeedLogging(LogLevel.Warn))
-                                logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNoticePost.");
-                            return;
-                        }
-                        CqNoticePost? cqNoticePost =
-                            JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNoticePost>();
-                        if (cqNoticePost is null)
-                        {
-                            if (logger.NeedLogging(LogLevel.Warn))
-                                logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNoticePost.");
-                            return;
-                        }
-                        OnPost(cqNoticePost);
-                    }
-                    else
-                    {
-                        if (logger.NeedLogging(LogLevel.Warn))
-                            logger.LogWarn("Client", "PostParsing", "Invalid CqNoticeType.");
-                        return;
-                    }
-
-                }
-                break;
-            case CqPostType.Request:
-                {
-                    var subType = loader.EnumFromString<CqRequestType>(StringConsts.RequestTypeProperty);
-                    var targetType = CqTypeMapper.FindClassForCqRequestPostType(subType);
-
+                    var notifyType = loader.EnumFromString<CqNotifySubType>(StringConsts.NotifySubTypeProperty);
+                    var targetType = CqTypeMapper.FindClassForCqNotifyNoticePostType(notifyType);
                     if (targetType is null)
                     {
                         if (logger.NeedLogging(LogLevel.Warn))
-                            logger.LogWarn("Client", "PostParsing", "Not found targetType for CqRequestType.");
+                            logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNotifyNoticePost.");
                         return;
                     }
-                    CqRequestPost? requestPost =
-                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance)?.Cast<CqRequestPost>();
-                    if (requestPost is null)
+                    CqNotifyNoticePost? cqNotifyNoticePost =
+                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNotifyNoticePost>();
+                    if (cqNotifyNoticePost is null)
                     {
                         if (logger.NeedLogging(LogLevel.Warn))
-                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqRequestPost.");
+                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNotifyNoticePost.");
                         return;
                     }
-                    OnPost(requestPost);
+                    OnPost(cqNotifyNoticePost);
                 }
-                break;
+                else if (subType != CqNoticeType.Invalid)
+                {
+                    var noticeType = loader.EnumFromString<CqNoticeType>(StringConsts.NoticeTypeProperty);
+                    var targetType = CqTypeMapper.FindClassForCqNoticeType(noticeType);
+                    if (targetType is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Not found targetType for CqNoticePost.");
+                        return;
+                    }
+                    CqNoticePost? cqNoticePost =
+                        JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance).AsCast<CqNoticePost>();
+                    if (cqNoticePost is null)
+                    {
+                        if (logger.NeedLogging(LogLevel.Warn))
+                            logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqNoticePost.");
+                        return;
+                    }
+                    OnPost(cqNoticePost);
+                }
+                else
+                {
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostParsing", "Invalid CqNoticeType.");
+                    return;
+                }
+
+            }
+            break;
+            case CqPostType.Request:
+            {
+                var subType = loader.EnumFromString<CqRequestType>(StringConsts.RequestTypeProperty);
+                var targetType = CqTypeMapper.FindClassForCqRequestPostType(subType);
+
+                if (targetType is null)
+                {
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostParsing", "Not found targetType for CqRequestType.");
+                    return;
+                }
+                CqRequestPost? requestPost =
+                    JsonSerializer.Deserialize(srcDoc, targetType, CqJsonOptions.Instance)?.Cast<CqRequestPost>();
+                if (requestPost is null)
+                {
+                    if (logger.NeedLogging(LogLevel.Warn))
+                        logger.LogWarn("Client", "PostParsing", "Failed to deserialize a document to a CqRequestPost.");
+                    return;
+                }
+                OnPost(requestPost);
+            }
+            break;
             case CqPostType.MetaEvent:
                 //TODO MetaEvent支持
                 break;
@@ -405,6 +405,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 switch (messagePost)
                 {
                     case CqGroupMessagePost groupMessagePost:
+                    {
                         if (groupMessagePost.AnonymousSender is not null)
                         {
                             logger.LogInfo("Client", "PostProcessor", "Anonymous message received. But not supported for now.");
@@ -413,9 +414,11 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                         GroupMessage gm = GroupMessage.CreateFromGroupMessagePost(this, groupMessagePost);
                         OnMessageReceived?.Invoke(gm);
                         OnGroupMessageReceived?.Invoke(gm, gm.Group);
-                        break;
+                    }
+                    break;
 
                     case CqPrivateMessagePost privateMessagePost:
+                    {
                         if (privateMessagePost.TempSource is MessageTempSource.Invalid)
                         {
                             FriendMessage fm = FriendMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
@@ -431,7 +434,8 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                             OnMessageReceived?.Invoke(pm);
                             OnPrivateMessageReceived?.Invoke(pm, pm.Sender);
                         }
-                        break;
+                    }
+                    break;
                 }
                 break;
 
@@ -439,150 +443,160 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 switch (noticePost)
                 {
                     case CqFriendMessageRecalledNoticePost notice:
-                        {
-                            var privateMsg = this.GetPrivateMessageById(notice.MessageId);
-                            OnMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
-                            OnPrivateMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
-                        }
-                        break;
+                    {
+                        var privateMsg = this.GetPrivateMessageById(notice.MessageId);
+                        OnMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
+                        OnPrivateMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
+                    }
+                    break;
 
                     case CqGroupMessageRecalledNoticePost notice:
-                        {
-                            var groupMsg = this.GetGroupMessageById(notice.MessageId);
-                            var operatorUser = this.GetGroupUser(notice.GroupId, notice.UserId);
-                            OnMessageRecalled?.Invoke(groupMsg, operatorUser);
-                            OnGroupMessageRecalled?.Invoke(groupMsg, groupMsg.Group, operatorUser);
-                        }
-                        break;
+                    {
+                        var groupMsg = this.GetGroupMessageById(notice.MessageId);
+                        var operatorUser = this.GetGroupUser(notice.GroupId, notice.UserId);
+                        OnMessageRecalled?.Invoke(groupMsg, operatorUser);
+                        OnGroupMessageRecalled?.Invoke(groupMsg, groupMsg.Group, operatorUser);
+                    }
+                    break;
 
                     case CqFriendAddedNoticePost notice:
-                        {
-                            OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
-                        }
-                        break;
+                    {
+                        OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
+                    }
+                    break;
 
                     case CqGroupAdminChangedNoticePost notice:
-                        {
-                            bool isSet = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Set;
-                            bool isCancel = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Cancel;
-                            if (isSet != !isCancel)
-                                throw new ClientException(
-                                    this,
-                                    ClientException.ExceptionType.EntityCreationFailed,
-                                    "GroupAdminChangedNoticePost got a none set none cancel SubType."
-                                    );
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            GroupUser user = this.GetGroupUser(group, notice.UserId);
-                            OnGroupAdminChanged?.Invoke(group, user, isSet);
-                            if (isSet)
-                                OnGroupAdminSet?.Invoke(group, user);
-                            else
-                                OnGroupAdminCancelled?.Invoke(group, user);
-                        }
-                        break;
+                    {
+                        bool isSet = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Set;
+                        bool isCancel = notice.SubType == CqGroupAdminChangedNoticePost.NoticeSubType.Cancel;
+                        if (isSet != !isCancel)
+                            throw new ClientException(
+                                this,
+                                ClientException.ExceptionType.EntityCreationFailed,
+                                "GroupAdminChangedNoticePost got a none set none cancel SubType."
+                                );
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        GroupUser user = this.GetGroupUser(group, notice.UserId);
+                        OnGroupAdminChanged?.Invoke(group, user, isSet);
+                        if (isSet)
+                            OnGroupAdminSet?.Invoke(group, user);
+                        else
+                            OnGroupAdminCancelled?.Invoke(group, user);
+                    }
+                    break;
 
                     case CqGroupEssenceSetNoticePost notice:
-                        {
-                            bool isAdd = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Add;
-                            bool isDelete = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Delete;
-                            if (isAdd != !isDelete)
-                                throw new ClientException(
-                                    this,
-                                    ClientException.ExceptionType.EntityCreationFailed,
-                                    "GroupEssenceSetNoticePost got a none add none delete SubType."
-                                    );
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            GroupUser user = this.GetGroupUser(group, notice.SenderId);
-                            GroupUser operatorUser = this.GetGroupUser(group, notice.OperatorId);
-                            GroupMessage message = this.GetGroupMessageById(notice.MessageId);
-                            OnGroupEssenceSet?.Invoke(group, operatorUser, user, message, isAdd);
-                            if (isAdd)
-                                OnGroupEssenceAdded?.Invoke(group, operatorUser, user, message);
-                            else
-                                OnGroupEssenceRemoved?.Invoke(group, operatorUser, user, message);
-                        }
-                        break;
+                    {
+                        bool isAdd = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Add;
+                        bool isDelete = notice.SubType == CqGroupEssenceSetNoticePost.NoticeSubType.Delete;
+                        if (isAdd != !isDelete)
+                            throw new ClientException(
+                                this,
+                                ClientException.ExceptionType.EntityCreationFailed,
+                                "GroupEssenceSetNoticePost got a none add none delete SubType."
+                                );
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        GroupUser user = this.GetGroupUser(group, notice.SenderId);
+                        GroupUser operatorUser = this.GetGroupUser(group, notice.OperatorId);
+                        GroupMessage message = this.GetGroupMessageById(notice.MessageId);
+                        OnGroupEssenceSet?.Invoke(group, operatorUser, user, message, isAdd);
+                        if (isAdd)
+                            OnGroupEssenceAdded?.Invoke(group, operatorUser, user, message);
+                        else
+                            OnGroupEssenceRemoved?.Invoke(group, operatorUser, user, message);
+                    }
+                    break;
 
                     case CqGroupFileUploadedNoticePost notice:
-                        {
-                            GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            GroupFile groupFile = new(this, notice.File);
-                            OnGroupFileUploaded?.Invoke(group, uploader, groupFile);
-                        }
-                        break;
+                    {
+                        GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        GroupFile groupFile = new(this, notice.File);
+                        OnGroupFileUploaded?.Invoke(group, uploader, groupFile);
+                    }
+                    break;
 
                     case CqGroupMemberBannedNoticePost notice:
+                    {
+                        bool isBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.Ban;
+                        bool isLiftBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.LiftBan;
+                        if (isBan != !isLiftBan)
+                            throw new ClientException(
+                                this,
+                                ClientException.ExceptionType.EntityCreationFailed,
+                                "GroupMemberBannedNoticePost got a none Ban none LiftBan SubType."
+                                );
+                        GroupUser operatorUser = this.GetGroupUser(notice.GroupId, notice.OperatorId);
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        //确保不是全员禁言
+                        if (notice.UserId != 0)
                         {
-                            bool isBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.Ban;
-                            bool isLiftBan = notice.SubType == CqGroupMemberBannedNoticePost.NoticeSubType.LiftBan;
-                            if (isBan != !isLiftBan)
-                                throw new ClientException(
-                                    this,
-                                    ClientException.ExceptionType.EntityCreationFailed,
-                                    "GroupMemberBannedNoticePost got a none Ban none LiftBan SubType."
-                                    );
-                            GroupUser operatorUser = this.GetGroupUser(notice.GroupId, notice.OperatorId);
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            //确保不是全员禁言
-                            if (notice.UserId != 0)
-                            {
-                                GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
-                                if (isBan)
-                                    OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
-                                else
-                                    OnGroupMemberBanLifted?.Invoke(group, user, operatorUser);
-                            }
+                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                            if (isBan)
+                                OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
                             else
-                            {
-                                if (isBan)
-                                    OnGroupAllUserBanned?.Invoke(group, operatorUser);
-                                else
-                                    OnGroupAllUserBanLifted?.Invoke(group, operatorUser);
-                            }
+                                OnGroupMemberBanLifted?.Invoke(group, user, operatorUser);
                         }
-                        break;
+                        else
+                        {
+                            if (isBan)
+                                OnGroupAllUserBanned?.Invoke(group, operatorUser);
+                            else
+                                OnGroupAllUserBanLifted?.Invoke(group, operatorUser);
+                        }
+                    }
+                    break;
 
                     case CqGroupMemberCardChangedNoticePost notice:
-                        {
-                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            //TODO 重构可过期类型(Expirable), 将依赖过期写入Expirable类中
-                            //以能够在上游调用强制过期时下游知道自己过期了
-                            //在这里的例子是群员群名片更改时得让get_group_member_info的所有下游都过期
-                            OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
-                        }
-                        break;
+                    {
+                        GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        //TODO 重构可过期类型(Expirable), 将依赖过期写入Expirable类中
+                        //以能够在上游调用强制过期时下游知道自己过期了
+                        //在这里的例子是群员群名片更改时得让get_group_member_info的所有下游都过期
+                        OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
+                    }
+                    break;
 
                     case CqGroupMemberDecreaseNoticePost notice:
-                        {
-                            User user = this.GetUser(notice.UserId);
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            OnGroupMemberChanged?.Invoke(group, user, false);
-                            OnGroupMemberDecreased?.Invoke(group, user);
-                        }
-                        break;
+                    {
+                        User user = this.GetUser(notice.UserId);
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        OnGroupMemberChanged?.Invoke(group, user, false);
+                        OnGroupMemberDecreased?.Invoke(group, user);
+                    }
+                    break;
 
                     case CqGroupMemberIncreaseNoticePost notice:
-                        {
-                            GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
-                            JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                            OnGroupMemberChanged?.Invoke(group, user, true);
-                            OnGroupMemberIncreased?.Invoke(group, user);
-                        }
-                        break;
+                    {
+                        GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
+                        JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        OnGroupMemberChanged?.Invoke(group, user, true);
+                        OnGroupMemberIncreased?.Invoke(group, user);
+                    }
+                    break;
 
                     case CqOfflineFileUploadedNoticePost notice:
-                        {
-                            User user = this.GetUser(notice.UserId);
-                            OfflineFile offlineFile = new(this, notice.File);
-                            OnOfflineFileReceived?.Invoke(user, offlineFile);
-                        }
-                        break;
+                    {
+                        User user = this.GetUser(notice.UserId);
+                        OfflineFile offlineFile = new(this, notice.File);
+                        OnOfflineFileReceived?.Invoke(user, offlineFile);
+                    }
+                    break;
                 }
                 break;
 
-
+            case CqRequestPost requestPost:
+                switch (requestPost)
+                {
+                    case CqFriendRequestPost request:
+                    {
+                        var r = FriendAddRequest.CreateFromPost(this, request);
+                        OnFriendAddRequested?.Invoke(r);
+                    }
+                    break;
+                }
+                break;
         }
     }
 
@@ -661,6 +675,13 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public event OnGroupMemberDecreasedHandler? OnGroupMemberDecreased;
     #endregion
 
+    #region 请求
+
+    public delegate void OnFriendAddRequestedHandler(FriendAddRequest request);
+    public event OnFriendAddRequestedHandler? OnFriendAddRequested;
+
+    #endregion
+
     #endregion
 
     #region IClient
@@ -696,16 +717,16 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     #region 私聊
 
     async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, long? groupId, IMessageEntity messageEntity)
-        => await SendPrivateMessageAsync(userId, groupId, new MessageEntity(this, messageEntity));
+        => await SendPrivateMessageAsync(userId, groupId, new MessageEntity(this, messageEntity)).ConfigureAwait(false);
 
     async Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, long? groupId, string rawString)
-        => await SendPrivateMessageAsync(userId, groupId, rawString);
+        => await SendPrivateMessageAsync(userId, groupId, rawString).ConfigureAwait(false);
 
     async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, IMessageEntity messageEntity)
-        => await SendFriendMessageAsync(friendUserId, new MessageEntity(this, messageEntity));
+        => await SendFriendMessageAsync(friendUserId, new MessageEntity(this, messageEntity)).ConfigureAwait(false);
 
     async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, string rawString)
-        => await SendFriendMessageAsync(friendUserId, rawString);
+        => await SendFriendMessageAsync(friendUserId, rawString).ConfigureAwait(false);
 
 
     /// <inheritdoc cref="IClient.SendPrivateMessageAsync(long, long?, IMessageEntity)"/>
@@ -717,7 +738,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             UserId = userId,
             GroupId = groupId
         };
-        var rst = await this.CallApiWithCheckingAsync(api);
+        var rst = await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
 
         PrivateMessage msg =
             PrivateMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
@@ -733,7 +754,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             UserId = userId,
             GroupId = groupId
         };
-        var rst = await this.CallApiWithCheckingAsync(api);
+        var rst = await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
 
         PrivateMessage msg =
             PrivateMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
@@ -748,7 +769,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             Message = messageEntity.Chain.ToModel(),
             UserId = friendUserId
         };
-        var rst = await this.CallApiWithCheckingAsync(api);
+        var rst = await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
 
         FriendMessage msg = FriendMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
         return msg;
@@ -762,7 +783,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             Message = rawString,
             UserId = friendUserId
         };
-        var rst = await this.CallApiWithCheckingAsync(api);
+        var rst = await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
 
         FriendMessage msg = FriendMessage.CreateFromMessageId(this, rst.Data!.Cast<SendMessageActionResultData>().MessageId);
         return msg;
@@ -772,10 +793,10 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #region 群聊
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IMessageEntity messageEntity)
-        => await SendGroupMessageAsync(groupId, new MessageEntity(this, messageEntity));
+        => await SendGroupMessageAsync(groupId, new MessageEntity(this, messageEntity)).ConfigureAwait(false);
 
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, string rawString)
-        => await SendGroupMessageAsync(groupId, rawString);
+        => await SendGroupMessageAsync(groupId, rawString).ConfigureAwait(false);
 
     /// <inheritdoc cref="IClient.SendGroupMessageAsync(long, IMessageEntity)"/>
     public async Task<GroupMessage> SendGroupMessageAsync(long groupId, MessageEntity messageEntity)
@@ -785,7 +806,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             GroupId = groupId,
             Message = messageEntity.Chain.ToModel()
         };
-        var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
+        var result = (await this.CallApiWithCheckingAsync(a).ConfigureAwait(false)).Data!.Cast<SendMessageActionResultData>();
         return GroupMessage.CreateFromMessageId(this, result.MessageId);
     }
 
@@ -798,14 +819,14 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             GroupId = groupId,
             Message = message
         };
-        var result = (await this.CallApiWithCheckingAsync(a)).Data!.Cast<SendMessageActionResultData>();
+        var result = (await this.CallApiWithCheckingAsync(a).ConfigureAwait(false)).Data!.Cast<SendMessageActionResultData>();
         return GroupMessage.CreateFromMessageId(this, result.MessageId);
     }
 
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, IForwardEntity forwardEntity)
     {
         if (forwardEntity is ForwardEntity entity && ReferenceEquals(forwardEntity.Client, this))
-            return await SendGroupMessageAsync(groupId, entity);
+            return await SendGroupMessageAsync(groupId, entity).ConfigureAwait(false);
         else
             throw new InvalidOperationException("Only accept send forwardEntity that this client own.");
     }
@@ -817,7 +838,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             GroupId = groupId,
             ForwardEntity = forwardEntity.ToModel()
         };
-        var result = (await this.CallApiWithCheckingAsync(api)).Data!.Cast<SendMessageActionResultData>();
+        var result = (await this.CallApiWithCheckingAsync(api).ConfigureAwait(false)).Data!.Cast<SendMessageActionResultData>();
         return this.GetGroupMessageById(result.MessageId);
     }
 
@@ -834,7 +855,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         {
             MessageId = messageId
         };
-        await this.CallApiWithCheckingAsync(api);
+        await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
     }
 
     #endregion
@@ -851,7 +872,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             UserId = userId,
             Duration = (int)time.TotalSeconds
         };
-        await this.CallApiWithCheckingAsync(api);
+        await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
     }
 
     public async Task LiftBanGroupUserAsync(long groupId, long userId)
@@ -862,7 +883,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             UserId = userId,
             Duration = 0
         };
-        await this.CallApiWithCheckingAsync(api);
+        await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
     }
 
     #endregion
@@ -947,8 +968,6 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         => GetFriendUser(friendUserId);
 
     #endregion
-
-    #region 好友请求/加群请求
 
     IUser IClient.Self => Self;
 

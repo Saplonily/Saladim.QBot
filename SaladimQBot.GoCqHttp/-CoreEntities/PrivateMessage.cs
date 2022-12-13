@@ -37,7 +37,7 @@ public class PrivateMessage : Message, IPrivateMessage
     public async Task<PrivateMessage> ReplyAsync(MessageEntity msg)
     {
         msg.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(Client, this));
-        var sentMessage = await this.Sender.SendMessageAsync(TempSourceGroupId, msg);
+        var sentMessage = await this.Sender.SendMessageAsync(TempSourceGroupId, msg).ConfigureAwait(false);
         msg.Chain.MessageChainNodes.RemoveAt(0);
         return sentMessage;
     }
@@ -50,7 +50,7 @@ public class PrivateMessage : Message, IPrivateMessage
     public async Task<PrivateMessage> ReplyAsync(string rawString)
     {
         var newString = ((new MessageChainReplyNode(Client, this)).ToModel().CqStringify()) + rawString;
-        var sentMessage = await this.Sender.SendMessageAsync(TempSourceGroupId, newString);
+        var sentMessage = await this.Sender.SendMessageAsync(TempSourceGroupId, newString).ConfigureAwait(false);
         return sentMessage;
     }
 

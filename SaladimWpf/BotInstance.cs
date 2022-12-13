@@ -89,7 +89,7 @@ public class BotInstance
 
     private async void Client_OnMessageReceived(Message message)
     {
-        await Task.Run(OnMessageReceived);
+        await Task.Run(OnMessageReceived).ConfigureAwait(false);
         async void OnMessageReceived()
         {
             #region log
@@ -104,7 +104,7 @@ public class BotInstance
             else if (message is PrivateMessage privateMsg)
             {
                 logger.LogInfo(
-                    "WpfConsole", $"{await privateMsg.Sender.Nickname.ValueAsync}" +
+                    "WpfConsole", $"{await privateMsg.Sender.Nickname.ValueAsync.ConfigureAwait(false)}" +
                     $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
                     );
             }
@@ -120,7 +120,7 @@ public class BotInstance
                 Random r = new();
                 int num = r.Next(0, 100);
                 string s = $"{message.Sender.CqAt} {message.Sender.Nickname.Value},你的随机数为{num}哦~";
-                await message.MessageWindow.SendMessageAsync(s);
+                await message.MessageWindow.SendMessageAsync(s).ConfigureAwait(false);
             }
             #endregion
 
@@ -133,13 +133,13 @@ public class BotInstance
                     string thing = rawString[commandStart.Length..];
                     ExpressionEvaluator e = new();
                     string rst = e.Evaluate(thing)?.ToString() ?? "";
-                    await message.MessageWindow.SendMessageAsync($"计算结果是: {rst}");
+                    await message.MessageWindow.SendMessageAsync($"计算结果是: {rst}").ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     logger.LogWarn("Program", "Calculate", e);
                     string s = $"错误发生了, 以下是错误信息:\n{e.Message}";
-                    await message.MessageWindow.SendMessageAsync(s);
+                    await message.MessageWindow.SendMessageAsync(s).ConfigureAwait(false);
                 }
             }
             #endregion
@@ -148,11 +148,11 @@ public class BotInstance
             commandStart = "/狠狠骂我";
             if (rawString.StartsWith(commandStart))
             {
-                var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧");
-                await Task.Delay(2000);
-                await msg.RecallAsync();
-                await Task.Delay(2000);
-                await message.MessageWindow.SendMessageAsync("qwq我刚才肯定没有骂人");
+                var msg = await message.MessageWindow.SendMessageAsync("cnm, 有病吧").ConfigureAwait(false);
+                await Task.Delay(2000).ConfigureAwait(false);
+                await msg.RecallAsync().ConfigureAwait(false);
+                await Task.Delay(2000).ConfigureAwait(false);
+                await message.MessageWindow.SendMessageAsync("qwq我刚才肯定没有骂人").ConfigureAwait(false);
 
             }
             #endregion
@@ -161,12 +161,12 @@ public class BotInstance
             commandStart = "/来点图";
             if (rawString.StartsWith(commandStart))
             {
-                string s = await httpClient.GetStringAsync("https://img.xjh.me/random_img.php?return=json");
+                string s = await httpClient.GetStringAsync("https://img.xjh.me/random_img.php?return=json").ConfigureAwait(false);
                 string imgUrl = "http:" + JsonDocument.Parse(s).RootElement.GetProperty("img").GetString();
                 MessageEntity m = new MessageEntityBuilder(cqClient)
                     .WithImage(imgUrl)
                     .Build();
-                await message.MessageWindow.SendMessageAsync(m);
+                await message.MessageWindow.SendMessageAsync(m).ConfigureAwait(false);
             }
             #endregion
 
@@ -185,13 +185,13 @@ public class BotInstance
                     await message.MessageWindow.SendMessageAsync(
                         "输入格式不正确, 已取消本次api请求.\n" +
                         "可接受的格式: BV开头的bv号(如:BV17x411w7KC), 纯数字的av号(如:170001)"
-                        );
+                        ).ConfigureAwait(false);
                     return;
                 }
                 string url = $"https://api.bilibili.com/x/web-interface/view?{query}";
                 var d =
                     JsonSerializer.Deserialize<Models.BilibiliVideoInfoApiCallResult.Root>
-                        (await httpClient.GetStringAsync(url));
+                        (await httpClient.GetStringAsync(url).ConfigureAwait(false));
                 if (d is null)
                     return;
                 long code = d.Code;
@@ -216,11 +216,11 @@ public class BotInstance
                     sb.AppendLine($"版权信息: {(d.Data.Copyright == 1 ? "原创" : "转载")}");
                     sb.AppendLine($"动态信息: {d.Data.Dynamic}");
                     sb.AppendLine($"视频简介: {d.Data.Desc.Replace("\n", " {n} ")}");
-                    await message.MessageWindow.SendMessageAsync(sb.ToString());
+                    await message.MessageWindow.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
                 }
                 else
                 {
-                    await message.MessageWindow.SendMessageAsync($"错误发生了, 错误代码:{code}, 错误信息:\n{errMsg}");
+                    await message.MessageWindow.SendMessageAsync($"错误发生了, 错误代码:{code}, 错误信息:\n{errMsg}").ConfigureAwait(false);
                 }
             }
             #endregion
@@ -244,7 +244,7 @@ public class BotInstance
                     .WithTextLine($"\nRGB: {color.R},{color.G},{color.B}")
                     .WithText($"HEX: #{color.R:X}{color.G:X}{color.B:X}")
                     .Build();
-                await message.MessageWindow.SendMessageAsync(entity);
+                await message.MessageWindow.SendMessageAsync(entity).ConfigureAwait(false);
             }
 
             #endregion
@@ -263,8 +263,8 @@ public class BotInstance
                     long num2 = long.Parse(regions[1]);
                     long target = (num1 + num2) / 2;
                     logger.LogInfo("WpfConsole", "猜数", $"区域字符串为: {regionString}, 计算结果: {target}");
-                    await Task.Delay(this.GuessNumberBotDelay);
-                    await message.MessageWindow.SendMessageAsync($"猜{target}");
+                    await Task.Delay(this.GuessNumberBotDelay).ConfigureAwait(false);
+                    await message.MessageWindow.SendMessageAsync($"猜{target}").ConfigureAwait(false);
                 }
             }
             #endregion
@@ -279,11 +279,11 @@ public class BotInstance
 
     public async Task StartAsync()
     {
-        await cqClient.StartAsync();
+        await cqClient.StartAsync().ConfigureAwait(false);
     }
 
     public async Task StopAsync()
     {
-        await cqClient.StopAsync();
+        await cqClient.StopAsync().ConfigureAwait(false);
     }
 }

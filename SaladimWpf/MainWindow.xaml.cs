@@ -69,7 +69,7 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "开启Client中...");
         try
         {
-            await bot.StartAsync();
+            await bot.StartAsync().ConfigureAwait(false);
         }
         catch (ClientException ex)
         {
@@ -85,7 +85,7 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "关闭Client中...");
         try
         {
-            await bot.StopAsync();
+            await bot.StopAsync().ConfigureAwait(false);
         }
         catch (ClientException ex)
         {

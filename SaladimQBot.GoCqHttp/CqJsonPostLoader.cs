@@ -29,7 +29,7 @@ public sealed class CqJsonPostLoader
         }
         catch (KeyNotFoundException)
         {
-            throw new ArgumentException(keyName);
+            throw new ArgumentException($"not found enum for string \"{keyName}\"");
         }
         catch (InvalidOperationException)
         {

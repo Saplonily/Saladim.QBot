@@ -5,7 +5,7 @@ public static class ICqClientExtensions
 {
     internal static async Task<CqApiCallResult> CallApiWithCheckingAsync(this CqClient client, CqApi api, bool implicitly)
     {
-        var result = await client.CallApiAsync(api);
+        var result = await client.CallApiAsync(api).ConfigureAwait(false);
         if (result is null) throw new CqApiCallFailedException(client, implicitly, api);
         if (api.ApiResultDataType is not null && result.Data is null)
             throw new CqApiCallFailedException(client, implicitly, api, result);
@@ -18,7 +18,7 @@ public static class ICqClientExtensions
     internal static async Task<(CqApiCallResult, T)> CallApiImplicitlyWithCheckingAsync<T>(this CqClient client, CqApi api)
         where T : CqApiCallResultData
     {
-        var r = await CallApiImplicitlyWithCheckingAsync(client, api);
+        var r = await CallApiImplicitlyWithCheckingAsync(client, api).ConfigureAwait(false);
         return (r, (T)r.Data!);
     }
 
@@ -28,7 +28,7 @@ public static class ICqClientExtensions
     public static async Task<(CqApiCallResult, T)> CallApiWithCheckingAsync<T>(this CqClient client, CqApi api)
         where T : CqApiCallResultData
     {
-        var r = await CallApiWithCheckingAsync(client, api);
+        var r = await CallApiWithCheckingAsync(client, api).ConfigureAwait(false);
         return (r, (T)r.Data!);
     }
 }

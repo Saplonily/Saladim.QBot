@@ -37,7 +37,7 @@ public class GroupMessage : Message, IGroupMessage
     public async Task<GroupMessage> ReplyAsync(MessageEntity msg)
     {
         msg.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(Client, this));
-        var sentMessage = await this.Group.SendMessageAsync(msg);
+        var sentMessage = await this.Group.SendMessageAsync(msg).ConfigureAwait(false);
         msg.Chain.MessageChainNodes.RemoveAt(0);
         return sentMessage;
     }
@@ -45,7 +45,7 @@ public class GroupMessage : Message, IGroupMessage
     public async Task<GroupMessage> ReplyAsync(string rawString)
     {
         var newString = ((new MessageChainReplyNode(Client, this)).ToModel().CqStringify()) + rawString;
-        var sentMessage = await this.Group.SendMessageAsync(newString);
+        var sentMessage = await this.Group.SendMessageAsync(newString).ConfigureAwait(false);
         return sentMessage;
     }
 

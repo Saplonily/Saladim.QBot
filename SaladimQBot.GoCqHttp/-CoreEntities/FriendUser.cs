@@ -31,16 +31,16 @@ public class FriendUser : User, IFriendUser, ICqMessageWindow
                 .Cast<FriendUser>();
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
-        => await Client.SendFriendMessageAsync(UserId, new MessageEntity(Client, messageEntity));
+        => await Client.SendFriendMessageAsync(UserId, new MessageEntity(Client, messageEntity)).ConfigureAwait(false);
 
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
-        => await Client.SendFriendMessageAsync(UserId, rawString);
+        => await Client.SendFriendMessageAsync(UserId, rawString).ConfigureAwait(false);
 
     async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
-        => await SendMessageAsync(messageEntity);
+        => await SendMessageAsync(messageEntity).ConfigureAwait(false);
 
     async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
-        => await SendMessageAsync(rawString);
+        => await SendMessageAsync(rawString).ConfigureAwait(false);
 
     public Task<FriendMessage> SendMessageAsync(MessageEntity messageEntity)
         => Client.SendFriendMessageAsync(UserId, messageEntity);

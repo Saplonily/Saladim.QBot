@@ -6,7 +6,7 @@ public static class StringConsts
     public const string MessagePostSubTypeProperty = "sub_type";
     public const string NoticeTypeProperty = "notice_type";
     public const string NotifySubTypeProperty = "sub_type";
-    public const string RequestTypeProperty = "request";
+    public const string RequestTypeProperty = "request_type";
 
     public const string ActionProperty = "action";
     public const string ApiEchoProperty = "echo";
