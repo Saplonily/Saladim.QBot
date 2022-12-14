@@ -152,9 +152,20 @@ public static class Program
         {
             await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime}的时候发的.").ConfigureAwait(false);
         }
-        if (message.MessageEntity.AllAt().Any(n => n.User is null))
+        if (message.MessageEntity.MentionedAllUser())
         {
             await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
+        }
+        if (message.MessageEntity.RawString.Contains("114514ppp"))
+        {
+            IMessageEntity sendEntity = client.CreateMessageBuilder()
+                .WithText("这是文字")
+                .WithText(", 接下来的是图片: ")
+                .WithImage("https://cn.bing.com/rp/QVXspp3oaMgMqbxnY2UzWAvA_fw.png")
+                .WithFace(18)
+                .WithAt(message.Sender)
+                .Build();
+            await message.ReplyAsync(sendEntity);
         }
         //nothing
         Console.WriteLine();

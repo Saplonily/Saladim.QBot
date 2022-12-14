@@ -680,6 +680,12 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #endregion
 
+    #region 试用方法
+    public MessageEntityBuilder CreateMessageBuilder()
+        => new(this);
+
+    #endregion
+
     #region IClient
 
     #region 获取消息
@@ -966,6 +972,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     #endregion
 
     IUser IClient.Self => Self;
+
+    IMessageEntityBuilder IClient.CreateMessageBuilder()
+        => new MessageEntityBuilder(this);
 
     #region 亿堆事件
 

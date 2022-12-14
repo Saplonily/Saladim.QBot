@@ -1,19 +1,19 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using SaladimQBot.Core;
 
-public class MessageEntityBuilder
+namespace SaladimQBot.GoCqHttp;
+
+public class MessageEntityBuilder : CqEntity, IMessageEntityBuilder
 {
-    protected CqClient client;
     protected MessageChain chain;
 
-    public MessageEntityBuilder(CqClient client)
+    public MessageEntityBuilder(CqClient client) : base(client)
     {
-        this.client = client;
         chain = new(client);
     }
 
     public MessageEntityBuilder WithText(string text)
     {
-        chain.MessageChainNodes.Add(new MessageChainTextNode(client, text));
+        chain.MessageChainNodes.Add(new MessageChainTextNode(Client, text));
         return this;
     }
 
@@ -21,43 +21,43 @@ public class MessageEntityBuilder
 
     public MessageEntityBuilder WithImage(string uri)
     {
-        chain.MessageChainNodes.Add(new MessageChainImageNode(client, uri));
+        chain.MessageChainNodes.Add(new MessageChainImageNode(Client, uri));
         return this;
     }
 
     public MessageEntityBuilder WithAt(long userId)
     {
-        chain.MessageChainNodes.Add(new MessageChainAtNode(client, userId));
+        chain.MessageChainNodes.Add(new MessageChainAtNode(Client, userId));
         return this;
     }
 
     public MessageEntityBuilder WithAt(long userId, string nameWhenUserNotExists)
     {
-        chain.MessageChainNodes.Add(new MessageChainAtNode(client, userId, nameWhenUserNotExists));
+        chain.MessageChainNodes.Add(new MessageChainAtNode(Client, userId, nameWhenUserNotExists));
         return this;
     }
 
     public MessageEntityBuilder WithAt(User user)
     {
-        chain.MessageChainNodes.Add(new MessageChainAtNode(client, user.UserId));
+        chain.MessageChainNodes.Add(new MessageChainAtNode(Client, user.UserId));
         return this;
     }
 
     public MessageEntityBuilder WithAt(User user, string nameWhenUserNotExists)
     {
-        chain.MessageChainNodes.Add(new MessageChainAtNode(client, user.UserId, nameWhenUserNotExists));
+        chain.MessageChainNodes.Add(new MessageChainAtNode(Client, user.UserId, nameWhenUserNotExists));
         return this;
     }
 
     public MessageEntityBuilder WithFace(int faceId)
     {
-        chain.MessageChainNodes.Add(new MessageChainFaceNode(client, faceId));
+        chain.MessageChainNodes.Add(new MessageChainFaceNode(Client, faceId));
         return this;
     }
 
     public MessageEntityBuilder WithReply(Message message)
     {
-        chain.MessageChainNodes.Add(new MessageChainReplyNode(client, message));
+        chain.MessageChainNodes.Add(new MessageChainReplyNode(Client, message));
         return this;
     }
 
@@ -65,13 +65,34 @@ public class MessageEntityBuilder
     {
         if (prepareRawString)
         {
-            var entity = new MessageEntity(client, chain);
+            var entity = new MessageEntity(Client, chain);
             _ = entity.RawString;
             return entity;
         }
         else
         {
-            return new MessageEntity(client, chain);
+            return new MessageEntity(Client, chain);
         }
     }
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithText(string text)
+        => WithText(text);
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithImage(string uri)
+        => WithImage(uri);
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithAt(long userId)
+        => WithAt(userId);
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithAt(long userId, string nameWhenUserNotExists)
+        => WithAt(userId, nameWhenUserNotExists);
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithFace(int faceId)
+        => WithFace(faceId);
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithReply(IMessage message)
+        => WithReply(message is Message ourMessage ? ourMessage : throw new InvalidOperationException("Only support message in the same client."));
+
+    IMessageEntity IMessageEntityBuilder.Build(bool prepareRawString)
+        => Build();
 }

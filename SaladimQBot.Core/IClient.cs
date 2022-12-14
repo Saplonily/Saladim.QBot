@@ -298,6 +298,8 @@ public interface IClient
     /// </summary>
     IUser Self { get; }
 
+    IMessageEntityBuilder CreateMessageBuilder();
+
     /// <summary>
     /// 开始该Client的连接
     /// </summary>
