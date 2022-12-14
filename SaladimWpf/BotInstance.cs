@@ -51,21 +51,22 @@ public class BotInstance
     {
         while (true)
         {
-            var context = httpListener.GetContext();
-            var imgName = context.Request.QueryString["img_name"];
+            var context = httpListener.GetContext(); //监听http请求
+            var imgName = context.Request.QueryString["img_name"]; //获取query string
             var fileName = $"tempImages\\{imgName}";
             if (File.Exists(fileName))
             {
                 using FileStream fs = new(fileName, FileMode.Open, FileAccess.Read);
                 var res = context.Response;
                 res.ContentType = "image/bmp";
-                res.StatusCode = 200;
-                CopyStream(fs, context.Response.OutputStream);
-                res.Close();
+                res.StatusCode = 200;//状态码
+                CopyStream(fs, context.Response.OutputStream);//写入返回流
+                res.Close();//完成回应
                 continue;
             }
             else
             {
+                //图片
                 var res = context.Response;
                 res.ContentType = "text/plain";
                 res.StatusCode = 404;

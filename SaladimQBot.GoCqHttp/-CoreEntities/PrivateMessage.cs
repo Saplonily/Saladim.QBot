@@ -54,6 +54,14 @@ public class PrivateMessage : Message, IPrivateMessage
         return sentMessage;
     }
 
+    [Obsolete]
+    async Task<IPrivateMessage> IPrivateMessage.ReplyAsync(IMessageEntity msg)
+        => await ReplyAsync(new MessageEntity(Client, msg)).ConfigureAwait(false);
+
+    [Obsolete]
+    async Task<IPrivateMessage> IPrivateMessage.ReplyAsync(string rawString)
+        => await ReplyAsync(rawString).ConfigureAwait(false);
+
     #region load一大堆
 
     internal static PrivateMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)

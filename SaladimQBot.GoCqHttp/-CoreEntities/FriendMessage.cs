@@ -48,18 +48,4 @@ public class FriendMessage : PrivateMessage, IFriendMessage
         return this;
 
     }
-
-    public async new Task<FriendMessage> ReplyAsync(MessageEntity msg)
-    {
-        msg.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(Client, this));
-        var sentMessage = await this.Author.SendMessageAsync(msg).ConfigureAwait(false);
-        return sentMessage;
-    }
-
-    public async new Task<FriendMessage> ReplyAsync(string rawString)
-    {
-        var newString = ((new MessageChainReplyNode(Client, this)).ToModel().CqStringify()) + rawString;
-        var sentMessage = await this.Author.SendMessageAsync(newString).ConfigureAwait(false);
-        return sentMessage;
-    }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Saladim.SalLogger;
+using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
@@ -8,7 +9,7 @@ namespace Test;
 
 public static class Program
 {
-    private static CqClient client = null!;
+    private static IClient client = null!;
     private static Logger logger = null!;
     private static StreamWriter writer = null!;
     public const string SecProgram = "Program";
@@ -104,7 +105,7 @@ public static class Program
 
         static void SubscribeEvents()
         {
-            client.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
+            (client as CqClient)!.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
             client.OnGroupMemberIncreased += Client_OnGroupMemberIncreased;
             client.OnGroupMemberChanged += Client_OnGroupMemberChanged;
             client.OnGroupMemberDecreased += Client_OnGroupMemberDecreased;
@@ -116,106 +117,65 @@ public static class Program
         }
     }
 
-    private static async void Client_OnGroupInviteRequested(GroupInviteRequest request)
+    private static async void Client_OnGroupInviteRequested(IGroupInviteRequest request)
     {
-        logger.LogInfo("Program", $"{request.User.Nickname.Value}邀请你加入群{request.Group.Name.Value}.");
+        logger.LogInfo("Program", $"{request.User.Nickname}邀请你加入群{request.Group.Name}.");
         await request.ApproveAsync().ConfigureAwait(false);
     }
 
-    private static async void Client_OnFriendAddRequested(FriendAddRequest request)
+    private static async void Client_OnFriendAddRequested(IFriendAddRequest request)
     {
-        logger.LogInfo("Program", $"有人想加你好友, 叫做{request.User.Nickname.Value}, 验证消息:\"{request.Comment}\"");
+        logger.LogInfo("Program", $"有人想加你好友, 叫做{request.User.Nickname}, 验证消息:\"{request.Comment}\"");
         await request.ApproveAsync().ConfigureAwait(false);
     }
 
-    private static void Client_OnFriendMessageReceived(FriendMessage message, FriendUser friendUser)
+    private static void Client_OnFriendMessageReceived(IFriendMessage message, IFriendUser friendUser)
     {
-        logger.LogInfo("Program", $"好友{friendUser.Nickname.Value}给你发消息了: {message.MessageEntity.RawString}");
+        logger.LogInfo("Program", $"好友{friendUser.Nickname}给你发消息了: {message.MessageEntity.RawString}");
     }
 
-    private static void Client_OnGroupAllUserBanned(JoinedGroup group, GroupUser operatorUser)
+    private static void Client_OnGroupAllUserBanned(IJoinedGroup group, IGroupUser operatorUser)
     {
-        logger.LogInfo("Program", $"{group.Name.Value}里的屑{operatorUser.FullName}打开了全员禁言.");
+        logger.LogInfo("Program", $"{group.Name}里的屑{operatorUser.GetFullName()}打开了全员禁言.");
     }
 
-    private static async void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
+    private static async void Client_OnGroupMessageReceived(IGroupMessage message, IJoinedGroup group)
     {
         var entity = message.MessageEntity;
         if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
-        logger.LogInfo("Program", $"{message.Sender.FullName}说: {group.GroupId}");
+        logger.LogInfo("Program", $"群{group.Name}里的{message.Sender.GetFullName()}说: {message.MessageEntity.RawString}");
         if (entity.Mentioned(client.Self))
         {
             await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.").ConfigureAwait(false);
         }
         if (message.MessageEntity.RawString.Contains("/qwq"))
         {
-            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime.Value}的时候发的.").ConfigureAwait(false);
+            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime}的时候发的.").ConfigureAwait(false);
         }
-        if (message.MessageEntity.Chain.AllAt().Any(n => n.User is null))
+        if (message.MessageEntity.AllAt().Any(n => n.User is null))
         {
             await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
-        }
-        if (message.MessageEntity.RawString.Contains("/虚拟一条消息"))
-        {
-            if (client.PostSession is CqWebSocketSession ws)
-            {
-                string json = """
-                    {
-                    	"post_type": "message",
-                    	"message_type": "group",
-                    	"time": 1670920313,
-                    	"self_id": 2259113381,
-                    	"sub_type": "normal",
-                    	"font": 0,
-                    	"group_id": 860355679,
-                    	"message": [{
-                    		"type": "text",
-                    		"data": {
-                    			"text": "；"
-                    		}
-                    	}],
-                    	"message_seq": 179252,
-                    	"raw_message": "；",
-                    	"message_id": 435047497,
-                    	"anonymous": null,
-                    	"sender": {
-                    		"age": 0,
-                    		"area": "",
-                    		"card": "qwq这是自定义的名片",
-                    		"level": "",
-                    		"nickname": "sll",
-                    		"role": "member",
-                    		"sex": "unknown",
-                    		"title": "群发情机",
-                    		"user_id": 2748166392
-                    	},
-                    	"user_id": 1219377169
-                    }
-                    """;
-                JsonDocument doc = JsonDocument.Parse(json);
-                ws.EmitOnReceived(doc);
-            }
         }
         //nothing
         Console.WriteLine();
     }
 
-    private static void Client_OnGroupMemberDecreased(JoinedGroup group, User user)
+    private static void Client_OnGroupMemberDecreased(IJoinedGroup group, IUser user)
     {
-        logger.LogInfo("p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}走了");
+        logger.LogInfo("p", $"qwq, 群{group.Name}里{user.Nickname}走了");
     }
 
-    private static void Client_OnGroupMemberChanged(JoinedGroup group, User user, bool isIncrease)
+    private static void Client_OnGroupMemberChanged(IJoinedGroup group, IUser user, bool isIncrease)
     {
         logger.LogInfo(
-            "p", $"qwq, 群{group.Name.Value}里{user.Nickname.Value}这个人要么退群了要么加群了" +
+            "p", $"qwq, 群{group.Name}里{user.Nickname}这个人要么退群了要么加群了" +
             $", 答案是... {(isIncrease ? $"加群!(角色是:{user.Cast<GroupUser>().GroupRole.Value})" : "退群...")}"
             );
     }
 
-    private static void Client_OnGroupMemberIncreased(JoinedGroup group, GroupUser user)
+    private static void Client_OnGroupMemberIncreased(IJoinedGroup group, IGroupUser user)
     {
-        logger.LogInfo("p", $"awa, 群{group.Name.Value}里人了: {user.Nickname.Value}");
+        logger.LogInfo("p", $"awa, 群{group.Name}里人了: {user.Nickname}");
     }
 
     private static void ProcessMessageTest01(Message message)

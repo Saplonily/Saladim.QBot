@@ -49,6 +49,12 @@ public class GroupMessage : Message, IGroupMessage
         return sentMessage;
     }
 
+    async Task<IGroupMessage> IGroupMessage.ReplyAsync(IMessageEntity msg)
+        => await ReplyAsync(new MessageEntity(Client, msg)).ConfigureAwait(false);
+
+    async Task<IGroupMessage> IGroupMessage.ReplyAsync(string rawString)
+        => await ReplyAsync(rawString).ConfigureAwait(false);
+
     #region load一大堆的
 
     internal static GroupMessage CreateFromGroupMessagePost(CqClient client, CqGroupMessagePost post)

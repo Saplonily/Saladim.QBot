@@ -1,4 +1,55 @@
-﻿SomeClass s = new();
+﻿#nullable disable
+
+using static ISenderFactory;
+
+internal class Program
+{
+
+
+    private static void Main(string[] args)
+    {
+        Console.WriteLine();
+        SenderFactory f = new();
+        f.OnMakeSender += F_OnMakeSender;
+    }
+
+    private static void F_OnMakeSender(ISender sender)
+    {
+        Console.WriteLine(sender.Name);
+    }
+
+    private static void SomeProcess(ISender sender)
+    {
+        Console.WriteLine($"Process: {sender.Name}");
+        
+    }
+}
+
+interface ISenderFactory
+{
+    public delegate void FactoryEventHandler<in T>(T arg);
+    //public delegate void OnMakeISenderHandler(ISender sender);
+    public event FactoryEventHandler<ISender> OnMakeISender;
+    ISender Make();
+
+    Action<,,>
+}
+
+class SenderFactory : ISenderFactory
+{
+    public delegate void OnMakeSenderHandler(Sender sender);
+    public event FactoryEventHandler<Sender> OnMakeSender;
+    public Sender Make() => new();
+    ISender ISenderFactory.Make() => Make();
+
+    event ISenderFactory.FactoryEventHandler<ISender> ISenderFactory.OnMakeISender { add => OnMakeSender += value; remove => OnMakeSender -= value; }
+}
+
+interface ISender { string Name { get; } }
+class Sender : ISender { public string Name { get; } = "Test"; }
+
+
+/*SomeClass s = new();
 s.Prop = 1;
 Console.WriteLine(s.Prop);
 
@@ -11,7 +62,7 @@ public class SomeClass
         get => prop;
         set => prop = value;
     }
-}
+}*/
 
 /*NormalStruct n = new(2);
 ISayable u = n;

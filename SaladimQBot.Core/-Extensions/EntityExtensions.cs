@@ -60,4 +60,103 @@ public static class EntityExtensions
 
 
     #endregion
+
+    #region 额外属性
+
+    public static string GetFullName(this IGroupUser groupUser)
+        => groupUser.Card is "" ? $"{groupUser.Nickname}({groupUser.UserId})" : $"{groupUser.Card}({groupUser.Nickname}, {groupUser.UserId})";
+
+    public static string GetCardOrName(this IGroupUser groupUser)
+        => groupUser.Card is "" ? groupUser.Nickname : groupUser.Card;
+
+    #endregion
+
+    #region 消息实体相关
+
+    public static T First<T>(this IMessageEntity entity) where T : IMessageChainNode
+        => (T)entity.Chain.ChainNodes.First(n => n is T);
+
+    public static T? FirstOrNull<T>(this IMessageEntity entity) where T : IMessageChainNode
+    => (T?)entity.Chain.ChainNodes.FirstOrDefault(n => n is T);
+
+    public static IEnumerable<T> AllOf<T>(this IMessageEntity entity) where T : IMessageChainNode
+        => entity.Chain.ChainNodes.Where(n => n is T).Select(n => (T)n);
+
+    public static IMessageChainAtNode FirstAt(this IMessageEntity entity)
+        => entity.First<IMessageChainAtNode>();
+
+    public static IMessageChainForwardNode FirstForward(this IMessageEntity entity)
+        => entity.First<IMessageChainForwardNode>();
+
+    public static IMessageChainImageNode FirstImage(this IMessageEntity entity)
+        => entity.First<IMessageChainImageNode>();
+
+    public static IMessageChainReplyNode FirstReply(this IMessageEntity entity)
+        => entity.First<IMessageChainReplyNode>();
+
+    public static IMessageChainTextNode FirstText(this IMessageEntity entity)
+        => entity.First<IMessageChainTextNode>();
+
+    public static IMessageChainAtNode? FirstAtOrNull(this IMessageEntity entity)
+        => entity.FirstOrNull<IMessageChainAtNode>();
+
+    public static IMessageChainForwardNode? FirstForwardOrNull(this IMessageEntity entity)
+        => entity.FirstOrNull<IMessageChainForwardNode>();
+
+    public static IMessageChainImageNode? FirstImageOrNull(this IMessageEntity entity)
+        => entity.FirstOrNull<IMessageChainImageNode>();
+
+    public static IMessageChainReplyNode? FirstReplyOrNull(this IMessageEntity entity)
+        => entity.FirstOrNull<IMessageChainReplyNode>();
+
+    public static IMessageChainTextNode? FirstTextOrNull(this IMessageEntity entity)
+        => entity.FirstOrNull<IMessageChainTextNode>();
+
+    /// <summary>
+    /// 消息的所有@
+    /// </summary>
+    public static IEnumerable<IMessageChainAtNode> AllAt(this IMessageEntity entity)
+        => entity.AllOf<IMessageChainAtNode>();
+
+    public static IEnumerable<IMessageChainImageNode> AllImage(this IMessageEntity entity)
+        => entity.AllOf<IMessageChainImageNode>();
+
+    public static IEnumerable<IMessageChainTextNode> AllText(this IMessageEntity entity)
+        => entity.AllOf<IMessageChainTextNode>();
+
+    /// <summary>
+    /// 消息是否提及某个用户 (不包含@全体成员)
+    /// </summary>
+    /// <param name="user">目标用户</param>
+    public static bool Mentioned(this IMessageEntity entity, IUser user)
+        => entity.AllAt().Where(n => !n.MentionedAllUser() && n.User! == user).Any();
+
+    public static bool MentionedAllUser(this IMessageEntity entity)
+        => entity.AllAt().Where(n => n.MentionedAllUser()).Any();
+
+    /// <summary>
+    /// 消息是否@了bot (不包含@全体成员)
+    /// </summary>
+    public static bool MentionedSelf(this IMessageEntity entity)
+        => entity.Mentioned(entity.Client.Self);
+
+    /// <summary>
+    /// <para>是否该消息中包含回复该消息</para>
+    /// </summary>
+    /// <param name="message">消息实体</param>
+    /// <returns>消息是否被回复</returns>
+    public static bool Replied(this IMessageEntity entity, IMessage message)
+    {
+        var n = entity.FirstReplyOrNull();
+        if (n is null) return false;
+        if (n.MessageBeReplied == message) return true;
+        return false;
+    }
+
+    public static bool MentionedAllUser(this IMessageChainAtNode atNode)
+    {
+        return atNode.User is null;
+    }
+
+    #endregion
 }

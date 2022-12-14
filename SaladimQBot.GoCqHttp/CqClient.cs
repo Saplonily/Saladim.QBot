@@ -465,7 +465,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
                     case CqFriendAddedNoticePost notice:
                     {
-                        OnFriendAdded?.Invoke(this.GetUser(notice.UserId));
+                        OnFriendAdded?.Invoke(this.GetFriendUser(notice.UserId));
                     }
                     break;
 
@@ -621,88 +621,60 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     #region 一堆用户层的事件
 
     #region 消息收到
-    public delegate void OnMessageReceivedHandler(Message message);
-    public event OnMessageReceivedHandler? OnMessageReceived;
-    public delegate void OnGroupMessageReceivedHandler(GroupMessage message, JoinedGroup group);
-    public event OnGroupMessageReceivedHandler? OnGroupMessageReceived;
-    public delegate void OnPrivateMessageReceivedHandler(PrivateMessage message, User user);
-    public event OnPrivateMessageReceivedHandler? OnPrivateMessageReceived;
-    public delegate void OnFriendMessageReceivedHandler(FriendMessage message, FriendUser friendUser);
-    public event OnFriendMessageReceivedHandler? OnFriendMessageReceived;
+    public event IClient.OnMessageReceivedHandler<Message>? OnMessageReceived;
+    public event IClient.OnGroupMessageReceivedHandler<GroupMessage, JoinedGroup>? OnGroupMessageReceived;
+    public event IClient.OnPrivateMessageReceivedHandler<PrivateMessage, User>? OnPrivateMessageReceived;
+    public event IClient.OnFriendMessageReceivedHandler<FriendMessage, FriendUser>? OnFriendMessageReceived;
     #endregion
 
     #region 消息撤回
-    public delegate void OnMessageRecalledHandler(Message message, User operatorUser);
-    public event OnMessageRecalledHandler? OnMessageRecalled;
-    public delegate void OnPrivateMessageRecalledHandler(PrivateMessage message, User user);
-    public event OnPrivateMessageRecalledHandler? OnPrivateMessageRecalled;
-    public delegate void OnGroupMessageRecalledHandler(GroupMessage message, JoinedGroup group, GroupUser operatorUser);
-    public event OnGroupMessageRecalledHandler? OnGroupMessageRecalled;
+    public event IClient.OnMessageRecalledHandler<Message, User>? OnMessageRecalled;
+    public event IClient.OnPrivateMessageRecalledHandler<PrivateMessage, User>? OnPrivateMessageRecalled;
+    public event IClient.OnGroupMessageRecalledHandler<GroupMessage, JoinedGroup, GroupUser>? OnGroupMessageRecalled;
     #endregion
 
     #region Notice收到
     //好友添加
-    public delegate void OnFriendAddedHandler(User user);
-    public event OnFriendAddedHandler? OnFriendAdded;
+    public event IClient.OnFriendAddedHandler<FriendUser>? OnFriendAdded;
 
     //群管理员变动
-    public delegate void OnGroupAdminChangedHandler(JoinedGroup group, GroupUser user, bool isSet);
-    public event OnGroupAdminChangedHandler? OnGroupAdminChanged;
-    public delegate void OnGroupAdminSetHandler(JoinedGroup group, GroupUser user);
-    public event OnGroupAdminSetHandler? OnGroupAdminSet;
-    public delegate void OnGroupAdminCancelledHandler(JoinedGroup group, GroupUser user);
-    public event OnGroupAdminCancelledHandler? OnGroupAdminCancelled;
+    public event IClient.OnGroupAdminChangedHandler<JoinedGroup, GroupUser>? OnGroupAdminChanged;
+    public event IClient.OnGroupAdminSetHandler<JoinedGroup, GroupUser>? OnGroupAdminSet;
+    public event IClient.OnGroupAdminCancelledHandler<JoinedGroup, GroupUser>? OnGroupAdminCancelled;
 
     //群精华变动
-    public delegate void OnGroupEssenceSetHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message, bool isAdd);
-    public event OnGroupEssenceSetHandler? OnGroupEssenceSet;
-    public delegate void OnGroupEssenceAddedHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message);
-    public event OnGroupEssenceAddedHandler? OnGroupEssenceAdded;
-    public delegate void OnGroupEssenceRemovedHandler(JoinedGroup group, GroupUser operatorUser, GroupUser user, GroupMessage message);
-    public event OnGroupEssenceRemovedHandler? OnGroupEssenceRemoved;
+    public event IClient.OnGroupEssenceSetHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceSet;
+    public event IClient.OnGroupEssenceAddedHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceAdded;
+    public event IClient.OnGroupEssenceRemovedHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceRemoved;
 
     //群文件上传
-    public delegate void OnGroupFileUploadedHandler(JoinedGroup group, GroupUser uploader, GroupFile groupFile);
-    public event OnGroupFileUploadedHandler? OnGroupFileUploaded;
+    public event IClient.OnGroupFileUploadedHandler<JoinedGroup, GroupUser, GroupFile>? OnGroupFileUploaded;
 
     //群禁言
-    public delegate void OnGroupMemberBannedHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser, TimeSpan timeSpan);
-    public event OnGroupMemberBannedHandler? OnGroupMemberBanned;
-    public delegate void OnGroupMemberBanLiftedHandler(JoinedGroup group, GroupUser groupUser, GroupUser operatorUser);
-    public event OnGroupMemberBanLiftedHandler? OnGroupMemberBanLifted;
+    public event IClient.OnGroupMemberBannedHandler<JoinedGroup, GroupUser>? OnGroupMemberBanned;
+    public event IClient.OnGroupMemberBanLiftedHandler<JoinedGroup, GroupUser>? OnGroupMemberBanLifted;
     //special: 全员禁言
-    public delegate void OnGroupAllUserBannedHandler(JoinedGroup group, GroupUser operatorUser);
-    public event OnGroupAllUserBannedHandler? OnGroupAllUserBanned;
-    public delegate void OnGroupAllUserBanLiftedHandler(JoinedGroup group, GroupUser operatorUser);
-    public event OnGroupAllUserBanLiftedHandler? OnGroupAllUserBanLifted;
+    public event IClient.OnGroupAllUserBannedHandler<JoinedGroup, GroupUser>? OnGroupAllUserBanned;
+    public event IClient.OnGroupAllUserBanLiftedHandler<JoinedGroup, GroupUser>? OnGroupAllUserBanLifted;
 
     //群名片变更
-    public delegate void OnGroupMemberCardChangedHandler(JoinedGroup group, GroupUser groupUser, string from, string to);
-    public event OnGroupMemberCardChangedHandler? OnGroupMemberCardChanged;
+    public event IClient.OnGroupMemberCardChangedHandler<JoinedGroup, GroupUser>? OnGroupMemberCardChanged;
 
     //离线文件收到
-    public delegate void OnOfflineFileReceivedHandler(User user, OfflineFile file);
-    public event OnOfflineFileReceivedHandler? OnOfflineFileReceived;
+    public event IClient.OnOfflineFileReceivedHandler<User, OfflineFile>? OnOfflineFileReceived;
 
     //群成员变更
-    public delegate void OnGroupMemberChangedHandler(JoinedGroup group, User user, bool isIncrease);
-    public event OnGroupMemberChangedHandler? OnGroupMemberChanged;
-    public delegate void OnGroupMemberIncreasedHandler(JoinedGroup group, GroupUser user);
-    public event OnGroupMemberIncreasedHandler? OnGroupMemberIncreased;
-    public delegate void OnGroupMemberDecreasedHandler(JoinedGroup group, User user);
-    public event OnGroupMemberDecreasedHandler? OnGroupMemberDecreased;
+    public event IClient.OnGroupMemberChangedHandler<JoinedGroup, User>? OnGroupMemberChanged;
+    public event IClient.OnGroupMemberIncreasedHandler<JoinedGroup, GroupUser>? OnGroupMemberIncreased;
+    public event IClient.OnGroupMemberDecreasedHandler<JoinedGroup, User>? OnGroupMemberDecreased;
     #endregion
 
     #region 请求
 
     //加好友请求
-    public delegate void OnFriendAddRequestedHandler(FriendAddRequest request);
-    public event OnFriendAddRequestedHandler? OnFriendAddRequested;
-    public delegate void OnGroupJoinRequestedHandler(GroupJoinRequest request);
-    public event OnGroupJoinRequestedHandler? OnGroupJoinRequested;
-    public delegate void OnGroupInviteRequestedHandler(GroupInviteRequest request);
-    public event OnGroupInviteRequestedHandler? OnGroupInviteRequested;
-
+    public event IClient.OnFriendAddRequestedHandler<FriendAddRequest>? OnFriendAddRequested;
+    public event IClient.OnGroupJoinRequestedHandler<GroupJoinRequest>? OnGroupJoinRequested;
+    public event IClient.OnGroupInviteRequestedHandler<GroupInviteRequest>? OnGroupInviteRequested;
 
     #endregion
 
@@ -994,6 +966,173 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     #endregion
 
     IUser IClient.Self => Self;
+
+    #region 亿堆事件
+
+
+    event IClient.OnMessageReceivedHandler<IMessage>? IClient.OnMessageReceived
+    {
+        add => OnMessageReceived += value;
+        remove => OnMessageReceived -= value;
+    }
+
+    event IClient.OnGroupMessageReceivedHandler<IGroupMessage, IJoinedGroup>? IClient.OnGroupMessageReceived
+    {
+        add => OnGroupMessageReceived += value;
+        remove => OnGroupMessageReceived -= value;
+    }
+
+    event IClient.OnPrivateMessageReceivedHandler<IPrivateMessage, IUser>? IClient.OnPrivateMessageReceived
+    {
+        add => OnPrivateMessageReceived += value;
+        remove => OnPrivateMessageReceived -= value;
+    }
+
+    event IClient.OnFriendMessageReceivedHandler<IFriendMessage, IFriendUser>? IClient.OnFriendMessageReceived
+    {
+        add => OnFriendMessageReceived += value;
+        remove => OnFriendMessageReceived -= value;
+    }
+
+    event IClient.OnMessageRecalledHandler<IMessage, IUser>? IClient.OnMessageRecalled
+    {
+        add => OnMessageRecalled += value;
+        remove => OnMessageRecalled -= value;
+    }
+
+    event IClient.OnPrivateMessageRecalledHandler<IPrivateMessage, IUser>? IClient.OnPrivateMessageRecalled
+    {
+        add => OnPrivateMessageRecalled += value;
+        remove => OnPrivateMessageRecalled -= value;
+    }
+
+    event IClient.OnGroupMessageRecalledHandler<IGroupMessage, IJoinedGroup, IGroupUser>? IClient.OnGroupMessageRecalled
+    {
+        add => OnGroupMessageRecalled += value;
+        remove => OnGroupMessageRecalled -= value;
+    }
+
+    event IClient.OnFriendAddedHandler<IFriendUser>? IClient.OnFriendAdded
+    {
+        add => OnFriendAdded += value;
+        remove => OnFriendAdded -= value;
+    }
+
+    event IClient.OnGroupAdminChangedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminChanged
+    {
+        add => OnGroupAdminChanged += value;
+        remove => OnGroupAdminChanged -= value;
+    }
+
+    event IClient.OnGroupAdminSetHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminSet
+    {
+        add => OnGroupAdminSet += value;
+        remove => OnGroupAdminSet -= value;
+    }
+
+    event IClient.OnGroupAdminCancelledHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminCancelled
+    {
+        add => OnGroupAdminCancelled += value;
+        remove => OnGroupAdminCancelled -= value;
+    }
+
+    event IClient.OnGroupEssenceSetHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceSet
+    {
+        add => OnGroupEssenceSet += value;
+        remove => OnGroupEssenceSet -= value;
+    }
+
+    event IClient.OnGroupEssenceAddedHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceAdded
+    {
+        add => OnGroupEssenceAdded += value;
+        remove => OnGroupEssenceAdded -= value;
+    }
+
+    event IClient.OnGroupEssenceRemovedHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceRemoved
+    {
+        add => OnGroupEssenceRemoved += value;
+        remove => OnGroupEssenceRemoved -= value;
+    }
+
+    event IClient.OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IGroupFile>? IClient.OnGroupFileUploaded
+    {
+        add => OnGroupFileUploaded += value;
+        remove => OnGroupFileUploaded -= value;
+    }
+
+    event IClient.OnOfflineFileReceivedHandler<IUser, IOfflineFile>? IClient.OnOfflineFileReceived
+    {
+        add => OnOfflineFileReceived += value;
+        remove => OnOfflineFileReceived -= value;
+    }
+
+    event IClient.OnGroupMemberBannedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberBanned
+    {
+        add => OnGroupMemberBanned += value;
+        remove => OnGroupMemberBanned -= value;
+    }
+
+    event IClient.OnGroupMemberBanLiftedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberBanLifted
+    {
+        add => OnGroupMemberBanLifted += value;
+        remove => OnGroupMemberBanLifted -= value;
+    }
+
+    event IClient.OnGroupAllUserBannedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAllUserBanned
+    {
+        add => OnGroupAllUserBanned += value;
+        remove => OnGroupAllUserBanned -= value;
+    }
+
+    event IClient.OnGroupAllUserBanLiftedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAllUserBanLifted
+    {
+        add => OnGroupAllUserBanLifted += value;
+        remove => OnGroupAllUserBanLifted -= value;
+    }
+
+    event IClient.OnGroupMemberCardChangedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberCardChanged
+    {
+        add => OnGroupMemberCardChanged += value;
+        remove => OnGroupMemberCardChanged -= value;
+    }
+
+    event IClient.OnGroupMemberChangedHandler<IJoinedGroup, IUser>? IClient.OnGroupMemberChanged
+    {
+        add => OnGroupMemberChanged += value;
+        remove => OnGroupMemberChanged -= value;
+    }
+
+    event IClient.OnGroupMemberIncreasedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberIncreased
+    {
+        add => OnGroupMemberIncreased += value;
+        remove => OnGroupMemberIncreased -= value;
+    }
+
+    event IClient.OnGroupMemberDecreasedHandler<IJoinedGroup, IUser>? IClient.OnGroupMemberDecreased
+    {
+        add => OnGroupMemberDecreased += value;
+        remove => OnGroupMemberDecreased -= value;
+    }
+
+    event IClient.OnFriendAddRequestedHandler<IFriendAddRequest>? IClient.OnFriendAddRequested
+    {
+        add => OnFriendAddRequested += value;
+        remove => OnFriendAddRequested -= value;
+    }
+
+    event IClient.OnGroupJoinRequestedHandler<IGroupJoinRequest>? IClient.OnGroupJoinRequested
+    {
+        add => OnGroupJoinRequested += value;
+        remove => OnGroupJoinRequested -= value;
+    }
+
+    event IClient.OnGroupInviteRequestedHandler<IGroupInviteRequest>? IClient.OnGroupInviteRequested
+    {
+        add => OnGroupInviteRequested += value;
+        remove => OnGroupInviteRequested -= value;
+    }
+
+    #endregion
 
     #endregion
 }
