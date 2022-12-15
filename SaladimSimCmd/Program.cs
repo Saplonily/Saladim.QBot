@@ -1,4 +1,6 @@
-﻿using Saladim.SalLogger;
+﻿using System.Drawing;
+using System.Numerics;
+using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.SimCommand;
@@ -50,8 +52,32 @@ public class SampleModule : CommandModule
     }
 
     [Command("echo")]
-    public async void Echo(string contentToEcho)
+    public void Echo(string contentToEcho)
     {
-        await Content.MessageWindow.SendMessageAsync(contentToEcho);
+        _ = Content.MessageWindow.SendMessageAsync(contentToEcho);
+    }
+
+    [Command("add")]
+    public void Add(float a, int b)
+    {
+        _ = Content.MessageWindow.SendMessageAsync($"结果是: {a + b}");
+    }
+
+    [Command("get_color")]
+    public void GetColor(Color color)
+    {
+        _ = Content.MessageWindow.SendMessageAsync($"你的颜色是 {color}");
+    }
+
+    [Command("get_vector")]
+    public void GetVector2(Vector2 vector)
+    {
+        _ = Content.MessageWindow.SendMessageAsync($"你的二维向量是: {vector}");
+    }
+
+    [Command("get_vector")]
+    public void GetVector3(Vector3 vector)
+    {
+        _ = Content.MessageWindow.SendMessageAsync($"你的三维向量是: {vector}");
     }
 }

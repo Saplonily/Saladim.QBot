@@ -1,13 +1,20 @@
-﻿using System.Reflection;
+﻿using System.Drawing;
+using System.Numerics;
+using System.Reflection;
 using SaladimQBot.Core;
+using SaladimQBot.SimCommand.Parsers;
 
 namespace SaladimQBot.SimCommand;
 
 public sealed class SimCommandService
 {
+    public static readonly Type StringType = typeof(string);
+
     private readonly List<MethodBasedCommand> commands;
 
     public IClient Client { get; }
+
+    public Dictionary<Type, Func<string, object>> CommandParamParsers { get; private set; }
 
     public string RootCommandPrefix { get; }
 
@@ -21,6 +28,23 @@ public sealed class SimCommandService
         this.Client = client;
         this.RootCommandPrefix = rootCommandPrefix;
         commands = new();
+        CommandParamParsers = new()
+        {
+            [typeof(int)] = s => CommonTypeParsers.Int(s),
+            [typeof(long)] = s => CommonTypeParsers.Long(s),
+            [typeof(short)] = s => CommonTypeParsers.Short(s),
+            [typeof(uint)] = s => CommonTypeParsers.Uint(s),
+            [typeof(ulong)] = s => CommonTypeParsers.Ulong(s),
+            [typeof(ushort)] = s => CommonTypeParsers.Ushort(s),
+            [typeof(byte)] = s => CommonTypeParsers.Byte(s),
+            [typeof(char)] = s => CommonTypeParsers.Char(s),
+            [typeof(float)] = s => CommonTypeParsers.Float(s),
+            [typeof(double)] = s => CommonTypeParsers.Double(s),
+            [typeof(sbyte)] = s => CommonTypeParsers.Sbyte(s),
+            [typeof(Vector2)] = s => CommonTypeParsers.Vector2(s),
+            [typeof(Vector3)] = s => CommonTypeParsers.Vector3(s),
+            [typeof(Color)] = s => CommonTypeParsers.Color(s),
+        };
     }
 
     public void AddModule(Type moduleClassType)
@@ -74,26 +98,64 @@ public sealed class SimCommandService
                             var cmdParams = paramString.ToString().Split(' ');
                             if (cmdParams.Length != cmd.Parameters.Length)
                                 continue;
-                            if (Activator.CreateInstance(cmd.Method.DeclaringType!) is not CommandModule moduleIns) continue;
-                            moduleIns.Content = new(this, msg);
-                            if (moduleIns.PreCheck(moduleIns.Content))
-                            {
-                                cmd.Method.Invoke(moduleIns, cmdParams);
-                            }
+                            ExecuteInternal(msg, cmd, cmdParams);
                         }
                     }
                     else
-                    {
-                        if (Activator.CreateInstance(cmd.Method.DeclaringType!) is not CommandModule moduleIns) continue;
-                        moduleIns.Content = new(this, msg);
-                        if (moduleIns.PreCheck(moduleIns.Content))
-                        {
-                            cmd.Method.Invoke(moduleIns, null);
-                        }
-                    }
+                        ExecuteInternal(msg, cmd, null);
                 }
             }
         }
+    }
+
+    internal bool ExecuteInternal(IMessage msg, MethodBasedCommand cmd, string[]? cmdParams)
+    {
+        var paramsLength = cmd.Parameters.Length;
+        if (Activator.CreateInstance(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
+        moduleIns.Content = new(this, msg);
+        if (moduleIns.PreCheck(moduleIns.Content))
+        {
+            var paramsTypes =
+                from p in cmd.Parameters
+                select p.ParameterType;
+            if (cmdParams is null)
+            {
+                cmd.Method.Invoke(moduleIns, null);
+            }
+            else if (paramsTypes.All(t => t == StringType))
+            {
+                cmd.Method.Invoke(moduleIns, cmdParams);
+            }
+            else
+            {
+                object[] paramObjects = new object[paramsLength];
+                for (int i = 0; i < paramsLength; i++)
+                {
+                    Type paramsType = paramsTypes.ElementAt(i);
+                    if (paramsType == StringType)
+                    {
+                        paramObjects[i] = cmdParams[i];
+                        continue;
+                    }
+                    if (!CommandParamParsers.TryGetValue(paramsType, out var parser))
+                        throw new KeyNotFoundException($"Not found parser for type `{paramsType}`");
+                    try
+                    {
+                        var parsedValue = parser(cmdParams[i]);
+                        if (parsedValue is null)
+                            return false;
+                        paramObjects[i] = parsedValue;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+                cmd.Method.Invoke(moduleIns, paramObjects);
+            }
+            return true;
+        }
+        return false;
     }
 
     public async Task MatchAndExecuteAllAsync(IMessage msg)
