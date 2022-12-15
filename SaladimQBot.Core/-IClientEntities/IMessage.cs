@@ -6,6 +6,8 @@ public interface IMessage : IClientEntity
 
     IMessageEntity MessageEntity { get; }
 
+    IMessageWindow MessageWindow { get; }
+
     IUser Sender { get; }
 
     DateTime SendTime { get; }

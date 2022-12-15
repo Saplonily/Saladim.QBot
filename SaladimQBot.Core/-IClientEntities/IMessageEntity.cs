@@ -11,7 +11,7 @@ public interface IMessageEntity : IClientEntity
     IMessageChain Chain { get; }
 
     /// <summary>
-    /// cq码格式的字符串
+    /// 特殊遍码格式的字符串
     /// </summary>
     string RawString { get; }
 }

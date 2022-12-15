@@ -22,6 +22,8 @@ public class Message : CqEntity, IMessage
     public virtual ICqMessageWindow MessageWindow =>
         throw new InvalidOperationException("Raw Message hasn't MessageWindow.");
 
+    IMessageWindow IMessage.MessageWindow => MessageWindow;
+
     public User Sender => ExpSender.Value;
 
     public User Author => Sender;

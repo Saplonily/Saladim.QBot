@@ -19,6 +19,7 @@ public class BotInstance
     protected CqClient cqClient;
     protected Logger logger;
     protected HttpListener httpListener;
+    protected Random random;
 
     public event Action<string>? OnClientLog;
 
@@ -43,8 +44,18 @@ public class BotInstance
 
         httpListener = new();
         httpListener.Prefixes.Add("http://127.0.0.1:5702/");
-        httpListener.Start();
+        try
+        {
+            httpListener.Start();
+        }
+        catch
+        {
+
+        }
         Task.Run(ListenerLoop);
+
+        var dateTimeNow = DateTime.Now;
+        random = new(dateTimeNow.Millisecond + dateTimeNow.Second + dateTimeNow.Day + dateTimeNow.Minute);
     }
 
     private void ListenerLoop()
@@ -101,6 +112,10 @@ public class BotInstance
                     $"{groupMsg.Author.FullName} 说: " +
                     $"{groupMsg.MessageEntity.RawString}"
                     );
+#if DEBUG
+                if (groupMsg.Group.GroupId != 860355679)
+                    return;
+#endif
             }
             else if (message is PrivateMessage privateMsg)
             {
@@ -247,6 +262,25 @@ public class BotInstance
                     .Build();
                 await message.MessageWindow.SendMessageAsync(entity).ConfigureAwait(false);
             }
+
+            #endregion
+
+            #region /choose
+
+            commandStart = "/choose ";
+            do
+            {
+                if (rawString.StartsWith(commandStart))
+                {
+                    var paramString = rawString[commandStart.Length..];
+                    var splitedString = paramString.Split(" ");
+                    var count = splitedString.Length;
+                    if (count <= 1)
+                        break;
+                    var result = random.Next(count);
+                    await message.MessageWindow.SendMessageAsync($"选择的最终结果是...\n『{splitedString[result]}』");
+                }
+            } while (false);
 
             #endregion
 

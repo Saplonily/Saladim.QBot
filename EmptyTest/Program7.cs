@@ -1,4 +1,10 @@
-﻿#nullable disable
+﻿Console.WriteLine("你好f34f34f34f3qwq".AsSpan().ToString());
+
+/*Delegate a = () => Console.WriteLine("114514");
+a.DynamicInvoke();*/
+
+
+/*#nullable disable
 
 using static ISenderFactory;
 
@@ -31,8 +37,6 @@ interface ISenderFactory
     //public delegate void OnMakeISenderHandler(ISender sender);
     public event FactoryEventHandler<ISender> OnMakeISender;
     ISender Make();
-
-    Action<,,>
 }
 
 class SenderFactory : ISenderFactory
@@ -47,7 +51,7 @@ class SenderFactory : ISenderFactory
 
 interface ISender { string Name { get; } }
 class Sender : ISender { public string Name { get; } = "Test"; }
-
+*/
 
 /*SomeClass s = new();
 s.Prop = 1;

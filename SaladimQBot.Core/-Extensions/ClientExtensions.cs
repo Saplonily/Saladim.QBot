@@ -31,4 +31,11 @@ public static class ClientExtensions
     /// <returns>群用户实体</returns>
     public static IGroupUser GetGroupUser(this IClient client, IJoinedGroup group, IUser user)
         => client.GetGroupUser(group.GroupId, user.UserId);
+
+    public static IMessageEntityBuilder CreateMessageBuilder(this IClient client, IMessage messageToReply)
+    {
+        var builder = client.CreateMessageBuilder();
+        builder.WithReply(messageToReply);
+        return builder;
+    }
 }
