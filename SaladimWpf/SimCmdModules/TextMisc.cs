@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
-using SaladimQBot.SimCommand;
+using SaladimQBot.Extensions;
 using SaladimWpf.Services;
 
 namespace SaladimWpf.SimCmdModules;

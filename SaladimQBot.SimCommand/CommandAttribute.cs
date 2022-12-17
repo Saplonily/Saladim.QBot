@@ -1,7 +1,7 @@
 ﻿using System;
 using SaladimQBot.Core;
 
-namespace SaladimQBot.SimCommand;
+namespace SaladimQBot.Extensions;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public class CommandAttribute : Attribute

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 
-namespace SaladimQBot.SimCommand;
+namespace SaladimQBot.Extensions;
 
 public class SimCommandConfig
 {

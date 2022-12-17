@@ -7,7 +7,7 @@ using Microsoft.Extensions;
 using Saladim.SalLogger;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Shared;
-using SaladimQBot.SimCommand;
+using SaladimQBot.Extensions;
 using SaladimWpf.Services;
 
 namespace SaladimWpf;

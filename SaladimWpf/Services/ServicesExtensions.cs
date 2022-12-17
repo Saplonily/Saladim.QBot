@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
 using SaladimQBot.Core.Services;
-using SaladimQBot.SimCommand;
+using SaladimQBot.Extensions;
 
-namespace SaladimWpf;
+namespace SaladimWpf.Services;
 
 public static class ServicesExtensions
 {

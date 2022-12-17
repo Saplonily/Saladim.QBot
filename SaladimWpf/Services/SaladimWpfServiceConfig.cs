@@ -1,6 +1,6 @@
 ﻿using Saladim.SalLogger;
 
-namespace SaladimWpf;
+namespace SaladimWpf.Services;
 
 public class SaladimWpfServiceConfig
 {

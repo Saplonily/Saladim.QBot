@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using Saladim.SalLogger;
 
-namespace SaladimWpf;
+namespace SaladimWpf.Services;
 
 public class SalLoggerService
 {

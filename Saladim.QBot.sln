@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{05FB32
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimWpf", "SaladimWpf\SaladimWpf.csproj", "{C11A1A6A-01B5-48E1-9094-E4A572491661}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.SimCommand", "SaladimQBot.SimCommand\SaladimQBot.SimCommand.csproj", "{D49431AA-904B-4D46-87F3-1BFD76EB915D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.Extensions", "SaladimQBot.SimCommand\SaladimQBot.Extensions.csproj", "{D49431AA-904B-4D46-87F3-1BFD76EB915D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{AA042957-43FF-4C51-B2AE-6C28D11D69DA}"
 EndProject

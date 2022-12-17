@@ -3,7 +3,7 @@ using System.Numerics;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
-using SaladimQBot.SimCommand;
+using SaladimQBot.Extensions;
 
 namespace SaladimSimCmd;
 

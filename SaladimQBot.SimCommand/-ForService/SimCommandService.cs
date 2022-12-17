@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using SaladimQBot.Core;
 
-namespace SaladimQBot.SimCommand;
+namespace SaladimQBot.Extensions;
 
 public class SimCommandService
 {

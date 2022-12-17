@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
-    <ProjectReference Include="..\SaladimQBot.SimCommand\SaladimQBot.SimCommand.csproj" />
+    <ProjectReference Include="..\SaladimQBot.SimCommand\SaladimQBot.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

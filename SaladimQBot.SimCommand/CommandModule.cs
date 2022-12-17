@@ -1,6 +1,6 @@
 ﻿using SaladimQBot.Core;
 
-namespace SaladimQBot.SimCommand;
+namespace SaladimQBot.Extensions;
 
 /// <summary>
 /// 指令模块的基类

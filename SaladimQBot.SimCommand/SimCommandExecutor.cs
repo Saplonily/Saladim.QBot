@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Reflection;
 using SaladimQBot.Core;
 
-namespace SaladimQBot.SimCommand;
+namespace SaladimQBot.Extensions;
 
 public sealed class SimCommandExecutor
 {
