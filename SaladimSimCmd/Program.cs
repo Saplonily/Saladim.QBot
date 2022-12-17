@@ -10,14 +10,14 @@ namespace SaladimSimCmd;
 public class Program
 {
     public static CqClient client = null!;
-    public static SimCommandService simCmd = null!;
+    public static SimCommandExecutor simCmd = null!;
 
     public static async Task Main(string[] args)
     {
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnLog += Console.WriteLine;
         client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
-        simCmd = new(client, "");
+        simCmd = new("/");
         simCmd.AddModule(typeof(SampleModule));
         await client.StartAsync();
         Console.ReadLine();

@@ -2,106 +2,59 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions;
 using Saladim.SalLogger;
+using Microsoft.Extensions.DependencyInjection;
+using SaladimQBot.Shared;
+using SaladimQBot.SimCommand;
+using SaladimWpf.Services;
 
 namespace SaladimWpf;
 
 public partial class App : Application
 {
-    public TextBox? TextBoxLogging;
-    public CheckBox? ScrollToEndCheckBox;
-    public Logger Logger;
-    public StreamWriter streamWriter;
+    public new static App Current => Application.Current.Cast<App>();
+    public IHost AppHost { get; protected set; }
 
     public App()
     {
-        DateTime now = DateTime.Now;
-        string path = @"Logs\";
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
-        string unindexedFileName = $"{now.Year}.{now.Month}.{now.Day}";
-        string filePath = string.Empty;
-        int index = 0;
-        do
-        {
-            string indexedFileName = $"{unindexedFileName} {index}.log";
-            string combinedPath = Path.Combine(path, indexedFileName);
-            if (!File.Exists(combinedPath))
+        IServiceProvider serviceProvider = null!;
+        SimCommandConfig simCommandConfig = new("/", typeof(App).Assembly, t => (CommandModule)serviceProvider.GetRequiredService(t));
+        AppHost = Host.CreateDefaultBuilder()
+            .ConfigureServices((c, coll) =>
             {
-                filePath = combinedPath;
-                break;
-            }
-            else
-            {
-                index++;
-                continue;
-            }
-        }
-        while (true);
-
-        streamWriter = new(filePath);
-        Logger = new LoggerBuilder()
-            .WithAction(s =>
-            {
-                Current.Dispatcher.Invoke(() =>
-                {
-                    TextBoxLogging?.AppendText(s + Environment.NewLine);
-                    if (ScrollToEndCheckBox?.IsChecked is true)
-                    {
-                        TextBoxLogging?.ScrollToEnd();
-                    }
-                });
-                streamWriter.WriteLine(s);
+                coll.AddSalLoggerService(LogLevel.Trace);
+                coll.AddSaladimWpf("ws://127.0.0.1:5000");
+                coll.AddSimCommand(simCommandConfig);
+                coll.AddSingleton<HttpRequesterService>();
+                coll.AddSingleton<HttpServerService>();
+                coll.AddSingleton<RandomService>();
+                coll.AddSingleton<JavaScriptService>();
             })
-            .WithLevelLimit(LogLevel.Trace)
             .Build();
+        AppHost.Services.GetRequiredService<HttpServerService>();
+        AppHost.RunAsync();
+        serviceProvider = AppHost.Services;
+        App.Current.DispatcherUnhandledException += this.Current_DispatcherUnhandledException;
+    }
+
+    private void Current_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        var ss = AppHost.Services.GetRequiredService<SalLoggerService>();
+        ss.SalIns.LogFatal("SaladimWpf", e.Exception);
+        ss.FlushFileStream();
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)
     {
-        DispatcherUnhandledException += this.App_DispatcherUnhandledException;
-        AppDomain.CurrentDomain.ProcessExit += this.CurrentDomain_ProcessExit;
-        AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
+        _ = AppHost.RunAsync();
+
     }
 
-    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private async void Application_Exit(object sender, ExitEventArgs e)
     {
-        try
-        {
-            if (e.ExceptionObject is Exception ex)
-                Logger.LogFatal("WpfConsole", "CurrentDomainUnhandled", ex);
-            streamWriter.Dispose();
-        }
-        catch { };
-    }
-
-    private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
-    {
-        try
-        {
-            streamWriter.Dispose();
-        }
-        catch { };
-    }
-
-    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-    {
-        try
-        {
-            Logger.LogFatal("WpfConsole", "Domain", e.Exception);
-            streamWriter.Dispose();
-            e.Handled = true;
-            this.Shutdown();
-        }
-        catch { }
-    }
-
-    private void Application_Exit(object sender, ExitEventArgs e)
-    {
-        try
-        {
-            streamWriter.Dispose();
-        }
-        catch { };
+        await AppHost.StopAsync();
     }
 }

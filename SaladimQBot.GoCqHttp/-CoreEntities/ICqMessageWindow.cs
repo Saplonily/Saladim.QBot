@@ -7,4 +7,6 @@ public interface ICqMessageWindow : IMessageWindow
     Task<Message> SendMessageAsync(MessageEntity messageEntity);
 
     new Task<Message> SendMessageAsync(string rawString);
+
+    Task<Message> SendMessageAsync(ForwardEntity forwardEntity);
 }

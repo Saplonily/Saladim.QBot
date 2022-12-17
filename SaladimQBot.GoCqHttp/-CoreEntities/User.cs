@@ -55,6 +55,19 @@ public class User : CqEntity, IUser
     public Task<PrivateMessage> SendMessageAsync(long? groupId, string rawString)
         => Client.SendPrivateMessageAsync(UserId, groupId, rawString);
 
+    /// <summary>
+    /// <para>向一个用户发送一条转发消息, 可能为临时消息</para>
+    /// <para>截止2022-12-12仍存在bug, 请勿调用此方法, 详见 https://github.com/Mrs4s/go-cqhttp/issues/1331</para>
+    /// </summary>
+    /// <param name="groupId">若为临时消息时显示的群来源</param>
+    /// <param name="rawString">消息文本</param>
+    /// <returns>消息实体</returns>
+    [Obsolete("请勿使用此方法, 可能会导致账号冻结, 具体消息请见 SaladimQBot.GoCqHttp.User的方法 SendMessageAsync的xml注释")]
+    public Task<PrivateMessage> SendMessageAsync(long? groupId, ForwardEntity forwardEntity)
+        => throw new InvalidOperationException("Use sendMessageAsync for friend first.");
+
+
+
     #region CreateFrom / LoadFrom集合
 
     internal static User CreateFromMessagePost(in CqClient client, in CqMessagePost post)
@@ -143,6 +156,10 @@ public class User : CqEntity, IUser
     [Obsolete]
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await SendMessageAsync(null, rawString).ConfigureAwait(false);
+
+    [Obsolete]
+    async Task<IMessage> IMessageWindow.SendMessageAsync(IForwardEntity forwardEntity)
+        => await SendMessageAsync(null, forwardEntity is ForwardEntity our ? our : throw new InvalidOperationException(StringConsts.NotSameClientError)).ConfigureAwait(false);
 
     #endregion
 

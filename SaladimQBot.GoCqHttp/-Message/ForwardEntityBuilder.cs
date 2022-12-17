@@ -1,14 +1,14 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using SaladimQBot.Core;
 
-public class ForwardEntityBuilder
+namespace SaladimQBot.GoCqHttp;
+
+public class ForwardEntityBuilder : CqEntity, IForwardEntityBuilder
 {
-    private readonly CqClient client;
     private List<ForwardNode> nodes;
 
-    public ForwardEntityBuilder(CqClient client)
+    public ForwardEntityBuilder(CqClient client) : base(client)
     {
         nodes = new();
-        this.client = client;
     }
 
     public ForwardEntityBuilder AddMessage(Message msg)
@@ -48,6 +48,24 @@ public class ForwardEntityBuilder
 
     public ForwardEntity Build()
     {
-        return new(client, nodes);
+        return new(Client, nodes);
     }
+
+    IForwardEntityBuilder IForwardEntityBuilder.AddMessage(IMessage msg)
+        => msg is Message ourMsg ?
+            AddMessage(ourMsg) :
+            throw new InvalidOperationException(StringConsts.NotSameClientError);
+
+    IForwardEntityBuilder IForwardEntityBuilder.AddMessage(string senderShowName, IUser sender, IMessageEntity entity, DateTime sendTime)
+        => sender is User ourSender && entity is MessageEntity ourEntity ?
+            AddMessage(senderShowName, ourSender, ourEntity, sendTime) :
+            throw new InvalidOperationException(StringConsts.NotSameClientError);
+
+    IForwardEntityBuilder IForwardEntityBuilder.AddMessage(IUser sender, IMessageEntity entity, DateTime sendTime)
+        => sender is User ourSender && entity is MessageEntity ourEntity ?
+            AddMessage(ourSender, ourEntity, sendTime) :
+            throw new InvalidOperationException(StringConsts.NotSameClientError);
+
+    IForwardEntity IForwardEntityBuilder.Build()
+        => this.Build();
 }

@@ -15,4 +15,11 @@ public interface IMessageWindow : IClientEntity
     /// <param name="rawString">消息原始字符串</param>
     /// <returns>该消息</returns>
     Task<IMessage> SendMessageAsync(string rawString);
+
+    /// <summary>
+    /// 向该消息窗口发送群体转发消息
+    /// </summary>
+    /// <param name="forwardEntity">转发实体</param>
+    /// <returns>该消息实体</returns>
+    Task<IMessage> SendMessageAsync(IForwardEntity forwardEntity);
 }

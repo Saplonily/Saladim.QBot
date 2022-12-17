@@ -12,6 +12,9 @@ public static class EntityExtensions
     public static Task<IFriendMessage> SendMessageAsync(this IFriendUser user, string rawString)
         => user.Client.SendFriendMessageAsync(user.UserId, rawString);
 
+    public static Task<IFriendMessage> SendMessageAsync(this IFriendUser user, IForwardEntity forwardEntity)
+        => user.Client.SendFriendMessageAsync(user.UserId, forwardEntity);
+
     #endregion
 
     #region User私聊发送信息

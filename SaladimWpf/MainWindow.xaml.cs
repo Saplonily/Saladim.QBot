@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
@@ -8,24 +9,27 @@ namespace SaladimWpf;
 public partial class MainWindow : Window
 {
     protected Logger logger;
-    protected BotInstance bot;
+    protected SalLoggerService salLoggerService;
+    protected SaladimWpfService swpfService;
 
     public MainWindow()
     {
         InitializeComponent();
-        App app = (Application.Current as App)!;
-        app.TextBoxLogging = TextBoxLogging;
-        app.ScrollToEndCheckBox = ScrollToEndCheckBox;
-        logger = app.Logger;
-        bot = new("ws://127.0.0.1:5000");
-        bot.OnLog += s =>
+        App app = App.Current;
+        swpfService = app.AppHost.Services.GetRequiredService<SaladimWpfService>();
+        salLoggerService = app.AppHost.Services.GetRequiredService<SalLoggerService>();
+        salLoggerService.OnLog += s =>
         {
-            logger.LogRaw(LogLevel.Info, s);
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                TextBoxLogging?.AppendText(s + Environment.NewLine);
+                if (ScrollToEndCheckBox?.IsChecked is true)
+                {
+                    TextBoxLogging?.ScrollToEnd();
+                }
+            });
         };
-        bot.OnClientLog += s =>
-        {
-            logger.LogInfo("Client", s);
-        };
+        logger = salLoggerService.SalIns;
     }
 
     private void UpdateGuessNumBotDelay_Click(object sender, RoutedEventArgs e)
@@ -33,7 +37,7 @@ public partial class MainWindow : Window
         e.Handled = true;
         if (int.TryParse(GuessNumBotDelayTextBox.Text, out int v))
         {
-            bot.GuessNumberBotDelay = v;
+            swpfService.GuessNumberBotDelay = v;
             logger.LogInfo("WpfConsole", $"更新完成! 延迟为{v}ms");
         }
         else
@@ -52,14 +56,14 @@ public partial class MainWindow : Window
     private void GuessNumBotCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        bot.OpenGuessNumberBot = true;
+        swpfService.OpenGuessNumberBot = true;
         logger.LogInfo("WpfConsole", "开启自动猜数.");
     }
 
     private void GuessNumBotCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        bot.OpenGuessNumberBot = false;
+        swpfService.OpenGuessNumberBot = false;
         logger.LogInfo("WpfConsole", "关闭自动猜数.");
     }
 
@@ -69,7 +73,7 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "开启Client中...");
         try
         {
-            await bot.StartAsync().ConfigureAwait(false);
+            await swpfService.StartAsync().ConfigureAwait(false);
         }
         catch (ClientException ex)
         {
@@ -85,7 +89,7 @@ public partial class MainWindow : Window
         logger.LogInfo("WpfConsole", "关闭Client中...");
         try
         {
-            await bot.StopAsync().ConfigureAwait(false);
+            await swpfService.StopAsync().ConfigureAwait(false);
         }
         catch (ClientException ex)
         {
@@ -98,7 +102,7 @@ public partial class MainWindow : Window
     private void FlushLogButton_Click(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
+        salLoggerService.FlushFileStream();
         logger.LogInfo("WpfConsole", "Flush完成.");
-        App.Current.Cast<App>().streamWriter.Flush();
     }
 }

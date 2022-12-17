@@ -680,8 +680,11 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #endregion
 
-    #region 试用方法
+    #region 实用方法
     public MessageEntityBuilder CreateMessageBuilder()
+        => new(this);
+
+    public ForwardEntityBuilder CreateForwardBuilder()
         => new(this);
 
     #endregion
@@ -800,6 +803,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     async Task<IGroupMessage> IClient.SendGroupMessageAsync(long groupId, string rawString)
         => await SendGroupMessageAsync(groupId, rawString).ConfigureAwait(false);
 
+    /// 使用消息实体发送群消息
     /// <inheritdoc cref="IClient.SendGroupMessageAsync(long, IMessageEntity)"/>
     public async Task<GroupMessage> SendGroupMessageAsync(long groupId, MessageEntity messageEntity)
     {
@@ -812,6 +816,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         return GroupMessage.CreateFromMessageId(this, result.MessageId);
     }
 
+    /// 使用原始消息字符串发送群消息
     /// <inheritdoc cref="IClient.SendGroupMessageAsync(long, string)"/>
     public async Task<GroupMessage> SendGroupMessageAsync(long groupId, string message)
     {
@@ -830,7 +835,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
         if (forwardEntity is ForwardEntity entity && ReferenceEquals(forwardEntity.Client, this))
             return await SendGroupMessageAsync(groupId, entity).ConfigureAwait(false);
         else
-            throw new InvalidOperationException("Only accept send forwardEntity that this client own.");
+            throw new InvalidOperationException(StringConsts.NotSameClientError);
     }
 
     public async Task<GroupMessage> SendGroupMessageAsync(long groupId, ForwardEntity forwardEntity)
@@ -840,9 +845,29 @@ public abstract class CqClient : IClient, IExpirableValueGetter
             GroupId = groupId,
             ForwardEntity = forwardEntity.ToModel()
         };
-        var result = (await this.CallApiWithCheckingAsync(api).ConfigureAwait(false)).Data!.Cast<SendMessageActionResultData>();
+        var result = (await this.CallApiWithCheckingAsync<SendMessageActionResultData>(api).ConfigureAwait(false)).Item2;
         return this.GetGroupMessageById(result.MessageId);
     }
+
+    Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IForwardEntity forwardEntity)
+        => throw new NotImplementedException("send forward as private msg is not impl");
+
+    public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, ForwardEntity forwardEntity)
+    {
+        SendForwardMessageToUserAction api = new()
+        {
+            UserId = friendUserId,
+            ForwardEntity = forwardEntity.ToModel()
+        };
+        var result = (await this.CallApiWithCheckingAsync<SendMessageActionResultData>(api).ConfigureAwait(false)).Item2;
+        return this.GetFriendMessageById(result.MessageId);
+    }
+
+    async Task<IFriendMessage> IClient.SendFriendMessageAsync(long friendUserId, IForwardEntity forwardEntity)
+        => await SendFriendMessageAsync(
+            friendUserId,
+            forwardEntity is ForwardEntity our ? our : throw new InvalidOperationException(StringConsts.NotSameClientError)
+            ).ConfigureAwait(false);
 
     #endregion
 
@@ -975,6 +1000,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     IMessageEntityBuilder IClient.CreateMessageBuilder()
         => new MessageEntityBuilder(this);
+
+    IForwardEntityBuilder IClient.CreateForwardBuilder()
+        => new ForwardEntityBuilder(this);
 
     #region 亿堆事件
 

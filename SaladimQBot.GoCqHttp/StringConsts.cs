@@ -31,4 +31,6 @@ public static class StringConsts
 
     public const string CqPostEndpoint = "event";
     public const string CqApiEndpoint = "api";
+
+    public const string NotSameClientError = "Cannot transfer client entities between two different IClient.";
 }

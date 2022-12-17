@@ -115,11 +115,17 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
         => await Client.SendGroupMessageAsync(GroupId, rawString).ConfigureAwait(false);
 
+    async Task<IMessage> IMessageWindow.SendMessageAsync(IForwardEntity forwardEntity)
+        => await Client.Cast<IClient>().SendGroupMessageAsync(GroupId, forwardEntity).ConfigureAwait(false);
+
     async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
         => await SendMessageAsync(messageEntity).ConfigureAwait(false);
 
     async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
         => await SendMessageAsync(rawString).ConfigureAwait(false);
+
+    async Task<Message> ICqMessageWindow.SendMessageAsync(ForwardEntity forwardEntity)
+    => await Client.SendGroupMessageAsync(GroupId, forwardEntity).ConfigureAwait(false);
 
     #endregion
 

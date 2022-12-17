@@ -23,7 +23,7 @@ public abstract class CommandModule
 
 public sealed class CommandContent
 {
-    public SimCommandService Service { get; }
+    public SimCommandExecutor Service { get; }
 
     public IMessage Message { get; }
 
@@ -33,7 +33,7 @@ public sealed class CommandContent
 
     public IClient Client => Message.Client;
 
-    public CommandContent(SimCommandService service, IMessage message)
+    public CommandContent(SimCommandExecutor service, IMessage message)
     {
         this.Service = service;
         this.Message = message;

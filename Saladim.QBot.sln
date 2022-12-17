@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.SimCommand", "S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{AA042957-43FF-4C51-B2AE-6C28D11D69DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaladimSimCmd", "SaladimSimCmd\SaladimSimCmd.csproj", "{BE914143-FF5B-4A58-B87C-782C577DEAB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimSimCmd", "SaladimSimCmd\SaladimSimCmd.csproj", "{BE914143-FF5B-4A58-B87C-782C577DEAB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

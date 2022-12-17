@@ -95,6 +95,22 @@ public interface IClient
     /// <returns></returns>
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, IForwardEntity forwardEntity);
 
+    /// <summary>
+    /// 向用户发送转发实体
+    /// </summary>
+    /// <param name="userId">用户id</param>
+    /// <param name="forwardEntity">转发实体</param>
+    /// <returns></returns>
+    Task<IPrivateMessage> SendPrivateMessageAsync(long userId, IForwardEntity forwardEntity);
+
+    /// <summary>
+    /// 向好友发送转发实体
+    /// </summary>
+    /// <param name="friendUserId">好友id</param>
+    /// <param name="forwardEntity">转发实体</param>
+    /// <returns></returns>
+    Task<IFriendMessage> SendFriendMessageAsync(long friendUserId, IForwardEntity forwardEntity);
+
     #endregion
 
     #region 消息/成员处理
@@ -299,6 +315,8 @@ public interface IClient
     IUser Self { get; }
 
     IMessageEntityBuilder CreateMessageBuilder();
+
+    IForwardEntityBuilder CreateForwardBuilder();
 
     /// <summary>
     /// 开始该Client的连接

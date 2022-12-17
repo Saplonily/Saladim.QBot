@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 
-namespace SaladimQBot.SimCommand.Parsers;
+namespace SaladimQBot.SimCommand;
 
 public static class CommonTypeParsers
 {

@@ -2,17 +2,15 @@
 using System.Numerics;
 using System.Reflection;
 using SaladimQBot.Core;
-using SaladimQBot.SimCommand.Parsers;
 
 namespace SaladimQBot.SimCommand;
 
-public sealed class SimCommandService
+public sealed class SimCommandExecutor
 {
     public static readonly Type StringType = typeof(string);
 
     private readonly List<MethodBasedCommand> commands;
-
-    public IClient Client { get; }
+    private readonly Func<Type, object?> moduleInstanceFactory;
 
     public Dictionary<Type, Func<string, object>> CommandParamParsers { get; private set; }
 
@@ -23,9 +21,8 @@ public sealed class SimCommandService
     /// </summary>
     /// <param name="client">client实例</param>
     /// <param name="rootCommandPrefix">指令的前缀, 不需要前缀时请显式指定为空字符串</param>
-    public SimCommandService(IClient client, string rootCommandPrefix)
+    public SimCommandExecutor(string rootCommandPrefix)
     {
-        this.Client = client;
         this.RootCommandPrefix = rootCommandPrefix;
         commands = new();
         CommandParamParsers = new()
@@ -45,6 +42,13 @@ public sealed class SimCommandService
             [typeof(Vector3)] = s => CommonTypeParsers.Vector3(s),
             [typeof(Color)] = s => CommonTypeParsers.Color(s),
         };
+        moduleInstanceFactory = Activator.CreateInstance;
+    }
+
+    public SimCommandExecutor(string rootCommandPrefix, Func<Type, object?> moduleInstanceFactory)
+        : this(rootCommandPrefix)
+    {
+        this.moduleInstanceFactory = moduleInstanceFactory;
     }
 
     public void AddModule(Type moduleClassType)
@@ -111,7 +115,7 @@ public sealed class SimCommandService
     internal bool ExecuteInternal(IMessage msg, MethodBasedCommand cmd, string[]? cmdParams)
     {
         var paramsLength = cmd.Parameters.Length;
-        if (Activator.CreateInstance(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
+        if (moduleInstanceFactory?.Invoke(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
         moduleIns.Content = new(this, msg);
         if (moduleIns.PreCheck(moduleIns.Content))
         {

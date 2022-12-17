@@ -40,4 +40,8 @@ public static class ObjectExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Task<T> GetValueAsync<T>(this Lazy<T> lazy)
         => Task.Factory.StartNew(() => lazy.Value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T GetResultOfAwaiter<T>(this Task<T> task)
+        => task.GetAwaiter().GetResult();
 }

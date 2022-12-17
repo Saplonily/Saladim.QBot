@@ -1,4 +1,47 @@
-﻿Console.WriteLine("你好f34f34f34f3qwq".AsSpan().ToString());
+﻿/*using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+IHost host = Host.CreateDefaultBuilder()
+    .ConfigureServices((_, s) =>
+    {
+        s.AddHostedService<SomeService>();
+        s.AddLogging(er =>
+        {
+            er.Add
+        })
+    })
+    .Build();
+_ = Task.Run(() =>
+{
+    Thread.Sleep(5000);
+    host.StopAsync();
+});
+Console.WriteLine(host);
+var theService = host.Services.GetRequiredService(typeof(SomeService));
+Console.WriteLine(theService ?? "is null...");
+await host.RunAsync();
+
+public class SomeService : BackgroundService
+{
+    protected Timer timer = null!;
+
+    public SomeService()
+    {
+        Console.WriteLine("built someService...");
+    }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        timer = new(_ =>
+        {
+            Console.WriteLine("Working...");
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        return Task.CompletedTask;
+    }
+}*/
+
+
+/*Console.WriteLine("你好f34f34f34f3qwq".AsSpan().ToString());*/
 
 /*Delegate a = () => Console.WriteLine("114514");
 a.DynamicInvoke();*/
