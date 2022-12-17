@@ -151,6 +151,73 @@ public class TextMisc : CommandModule
         }
     }
 
+    [Command("做旗子")]
+    public void MakeFlag(Color color)
+    {
+        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
+        {
+            var brush = new SolidBrush(color);
+            g.FillRectangle(brush, new Rectangle(0, 0, 576, 384));
+        });
+        IMessageEntity entity = Content.Client.CreateMessageBuilder()
+            .WithImage(url)
+            .WithTextLine(GetColorText(color))
+            .Build();
+        Content.MessageWindow.SendMessageAsync(entity);
+    }
+
+    [Command("做旗子")]
+    public void MakeFlag(Color c1, Color c2)
+    {
+        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
+        {
+            var brush1 = new SolidBrush(c1);
+            var brush2 = new SolidBrush(c2);
+            g.FillRectangle(brush1, new Rectangle(0, 0, 576 / 2, 384));
+            g.FillRectangle(brush2, new Rectangle(576 / 2, 0, 576 / 2, 384));
+        });
+        IMessageEntity entity = Content.Client.CreateMessageBuilder()
+            .WithImage(url)
+            .WithTextLine(GetColorText(c1))
+            .WithTextLine(GetColorText(c2))
+            .Build();
+        Content.MessageWindow.SendMessageAsync(entity);
+    }
+
+    [Command("做旗子")]
+    public void MakeFlag(Color c1, Color c2, Color c3)
+    {
+        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
+        {
+            var brush1 = new SolidBrush(c1);
+            var brush2 = new SolidBrush(c2);
+            var brush3 = new SolidBrush(c3);
+            g.FillRectangle(brush1, new Rectangle(0, 0, 576 / 3, 384));
+            g.FillRectangle(brush2, new Rectangle(576 / 3, 0, 576 / 3, 384));
+            g.FillRectangle(brush3, new Rectangle(576 / 3 * 2, 0, 576 / 3, 384));
+        });
+        IMessageEntity entity = Content.Client.CreateMessageBuilder()
+            .WithImage(url)
+            .WithTextLine(GetColorText(c1))
+            .WithTextLine(GetColorText(c2))
+            .Build();
+        Content.MessageWindow.SendMessageAsync(entity);
+    }
+
+    public string GetColorText(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
+
+    public string HappyDrawing(System.Drawing.Size size, Action<Graphics> drawingAction)
+    {
+        var bitmap = new Bitmap(size.Width, size.Height);
+        var graphic = Graphics.FromImage(bitmap);
+        drawingAction(graphic);
+        if (!Directory.Exists("tempImages")) Directory.CreateDirectory("tempImages");
+        var imgName = $"{DateTime.Now.Ticks}.png";
+        var fileName = $"tempImages\\{imgName}";
+        bitmap.Save(fileName);
+        return "http://127.0.0.1:5702/?img_name=" + imgName;
+    }
+
     [Command("homo")]
     public void Homo(double num)
     {
@@ -169,5 +236,11 @@ public class TextMisc : CommandModule
                 .Build();
             Content.MessageWindow.SendMessageAsync(f);
         }
+    }
+
+    [Command("echo")]
+    public void Echo(string s)
+    {
+        Content.MessageWindow.SendMessageAsync(s);
     }
 }

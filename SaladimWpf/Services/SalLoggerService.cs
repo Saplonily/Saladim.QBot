@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using System.Windows;
+using System.Text;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Win32;
 using Saladim.SalLogger;
+using SaladimQBot.Shared;
 
 namespace SaladimWpf.Services;
 
@@ -16,6 +16,7 @@ public class SalLoggerService
 
     public SalLoggerService(LogLevel logLevelLimit, IHostApplicationLifetime hl)
     {
+        this.Start();
         SalIns = new LoggerBuilder()
             .WithAction(s =>
             {
@@ -24,7 +25,6 @@ public class SalLoggerService
             })
             .WithLevelLimit(logLevelLimit)
             .Build();
-        hl.ApplicationStarted.Register(Start);
         hl.ApplicationStopped.Register(Stop);
     }
 

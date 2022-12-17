@@ -1,13 +1,15 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using SaladimQBot.Core;
 
 namespace SaladimQBot.Extensions;
 
-public sealed class SimCommandExecutor
+public sealed partial class SimCommandExecutor
 {
     public static readonly Type StringType = typeof(string);
+    public static readonly Regex CommandParamRegex = new("(\"[^\"]*\")|[^\\s]+", RegexOptions.Compiled);
 
     private readonly List<MethodBasedCommand> commands;
     private readonly Func<Type, object?> moduleInstanceFactory;
@@ -98,11 +100,15 @@ public sealed class SimCommandExecutor
                             //然后移除前导空格, 得到参数字符串
                             var paramString = cmdTextWithoutPrefix.Slice(1);
                             //此时形如"1 2"
-                            //TODO 解析带引号的参数
-                            var cmdParams = paramString.ToString().Split(' ');
-                            if (cmdParams.Length != cmd.Parameters.Length)
+                            List<string> cmdParams = new();
+                            var matches = CommandParamRegex.Matches(paramString.ToString());
+                            foreach (Match match in matches)
+                            {
+                                cmdParams.Add(match.Value.Trim('"'));
+                            }
+                            if (cmdParams.Count != cmd.Parameters.Length)
                                 continue;
-                            ExecuteInternal(msg, cmd, cmdParams);
+                            ExecuteInternal(msg, cmd, cmdParams.ToArray());
                         }
                     }
                     else
@@ -124,7 +130,14 @@ public sealed class SimCommandExecutor
                 select p.ParameterType;
             if (cmdParams is null)
             {
-                cmd.Method.Invoke(moduleIns, null);
+                if (paramsLength == 0)
+                {
+                    cmd.Method.Invoke(moduleIns, null);
+                }
+                else
+                {
+                    return false;
+                }
             }
             else if (paramsTypes.All(t => t == StringType))
             {

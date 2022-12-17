@@ -28,13 +28,18 @@ public class HttpServerService
             catch (Exception e)
             {
                 logger.LogError(nameof(HttpServerService), e, $"Failed to start listen on {ListenOn}");
+                cancellationTokenSource.Cancel();
             }
             Task.Run(() => ListenerLoop(cancellationTokenSource.Token), cancellationTokenSource.Token);
         });
         hostApplicationLifetime.ApplicationStopping.Register(() =>
         {
             cancellationTokenSource.Cancel();
-            httpListener.Stop();
+            try
+            {
+                httpListener.Stop();
+            }
+            catch (ObjectDisposedException) { }
         });
     }
 
