@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -70,6 +71,7 @@ public sealed partial class SimCommandExecutor
     public void MatchAndExecuteAll(IMessage msg)
     {
         var allTextNodes = msg.MessageEntity.AllText();
+        //寻找所有以根指令前缀开头的文本节点
         var matchedNodeTexts = allTextNodes
             .Where(node =>
             {
@@ -79,40 +81,31 @@ public sealed partial class SimCommandExecutor
                     return true;
                 return false;
             })
+            //trim它
             .Select(node => node.Text.Trim());
+        //遍历这些文本节点
         foreach (var matchedNodeText in matchedNodeTexts)
         {
             var cmdTextWithoutRootPrefix = matchedNodeText.AsSpan(RootCommandPrefix.Length);
+            //现在这个字符串就形如 "add 1 2 3" 了
+            //切分, 但忽略引号内的空格, 同时去除引号
+            var matches = CommandParamRegex.Matches(cmdTextWithoutRootPrefix.ToString());
+            if (matches.Count == 0) continue;
+            string[] argAsString = new string[matches.Count - 1];
             foreach (var cmd in commands)
             {
-                if (cmdTextWithoutRootPrefix.StartsWith(cmd.Name.AsSpan()))
+                if (cmd.Name == matches[0].Value)
                 {
-                    //现在我们有一个文本以我们想要的前缀开头
-                    //但是可能后面还有其他字符,我们再截取然后看看开头是不是空格
-                    var cmdTextWithoutPrefix = cmdTextWithoutRootPrefix.Slice(cmd.Name.Length);
-                    if (cmdTextWithoutPrefix.Length != 0)
+                    //昵称相同, 现在检查参数数目是否相同
+                    if (cmd.Parameters.Length != matches.Count - 1)
+                        continue;
+                    //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
+                    //并调用最后的实体方法
+                    for (int i = 0; i < argAsString.Length; i++)
                     {
-                        if (cmdTextWithoutPrefix[0] == ' ')
-                        {
-                            //现在开头是空格了, 
-                            //s/add 1 2, 此时cmdTextWithoutRootPrefix就是"add 1 2", 并且已经找到了想要的add指令
-                            //add前缀去除, 得到形如" 1 2"的文本
-                            //然后移除前导空格, 得到参数字符串
-                            var paramString = cmdTextWithoutPrefix.Slice(1);
-                            //此时形如"1 2"
-                            List<string> cmdParams = new();
-                            var matches = CommandParamRegex.Matches(paramString.ToString());
-                            foreach (Match match in matches)
-                            {
-                                cmdParams.Add(match.Value.Trim('"'));
-                            }
-                            if (cmdParams.Count != cmd.Parameters.Length)
-                                continue;
-                            ExecuteInternal(msg, cmd, cmdParams.ToArray());
-                        }
+                        argAsString[i] = matches[i + 1].Value.Trim('"');
                     }
-                    else
-                        ExecuteInternal(msg, cmd, null);
+                    ExecuteInternal(msg, cmd, argAsString);
                 }
             }
         }
@@ -121,6 +114,7 @@ public sealed partial class SimCommandExecutor
     internal bool ExecuteInternal(IMessage msg, MethodBasedCommand cmd, string[]? cmdParams)
     {
         var paramsLength = cmd.Parameters.Length;
+        Debug.Assert(cmd.Parameters.Length == cmdParams?.Length);
         if (moduleInstanceFactory?.Invoke(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
         moduleIns.Content = new(this, msg);
         if (moduleIns.PreCheck(moduleIns.Content))
@@ -130,18 +124,13 @@ public sealed partial class SimCommandExecutor
                 select p.ParameterType;
             if (cmdParams is null)
             {
-                if (paramsLength == 0)
-                {
-                    cmd.Method.Invoke(moduleIns, null);
-                }
-                else
-                {
-                    return false;
-                }
+                cmd.Method.Invoke(moduleIns, null);
+                return true;
             }
             else if (paramsTypes.All(t => t == StringType))
             {
                 cmd.Method.Invoke(moduleIns, cmdParams);
+                return true;
             }
             else
             {
@@ -169,8 +158,8 @@ public sealed partial class SimCommandExecutor
                     }
                 }
                 cmd.Method.Invoke(moduleIns, paramObjects);
+                return true;
             }
-            return true;
         }
         return false;
     }

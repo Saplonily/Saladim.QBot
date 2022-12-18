@@ -28,7 +28,7 @@ public class Program
     {
         if (message.Group.GroupId == 860355679)
         {
-            _ = simCmd.MatchAndExecuteAllAsync(message);
+            simCmd.MatchAndExecuteAll(message);
         }
     }
 }
@@ -55,6 +55,12 @@ public class SampleModule : CommandModule
     public void Echo(string contentToEcho)
     {
         _ = Content.MessageWindow.SendMessageAsync(contentToEcho);
+    }
+
+    [Command("test")]
+    public void Test(int v)
+    {
+        _ = Content.MessageWindow.SendMessageAsync($"你的值是{v}");
     }
 
     [Command("add")]

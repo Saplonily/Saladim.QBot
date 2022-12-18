@@ -11,6 +11,7 @@ using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
 using SaladimQBot.Extensions;
 using SaladimWpf.Services;
+using System.Text.RegularExpressions;
 
 namespace SaladimWpf.SimCmdModules;
 

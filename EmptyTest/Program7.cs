@@ -1,4 +1,21 @@
-﻿/*using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine("1");
+        var attrs = ((Action<string[]>)Foo).Method.GetParameters()[0].GetCustomAttributes();
+        Console.WriteLine(attrs);
+    }
+
+    private static void Foo(params string[] strs)
+    {
+        Console.WriteLine(strs);
+    }
+}
+
+/*using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 IHost host = Host.CreateDefaultBuilder()
