@@ -1,9 +1,8 @@
 ﻿using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.Core.Services;
-using SaladimQBot.GoCqHttp;
 using SaladimQBot.Extensions;
-using System.Diagnostics;
+using SaladimQBot.GoCqHttp;
 
 namespace SaladimWpf.Services;
 

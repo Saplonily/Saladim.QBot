@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using SaladimQBot.Core;
-
-namespace SaladimQBot.Extensions;
+﻿namespace SaladimQBot.Extensions;
 
 public class SimCommandService
 {

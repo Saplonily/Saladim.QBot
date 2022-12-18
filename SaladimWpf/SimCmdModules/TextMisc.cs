@@ -1,17 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
-using SaladimQBot.GoCqHttp;
-using SaladimQBot.Shared;
 using SaladimQBot.Extensions;
+using SaladimQBot.Shared;
 using SaladimWpf.Services;
-using System.Text.RegularExpressions;
 
 namespace SaladimWpf.SimCmdModules;
 

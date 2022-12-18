@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using SaladimQBot.Core;
+﻿using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 

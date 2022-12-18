@@ -1,8 +1,6 @@
 ﻿using System.IO;
-using System.Text;
 using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
-using SaladimQBot.Shared;
 
 namespace SaladimWpf.Services;
 

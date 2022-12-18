@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
-using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SaladimWpf.Services;
+﻿namespace SaladimWpf.Services;
 
 public class RandomService
 {

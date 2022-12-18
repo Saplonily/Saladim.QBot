@@ -1,6 +1,6 @@
 ﻿using SaladimQBot.Core;
-using SaladimQBot.Shared;
 using SaladimQBot.GoCqHttp.Posts;
+using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 

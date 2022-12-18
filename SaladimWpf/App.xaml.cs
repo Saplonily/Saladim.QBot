@@ -1,13 +1,10 @@
-﻿using System.IO;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 using System.Windows.Threading;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions;
-using Saladim.SalLogger;
 using Microsoft.Extensions.DependencyInjection;
-using SaladimQBot.Shared;
+using Microsoft.Extensions.Hosting;
+using Saladim.SalLogger;
 using SaladimQBot.Extensions;
+using SaladimQBot.Shared;
 using SaladimWpf.Services;
 
 namespace SaladimWpf;

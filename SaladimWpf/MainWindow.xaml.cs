@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Saladim.SalLogger;
 using SaladimQBot.GoCqHttp;
-using SaladimQBot.Shared;
 using SaladimWpf.Services;
 
 namespace SaladimWpf;

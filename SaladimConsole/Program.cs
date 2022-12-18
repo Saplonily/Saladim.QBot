@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Saladim.SalLogger;
+﻿using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.GoCqHttp.Posts;
