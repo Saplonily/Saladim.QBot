@@ -19,8 +19,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\SaladimQBot.Extensions\SaladimQBot.Extensions.csproj" />
-	  <ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
+		<ProjectReference Include="..\SaladimQBot.Extensions\SaladimQBot.Extensions.csproj" />
+		<ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
 	</ItemGroup>
 
 </Project>

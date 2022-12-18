@@ -7,9 +7,7 @@
 
 ## 文档
 
-**快速开始**: ***[doc/fast-start.md](./doc/fast-start.md)***
-
-**StepByStep文档(施工中)**: ***[doc/sbs/index](./doc/sbs/index.md)***
+请见仓库 [Saladim.QBot-docs](https://github.com/saladim-org/Saladim.QBot-docs)
 
 ## 介绍
 
