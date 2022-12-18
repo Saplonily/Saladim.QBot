@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using System.Text;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
@@ -63,12 +64,6 @@ public class SampleModule : CommandModule
         _ = Content.MessageWindow.SendMessageAsync($"你的值是{v}");
     }
 
-    [Command("add")]
-    public void Add(float a, int b)
-    {
-        _ = Content.MessageWindow.SendMessageAsync($"结果是: {a + b}");
-    }
-
     [Command("get_color")]
     public void GetColor(Color color)
     {
@@ -85,5 +80,20 @@ public class SampleModule : CommandModule
     public void GetVector3(Vector3 vector)
     {
         _ = Content.MessageWindow.SendMessageAsync($"你的三维向量是: {vector}");
+    }
+
+    [Command("choose")]
+    public void Choose(string[] strs)
+    {
+        StringBuilder sb = new();
+        sb.AppendLine("你给出了如下的东西, 以\" | \"分隔");
+        sb.Append(string.Join(" | ", strs));
+        _ = Content.MessageWindow.SendMessageAsync(sb.ToString());
+    }
+
+    [Command("add")]
+    public void Add(double[] ds)
+    {
+        _ = Content.MessageWindow.SendMessageAsync(ds.Sum().ToString());
     }
 }

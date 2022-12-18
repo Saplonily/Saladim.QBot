@@ -139,6 +139,17 @@ public static class CommonTypeParsers
             return c;
         }
     }
+    public static T[] ArrayPacker<T>(string s, Func<string, T> subParser, char spliter)
+    {
+        var subStrings = s.Split(spliter);
+        if (subStrings.Length == 1) return new T[] { subParser(s) };
+        T[] result = new T[subStrings.Length];
+        for (int i = 0; i < subStrings.Length; i++)
+        {
+            result[i] = subParser(subStrings[i]);
+        }
+        return result;
+    }
 
     public class CommonTypeParseFailedException : Exception
     {

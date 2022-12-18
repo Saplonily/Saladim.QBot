@@ -11,6 +11,7 @@ public sealed partial class SimCommandExecutor
 {
     public static readonly Type StringType = typeof(string);
     public static readonly Regex CommandParamRegex = new("(\"[^\"]*\")|[^\\s]+", RegexOptions.Compiled);
+    public static char SplitChar { get; set; } = ',';
 
     private readonly List<MethodBasedCommand> commands;
     private readonly Func<Type, object?> moduleInstanceFactory;
@@ -31,19 +32,36 @@ public sealed partial class SimCommandExecutor
         CommandParamParsers = new()
         {
             [typeof(int)] = s => CommonTypeParsers.Int(s),
-            [typeof(long)] = s => CommonTypeParsers.Long(s),
-            [typeof(short)] = s => CommonTypeParsers.Short(s),
             [typeof(uint)] = s => CommonTypeParsers.Uint(s),
-            [typeof(ulong)] = s => CommonTypeParsers.Ulong(s),
-            [typeof(ushort)] = s => CommonTypeParsers.Ushort(s),
             [typeof(byte)] = s => CommonTypeParsers.Byte(s),
             [typeof(char)] = s => CommonTypeParsers.Char(s),
+            [typeof(long)] = s => CommonTypeParsers.Long(s),
+            [typeof(short)] = s => CommonTypeParsers.Short(s),
+            [typeof(ulong)] = s => CommonTypeParsers.Ulong(s),
             [typeof(float)] = s => CommonTypeParsers.Float(s),
-            [typeof(double)] = s => CommonTypeParsers.Double(s),
+            [typeof(Color)] = s => CommonTypeParsers.Color(s),
             [typeof(sbyte)] = s => CommonTypeParsers.Sbyte(s),
+            [typeof(ushort)] = s => CommonTypeParsers.Ushort(s),
+            [typeof(double)] = s => CommonTypeParsers.Double(s),
             [typeof(Vector2)] = s => CommonTypeParsers.Vector2(s),
             [typeof(Vector3)] = s => CommonTypeParsers.Vector3(s),
-            [typeof(Color)] = s => CommonTypeParsers.Color(s),
+
+            [typeof(int[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Int, SplitChar),
+            [typeof(uint[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Uint, SplitChar),
+            [typeof(byte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Byte, SplitChar),
+            [typeof(char[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Char, SplitChar),
+            [typeof(long[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Long, SplitChar),
+            [typeof(sbyte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Sbyte, SplitChar),
+            [typeof(float[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Float, SplitChar),
+            [typeof(short[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Short, SplitChar),
+            [typeof(ulong[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ulong, SplitChar),
+            [typeof(Color[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Color, SplitChar),
+            [typeof(ushort[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ushort, SplitChar),
+            [typeof(double[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Double, SplitChar),
+            [typeof(Vector2[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector2, SplitChar),
+            [typeof(Vector3[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector3, SplitChar),
+
+            [typeof(string[])] = s => CommonTypeParsers.ArrayPacker(s, s => s, SplitChar),
         };
         moduleInstanceFactory = Activator.CreateInstance;
     }

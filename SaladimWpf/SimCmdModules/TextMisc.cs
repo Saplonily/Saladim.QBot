@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
@@ -17,6 +18,7 @@ public class TextMisc : CommandModule
     private readonly IServiceProvider serviceProvider;
     private readonly SalLoggerService salLoggerService;
     private readonly SaladimWpfService saladimWpfService;
+
 
     public TextMisc(SaladimWpfService saladimWpfService, IServiceProvider serviceProvider, SalLoggerService salLoggerService)
     {
@@ -202,9 +204,9 @@ public class TextMisc : CommandModule
         Content.MessageWindow.SendMessageAsync(entity);
     }
 
-    public string GetColorText(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
+    public static string GetColorText(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
 
-    public string HappyDrawing(System.Drawing.Size size, Action<Graphics> drawingAction)
+    public static string HappyDrawing(System.Drawing.Size size, Action<Graphics> drawingAction)
     {
         var bitmap = new Bitmap(size.Width, size.Height);
         var graphic = Graphics.FromImage(bitmap);

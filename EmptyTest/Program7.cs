@@ -1,4 +1,14 @@
-﻿using System.Reflection;
+﻿AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+{
+    File.WriteAllText("114514.txt", "114514");
+}
+
+
+
+
+/*using System.Reflection;
 
 internal class Program
 {
@@ -13,7 +23,7 @@ internal class Program
     {
         Console.WriteLine(strs);
     }
-}
+}*/
 
 /*using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
