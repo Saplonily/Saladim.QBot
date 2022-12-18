@@ -26,3 +26,6 @@ Visual Studio 2022/
 #当然我知道在你的电脑上不可能生效
 #所以我屏蔽了
 *.lnk
+
+#放go-cqhttp的
+Working/*
