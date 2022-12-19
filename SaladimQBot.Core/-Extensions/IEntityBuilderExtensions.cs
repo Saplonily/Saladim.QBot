@@ -19,7 +19,7 @@ public static class IEntityBuilderExtensions
     }
 
     public static IMessageEntityBuilder CreateMessageBuilderWithText(this IClient client, string text)
-        => new IMessageEntityBuilder(this).WithText(text);
+        => client.CreateMessageBuilder().WithText(text);
 
     public static IForwardEntityBuilder AddMessage(this IForwardEntityBuilder forwardEntityBuilder, IMessageEntity messageEntity)
     {
