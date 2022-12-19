@@ -7,10 +7,11 @@
 		<Title>SaladimQBot.Shared</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
-		<Version>0.2.0</Version>
+		<Version>0.3.0</Version>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<Description>SaladimQBot official实现的共享包</Description>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

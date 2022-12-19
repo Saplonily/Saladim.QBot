@@ -8,10 +8,11 @@
 		<Title>SaladimQBot.Core</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
-		<Version>0.2.0</Version>
+		<Version>0.3.0</Version>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<Description>SaladimQBot的抽象层, 众多拓展只需依赖它</Description>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

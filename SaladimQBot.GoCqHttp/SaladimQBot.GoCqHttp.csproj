@@ -8,10 +8,11 @@
 		<Title>SaladimQBot.GoCqHttp</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
-		<Version>0.2.0</Version>
+		<Version>0.3.0</Version>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<Description>SaladimQBot的使用go-cqhttp实现</Description>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
