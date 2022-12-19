@@ -685,6 +685,9 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public MessageEntityBuilder CreateMessageBuilder(Message msgToReply)
         => new MessageEntityBuilder(this).WithReply(msgToReply);
 
+    public MessageEntityBuilder CreateMessageBuilderWithText(string text)
+        => new MessageEntityBuilder(this).WithText(text);
+
     public ForwardEntityBuilder CreateForwardBuilder()
         => new(this);
 
