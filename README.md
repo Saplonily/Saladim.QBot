@@ -5,9 +5,7 @@
 </div>
 <br>
 
-## 文档
-
-请见仓库 [Saladim.QBot-docs](https://github.com/saladim-org/Saladim.QBot-docs)
+## 文档: 请见仓库 [Saladim.QBot-docs](https://github.com/saladim-org/Saladim.QBot-docs)
 
 ## 介绍
 
@@ -25,18 +23,21 @@
 因为<a href="https://github.com/Mrs4s/go-cqhttp">go-cqhttp</a>基于AGPL-3.0, 故选择[AGPL-3.0](LICENSE.txt)许可证
 
 ### 目前支持情况
-<p>否 × ,略微支持 _ ,部分支持 * ,支持 √</p>
+
+否 `×`, 部分支持`_`, 大部分支持`*`, 完全支持`√`
 
 | 昵称         | 支持情况 |
 | :----------- | :------: |
-| 全部CQ码     |    *     |
+| CQ码     |    *     |
 | 消息实体     |    √     |
 | 全部上报     |    √     |
 | Api调用      |    *     |
-| 消息处理管线 |    ×     |
+| 消息处理管线 |    √     |
 | 指令解析管线 |    ×     |
 | 频道支持     |    ×     |
 | 实体         |    *     |
+| 消息构建器    |      √    |
+| 消息转发      |    √     |
 
 - 上述大部分支持会随实体的需求而支持, 例如如果`GroupUser`新增了`BanAsync`方法, 那么同步地, `BanGroupUserAction`这个api会被支持
 
@@ -55,13 +56,14 @@
     - go-cqhttp中没有将临时会话消息入数据库(可能是因为某些原因)
 
 ### 近期正在计划什么?
-- 完善最后的`request`的接收和处理
-- 新开一个简易的指令框架
-- 支持从CQ码字符串到消息链的转换
+- [x] 完善最后的`request`的接收和处理
+- [x] 新开一个简易的指令框架
+- [ ] 支持从CQ码字符串到消息链的转换
+- [ ] 实现Session的概念
 
 ### 什么不会计划在近期支持?
 
-- 群匿名消息收发
+- [ ] 群匿名消息收发
     - 暂未想到如何整合到`message`这个实体中
 
 ## 仓库简述
@@ -79,10 +81,6 @@
     - `SaladimQBot.Mirai` 见3.
     - `SaladimQBot.Extensions.MessagePipeline` 消息处理管线
     - `SaladimQBot.Extensions.CommandPipeline` 消息处理管线更高级封装, 包含简单指令的解析
-
-目前TODO:
-- [x] 完成应用层(即IUser,IMessage,IGroupMessage等的实现)
-- [ ] 更深层次的应用层
 
 ## 联系我们
 > 如果你贡献了任何代码你可以在这里写下你的名字及联系方式和少量描述
