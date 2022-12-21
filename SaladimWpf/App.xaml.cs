@@ -30,10 +30,9 @@ public partial class App : Application
                 coll.AddSingleton<JavaScriptService>();
             })
             .Build();
-        AppHost.Services.GetRequiredService<HttpServerService>();
-        AppHost.RunAsync();
+        _ = AppHost.Services.GetRequiredService<HttpServerService>();
         serviceProvider = AppHost.Services;
-        App.Current.DispatcherUnhandledException += this.Current_DispatcherUnhandledException;
+        Current.DispatcherUnhandledException += this.Current_DispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
     }
 

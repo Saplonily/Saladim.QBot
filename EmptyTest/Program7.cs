@@ -1,9 +1,63 @@
-﻿AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+﻿using IlyfairyLib.Unsafe;
+
+var someInterface = UnsafeHelper.AllocObject<ISomeInterface>();
+var members = someInterface.GetType().GetMembers();
+foreach (var m in members)
+{
+    Console.WriteLine(m);
+}
+
+public interface ISomeInterface
+{
+    void SomeMethod();
+}
+
+public class SomeClass : ISomeInterface
+{
+    public void SomeMethod()
+    {
+        Console.WriteLine("somemethodoutput");
+    }
+}
+
+
+/*const int exTimes = 1000000;
+
+Random r = new(DateTime.Now.Second + (int)DateTime.Now.Ticks);
+for (int count = 1; ; count += 1)
+{
+    bool[] bools = new bool[count];
+    int[] conflictTimes = new int[exTimes];
+    for (int p = 0; p < exTimes; p++)
+    {
+        bools.AsSpan().Fill(false);
+        for (int i = 1; i < count + 2; i++)
+        {
+            if (ARandomize(bools))
+            {
+                conflictTimes[p] = i;
+                break;
+            }
+        }
+    }
+    GC.Collect();
+    Console.WriteLine($"数量{count}平均次数: {conflictTimes.Average():F3}");
+}
+
+bool ARandomize(bool[] bools)
+{
+    int index = r.Next(bools.Length);
+    bool rt = bools[index];
+    bools[index] = true;
+    return rt;
+}*/
+
+/*AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
 void CurrentDomain_ProcessExit(object? sender, EventArgs e)
 {
     File.WriteAllText("114514.txt", "114514");
-}
+}*/
 
 
 

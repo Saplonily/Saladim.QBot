@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -10,6 +8,13 @@ using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 using SaladimQBot.Shared;
 using SaladimWpf.Services;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using ISColor = SixLabors.ImageSharp.Color;
+using SysColor = System.Drawing.Color;
+using SysSize = System.Drawing.Size;
 
 namespace SaladimWpf.SimCmdModules;
 
@@ -27,17 +32,11 @@ public class TextMisc : CommandModule
         this.salLoggerService = salLoggerService;
     }
 
-    [Command("hello")]
-    public void Hello()
-    {
-        Content.MessageWindow.SendMessageAsync($"Hello SimCommand!!!, 这是本客户端的昵称: {saladimWpfService.Client.Self.Nickname}").Wait();
-    }
-
     [Command("random")]
-    public void Random()
+    public void Random(int min, int max)
     {
         Random r = serviceProvider.GetRequiredService<RandomService>().Random;
-        int num = r.Next(0, 100);
+        int num = r.Next(min, max);
         IMessageEntity e = Content.Client.CreateMessageBuilder()
             .WithAt(Content.Message.Sender)
             .WithText($"{Content.Executer.Nickname},你的随机数为{num}哦~")
@@ -128,93 +127,73 @@ public class TextMisc : CommandModule
     [Command("来点颜色")]
     public void GetSomeColor()
     {
-        Debug.Assert(OperatingSystem.IsWindows());
-        var bitmap = new Bitmap(50, 50);
-        var graphics = Graphics.FromImage(bitmap);
         var color = GetRandomColor();
-        graphics.DrawRectangle(new Pen(color, 256), new Rectangle(0, 0, 256, 256));
-        if (!Directory.Exists("tempImages")) Directory.CreateDirectory("tempImages");
-        var imgName = $"{DateTime.Now.Ticks - 638064687298838726L}.png";
-        var fileName = $"tempImages\\{imgName}";
-        bitmap.Save(fileName);
-        IMessageEntity entity = Content.Client.CreateMessageBuilder()
-            .WithImage("http://127.0.0.1:5702/?img_name=" + imgName)
-            .WithTextLine($"\nRGB: {color.R},{color.G},{color.B}")
-            .WithText($"HEX: #{color.R:X}{color.G:X}{color.B:X}")
-            .Build();
-        Content.MessageWindow.SendMessageAsync(entity);
-
-        Color GetRandomColor()
+        string url = HappyDrawing(50, 50, process =>
         {
-            Random r = serviceProvider.GetRequiredService<RandomService>().Random;
-            return Color.FromArgb(r.Next(0, 256), r.Next(0, 256), r.Next(0, 256));
-        }
-    }
-
-    [Command("做旗子")]
-    public void MakeFlag(Color color)
-    {
-        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
-        {
-            var brush = new SolidBrush(color);
-            g.FillRectangle(brush, new Rectangle(0, 0, 576, 384));
+            SolidBrush brush = new(color.ToISColor());
+            process.Fill(brush, new RectangleF(0.0f, 0.0f, 50.0f, 50.0f));
         });
         IMessageEntity entity = Content.Client.CreateMessageBuilder()
             .WithImage(url)
             .WithTextLine(GetColorText(color))
             .Build();
         Content.MessageWindow.SendMessageAsync(entity);
+
+        SysColor GetRandomColor()
+        {
+            Random r = serviceProvider.GetRequiredService<RandomService>().Random;
+            return SysColor.FromArgb(r.Next(0, 256), r.Next(0, 256), r.Next(0, 256));
+        }
+    }
+
+    public void MakeFlagInternal(params SysColor[] colors)
+    {
+        var pointsCount = colors.Length;
+        float width = 576; float height = 384;
+        string url = HappyDrawing((int)width, (int)height, process =>
+        {
+            var partWidth = width / pointsCount;
+            var solidBrushes = new SolidBrush[pointsCount];
+            for (int i = 0; i < pointsCount; i++)
+            {
+                solidBrushes[i] = new SolidBrush(colors[i].ToISColor());
+                var curLeftTop = new PointF(partWidth * i, 0.0f);
+                process.Fill(solidBrushes[i], new RectangleF(curLeftTop, new SizeF(partWidth, height)));
+            }
+        });
+        IMessageEntityBuilder builder = Content.Client.CreateMessageBuilder().WithImage(url);
+        foreach (var color in colors)
+        {
+            builder.WithTextLine(GetColorText(color));
+        }
+        Content.MessageWindow.SendMessageAsync(builder.Build());
     }
 
     [Command("做旗子")]
-    public void MakeFlag(Color c1, Color c2)
-    {
-        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
-        {
-            var brush1 = new SolidBrush(c1);
-            var brush2 = new SolidBrush(c2);
-            g.FillRectangle(brush1, new Rectangle(0, 0, 576 / 2, 384));
-            g.FillRectangle(brush2, new Rectangle(576 / 2, 0, 576 / 2, 384));
-        });
-        IMessageEntity entity = Content.Client.CreateMessageBuilder()
-            .WithImage(url)
-            .WithTextLine(GetColorText(c1))
-            .WithTextLine(GetColorText(c2))
-            .Build();
-        Content.MessageWindow.SendMessageAsync(entity);
-    }
+    public void MakeFlag(SysColor c1) => MakeFlagInternal(c1);
 
     [Command("做旗子")]
-    public void MakeFlag(Color c1, Color c2, Color c3)
-    {
-        string url = HappyDrawing(new System.Drawing.Size(576, 384), g =>
-        {
-            var brush1 = new SolidBrush(c1);
-            var brush2 = new SolidBrush(c2);
-            var brush3 = new SolidBrush(c3);
-            g.FillRectangle(brush1, new Rectangle(0, 0, 576 / 3, 384));
-            g.FillRectangle(brush2, new Rectangle(576 / 3, 0, 576 / 3, 384));
-            g.FillRectangle(brush3, new Rectangle(576 / 3 * 2, 0, 576 / 3, 384));
-        });
-        IMessageEntity entity = Content.Client.CreateMessageBuilder()
-            .WithImage(url)
-            .WithTextLine(GetColorText(c1))
-            .WithTextLine(GetColorText(c2))
-            .Build();
-        Content.MessageWindow.SendMessageAsync(entity);
-    }
+    public void MakeFlag(SysColor c1, SysColor c2) => MakeFlagInternal(c1, c2);
 
-    public static string GetColorText(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
+    [Command("做旗子")]
+    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3) => MakeFlagInternal(c1, c2, c3);
 
-    public static string HappyDrawing(System.Drawing.Size size, Action<Graphics> drawingAction)
+    [Command("做旗子")]
+    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3, SysColor c4) => MakeFlagInternal(c1, c2, c3, c4);
+
+    [Command("做旗子")]
+    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3, SysColor c4, SysColor c5) => MakeFlagInternal(c1, c2, c3, c4, c5);
+
+    public static string GetColorText(SysColor color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
+
+    public static string HappyDrawing(int width, int height, Action<IImageProcessingContext> processContext)
     {
-        var bitmap = new Bitmap(size.Width, size.Height);
-        var graphic = Graphics.FromImage(bitmap);
-        drawingAction(graphic);
+        Image<Rgba32> image = new(width, height);
+        image.Mutate(processContext);
         if (!Directory.Exists("tempImages")) Directory.CreateDirectory("tempImages");
         var imgName = $"{DateTime.Now.Ticks}.png";
         var fileName = $"tempImages\\{imgName}";
-        bitmap.Save(fileName);
+        image.SaveAsPng(fileName);
         return "http://127.0.0.1:5702/?img_name=" + imgName;
     }
 
