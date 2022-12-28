@@ -2,6 +2,7 @@
 using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
+using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -9,11 +10,11 @@ public class Group : CqEntity, IGroup
 {
     public long GroupId { get; protected set; }
 
-    public Expirable<string> Name { get; protected set; } = default!;
+    public IExpirable<string> Name { get; protected set; } = default!;
 
-    public Expirable<string> Remark { get; protected set; } = default!;
+    public IExpirable<string> Remark { get; protected set; } = default!;
 
-    protected Expirable<GetGroupInfoActionResultData> ApiCallResultData { get; set; } = default!;
+    protected IDependencyExpirable<GetGroupInfoActionResultData> ApiCallResultData { get; set; } = default!;
 
     protected internal Group(CqClient client, long groupId) : base(client)
     {

@@ -9,7 +9,7 @@ using SaladimQBot.Shared;
 namespace SaladimQBot.GoCqHttp;
 
 [DebuggerDisplay("CqClient, Started={Started}, StartedBefore={StartedBefore}")]
-public abstract class CqClient : IClient, IExpirableValueGetter
+public abstract class CqClient : IClient
 {
     public abstract ICqSession ApiSession { get; }
 
@@ -36,7 +36,7 @@ public abstract class CqClient : IClient, IExpirableValueGetter
     public bool Started { get; protected set; }
 
     protected Logger logger;
-    protected readonly Dictionary<CqApi, Expirable<CqApiCallResultData>> cachedApiCallResultData = new();
+    protected readonly Dictionary<CqApi, IIndependentExpirable<CqApiCallResultData>> cachedApiCallResultData = new();
 
     public CqClient(LogLevel logLevelLimit)
     {
@@ -315,39 +315,20 @@ public abstract class CqClient : IClient, IExpirableValueGetter
 
     #endregion
 
-    #region IExternalValueGetter
+    #region IExpirable<T> 和 DependencyExpirable Maker
 
-    Expirable<TChild> IExpirableValueGetter.MakeDependencyExpirable<TChild, TFather>(
-            Expirable<TFather> dependentFather, Func<TFather, TChild> valueGetter
-            )
-            => MakeDependencyExpirable(dependentFather, valueGetter);
-
-    Expirable<TChild> IExpirableValueGetter.MakeDependencyExpirable<TChild, TFather>(
-        Expirable<TFather> dependentFather, TChild presetValue, Func<TFather, TChild> valueGetter
-        )
-        => MakeDependencyExpirable(dependentFather, presetValue, valueGetter);
-
-    Expirable<TResultData> IExpirableValueGetter.MakeExpirableApiCallResultData<TResultData>(CqApi api)
-        => MakeExpirableApiCallResultData<TResultData>(api);
-
-    Expirable<T> IExpirableValueGetter.MakeNoneExpirableExpirable<T>(Func<T> valueFactory)
-        => MakeNoneExpirableExpirable(valueFactory);
-
-    #endregion
-
-    #region Expirable<T> 和 DependencyExpirable Maker
-
-    internal Expirable<TResultData> MakeExpirableApiCallResultData<TResultData>(CqApi api) where TResultData : CqApiCallResultData
+    internal SourceExpirable<TResultData> MakeExpirableApiCallResultData<TResultData>(CqApi api) where TResultData : CqApiCallResultData
     {
-        Expirable<CqApiCallResultData> ex;
-        bool cached = cachedApiCallResultData.TryGetValue(api, out var exFound);
+        IndependentExpirable<TResultData> ex;
+        bool cached = cachedApiCallResultData.TryGetValue(api, out var exFounded);
+        var exFound = exFounded?.Cast<IndependentExpirable<TResultData>>();
         if (cached)
         {
             ex = exFound!;
         }
         else
         {
-            ex = new(ApiCallResultDataFactory, this.ExpireTimeSpan);
+            ex = new IndependentExpirable<TResultData>(ApiCallResultDataFactory, this.ExpireTimeSpan);
             if (!cached)
             {
                 //TODO: 定期删除过期很久的值缓存
@@ -358,44 +339,33 @@ public abstract class CqClient : IClient, IExpirableValueGetter
                 cachedApiCallResultData[api] = ex;
             }
         }
-        return CastedExpirable<TResultData, CqApiCallResultData>.MakeFromSource(ex!);
-        CqApiCallResultData ApiCallResultDataFactory()
-            => this.CallApiImplicitlyWithCheckingAsync(api).Result.Data!;
+        return new(ex);
+        TResultData ApiCallResultDataFactory()
+            => this.CallApiImplicitlyWithCheckingAsync(api).Result.Data!.Cast<TResultData>();
 
-    }
-
-    internal Expirable<TChild> MakeDependencyExpirable<TChild, TFather>(
-        Expirable<TFather> dependentFather,
-        Func<TFather, TChild> valueGetter
-        ) where TChild : notnull where TFather : notnull
-    {
-        Expirable<TChild> child;
-        child = new(DependencyExpirableFactory, dependentFather.ExpireTime, dependentFather.TimeSpanExpired);
-        return child;
-        TChild DependencyExpirableFactory()
-        {
-            return valueGetter(dependentFather.Value);
-        }
-    }
-
-    internal Expirable<TChild> MakeDependencyExpirable<TChild, TFather>(
-        Expirable<TFather> dependentFather,
-        TChild presetValue,
-        Func<TFather, TChild> valueGetter
-        ) where TChild : notnull where TFather : notnull
-    {
-        Expirable<TChild> child;
-        child = new(DependencyExpirableFactory, presetValue, dependentFather.ExpireTime, dependentFather.TimeSpanExpired);
-        return child;
-        TChild DependencyExpirableFactory()
-        {
-            return valueGetter(dependentFather.Value);
-        }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<挂起>")]
-    internal Expirable<T> MakeNoneExpirableExpirable<T>(Func<T> valueFactory) where T : notnull
-        => new(valueFactory, TimeSpan.FromTicks(-1));
+    internal IDependencyExpirable<TChild> MakeDependencyExpirable<TChild, TSource>(
+        IDependencyExpirable<TSource> source,
+        Func<TSource, TChild> valueGetter)
+        where TChild : notnull where TSource : class
+            => DependencyExpirable<TChild>.Create(source, valueGetter);
+
+    internal IDependencyExpirable<TChild> MakeDependencyExpirable<TChild, TSource>(
+        IDependencyExpirable<TSource> source,
+        TChild presetValue,
+        Func<TSource, TChild> valueGetter)
+        where TChild : notnull where TSource : class
+            => DependencyExpirable<TChild>.Create(presetValue, ExpireTimeSpan, source, valueGetter);
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<挂起>")]
+    internal IExpirable<T> MakeNoneExpirableExpirable<T>(Func<T> valueFactory) where T : notnull
+        => new NonExpirableExpirable<T>(valueFactory);
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<挂起>")]
+    internal IExpirable<T> MakeNoneExpirableExpirable<T>(T value) where T : notnull
+        => new NonExpirableExpirable<T>(value);
 
     #endregion
 

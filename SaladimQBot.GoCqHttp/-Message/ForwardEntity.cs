@@ -7,13 +7,13 @@ namespace SaladimQBot.GoCqHttp;
 
 public class ForwardEntity : CqEntity, IForwardEntity
 {
-    public Expirable<List<ForwardNode>> Nodes { get; protected set; }
+    public IExpirable<List<ForwardNode>> Nodes { get; protected set; }
 
     internal protected bool IsFromFlag { get; protected set; }
 
     internal protected string? Flag { get; protected set; }
 
-    protected internal Expirable<GetForwardMessageActionResultData>? ApiCallResultData { get; set; }
+    protected internal IDependencyExpirable<GetForwardMessageActionResultData>? ApiCallResultData { get; set; }
 
     public ForwardEntity(CqClient client, IEnumerable<ForwardNode> nodes) : base(client)
     {

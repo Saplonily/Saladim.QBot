@@ -12,29 +12,29 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     /// <summary>
     /// 群创建时间
     /// </summary>
-    public Expirable<DateTime> CreateTime { get; protected set; } = default!;
+    public IExpirable<DateTime> CreateTime { get; protected set; } = default!;
 
     /// <summary>
     /// 群活跃等级
     /// </summary>
-    public Expirable<uint> GroupLevel { get; protected set; } = default!;
+    public IExpirable<uint> GroupLevel { get; protected set; } = default!;
 
     /// <summary>
     /// 群成员人数
     /// </summary>
-    public Expirable<int> MembersCount { get; protected set; } = default!;
+    public IExpirable<int> MembersCount { get; protected set; } = default!;
 
     /// <summary>
     /// 群最大成员数
     /// </summary>
-    public Expirable<int> MaxMembersCount { get; protected set; } = default!;
+    public IExpirable<int> MaxMembersCount { get; protected set; } = default!;
 
     /// <summary>
     /// 群成员
     /// </summary>
-    public Expirable<IReadOnlyList<GroupUser>> Members { get; protected set; } = default!;
+    public IExpirable<IReadOnlyList<GroupUser>> Members { get; protected set; } = default!;
 
-    protected Expirable<GetGroupMemberListActionResultData> GetMemberListApiResultData { get; set; } = default!;
+    protected IDependencyExpirable<GetGroupMemberListActionResultData> GetMemberListApiResultData { get; set; } = default!;
 
     protected internal JoinedGroup(CqClient client, long groupId) : base(client, groupId)
     {

@@ -1,4 +1,6 @@
-﻿namespace SaladimQBot.GoCqHttp;
+﻿using SaladimQBot.Shared;
+
+namespace SaladimQBot.GoCqHttp;
 
 public static class ExpirableHelper
 {
@@ -13,7 +15,7 @@ public static class ExpirableHelper
             from prop in objType.GetProperties()
             let propType = prop.PropertyType
             where propType.IsGenericType is true
-            where propType.GetGenericTypeDefinition() == typeof(Expirable<>)
+            where propType.GetGenericTypeDefinition() == typeof(IExpirable<>)
             select prop;
         foreach (var p in expirableProps)
         {
@@ -21,11 +23,5 @@ public static class ExpirableHelper
             var t = v?.GetType()?.GetProperty("Value");
             _ = t?.GetValue(v);
         }
-    }
-
-    public static Expirable<T> WithNoExpirable<T>(this Expirable<T> expirable) where T : notnull
-    {
-        expirable.TimeSpanExpired = TimeSpan.MinValue;
-        return expirable;
     }
 }

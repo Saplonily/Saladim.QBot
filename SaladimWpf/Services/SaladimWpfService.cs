@@ -3,6 +3,7 @@ using SaladimQBot.Core;
 using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
+using SaladimQBot.Shared;
 
 namespace SaladimWpf.Services;
 
@@ -56,7 +57,7 @@ public class SaladimWpfService : IClientService
             else if (msg is PrivateMessage privateMsg)
             {
                 logger.LogInfo(
-                    "WpfConsole", $"{await privateMsg.Sender.Nickname.ValueAsync.ConfigureAwait(false)}" +
+                    "WpfConsole", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
                     $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
                     );
             }

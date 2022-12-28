@@ -28,6 +28,7 @@ public partial class App : Application
                 coll.AddSingleton<HttpServerService>();
                 coll.AddSingleton<RandomService>();
                 coll.AddSingleton<JavaScriptService>();
+                coll.AddSingleton<IntegralCalculatorService>();
             })
             .Build();
         _ = AppHost.Services.GetRequiredService<HttpServerService>();

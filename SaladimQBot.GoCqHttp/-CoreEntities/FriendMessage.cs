@@ -10,7 +10,7 @@ public class FriendMessage : PrivateMessage, IFriendMessage
 
     public new FriendUser Author => Sender;
 
-    public Expirable<FriendUser> ExpFriendSender { get; protected set; } = default!;
+    public IExpirable<FriendUser> ExpFriendSender { get; protected set; } = default!;
 
     public override ICqMessageWindow MessageWindow => Sender;
 
@@ -35,7 +35,7 @@ public class FriendMessage : PrivateMessage, IFriendMessage
         ExpFriendSender = Client.MakeDependencyExpirable(
             ApiCallResult,
             d => FriendUser.CreateFromNicknameAndId(Client, d.Sender.Nickname, d.Sender.UserId)
-            ).WithNoExpirable();
+            );
         return this;
     }
 

@@ -192,7 +192,7 @@ public class TextMisc : CommandModule
         image.Mutate(processContext);
         if (!Directory.Exists("tempImages")) Directory.CreateDirectory("tempImages");
         var imgName = $"{DateTime.Now.Ticks}.png";
-        var fileName = $"tempImages\\{imgName}";
+        var fileName = $@"tempImages\{imgName}";
         image.SaveAsPng(fileName);
         return "http://127.0.0.1:5702/?img_name=" + imgName;
     }
@@ -220,6 +220,22 @@ public class TextMisc : CommandModule
     [Command("echo")]
     public void Echo(string s)
     {
+        if (s.Contains("禁言"))
+        {
+            Content.MessageWindow.SendMessageAsync("想陷害bot被禁言是吧. 这条我才不会复读, 哼");
+            return;
+        }
         Content.MessageWindow.SendMessageAsync(s);
+    }
+
+    [Command("不定积分")]
+    public async void Integral(string s)
+    {
+        var service = serviceProvider.GetRequiredService<IntegralCalculatorService>();
+        var result = await service.IntegralOf(s).ConfigureAwait(false);
+        if (result != null)
+            await Content.MessageWindow.SendMessageAsync(result).ConfigureAwait(false);
+        else
+            await Content.MessageWindow.SendMessageAsync("计算错误").ConfigureAwait(false);
     }
 }

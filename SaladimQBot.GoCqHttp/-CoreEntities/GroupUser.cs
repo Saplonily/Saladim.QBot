@@ -12,29 +12,29 @@ public class GroupUser : User, IGroupUser
     public JoinedGroup Group { get; protected set; } = default!;
 
     #region Expirable的一些属性
-    public new Expirable<string> Nickname { get; protected set; } = default!;
+    public new IExpirable<string> Nickname { get; protected set; } = default!;
 
-    public Expirable<string> Card { get; protected set; } = default!;
+    public IExpirable<string> Card { get; protected set; } = default!;
 
-    public Expirable<string> Area { get; protected set; } = default!;
+    public IExpirable<string> Area { get; protected set; } = default!;
 
-    public Expirable<DateTime> JoinTime { get; protected set; } = default!;
+    public IExpirable<DateTime> JoinTime { get; protected set; } = default!;
 
-    public Expirable<DateTime> LastMessageSentTime { get; protected set; } = default!;
+    public IExpirable<DateTime> LastMessageSentTime { get; protected set; } = default!;
 
-    public Expirable<string> GroupLevel { get; protected set; } = default!;
+    public IExpirable<string> GroupLevel { get; protected set; } = default!;
 
-    public Expirable<GroupRole> GroupRole { get; protected set; } = default!;
+    public IExpirable<GroupRole> GroupRole { get; protected set; } = default!;
 
-    public Expirable<bool> IsUnFriendly { get; protected set; } = default!;
+    public IExpirable<bool> IsUnFriendly { get; protected set; } = default!;
 
-    public Expirable<string> GroupTitle { get; protected set; } = default!;
+    public IExpirable<string> GroupTitle { get; protected set; } = default!;
 
-    public Expirable<DateTime> GroupTitleExpireTime { get; protected set; } = default!;
+    public IExpirable<DateTime> GroupTitleExpireTime { get; protected set; } = default!;
 
-    public Expirable<bool> IsAbleToChangeCard { get; protected set; } = default!;
+    public IExpirable<bool> IsAbleToChangeCard { get; protected set; } = default!;
 
-    public Expirable<DateTime> MuteExpireTime { get; protected set; } = default!;
+    public IExpirable<DateTime> MuteExpireTime { get; protected set; } = default!;
     #endregion
 
     /// <summary>
@@ -68,7 +68,7 @@ public class GroupUser : User, IGroupUser
         get => Task.Run(() => CardOrNickname);
     }
 
-    protected new Expirable<GetGroupMemberInfoActionResultData> ApiCallResult { get; set; } = default!;
+    protected new IDependencyExpirable<GetGroupMemberInfoActionResultData> ApiCallResult { get; set; } = default!;
 
     protected GroupUser(CqClient client, long groupId, long userId)
         : base(client, userId)

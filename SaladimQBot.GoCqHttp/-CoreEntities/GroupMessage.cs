@@ -9,9 +9,9 @@ namespace SaladimQBot.GoCqHttp;
 [DebuggerDisplay("{DebuggerDisplay}")]
 public class GroupMessage : Message, IGroupMessage
 {
-    public Expirable<JoinedGroup> ExpGroup { get; protected set; } = default!;
+    public IExpirable<JoinedGroup> ExpGroup { get; protected set; } = default!;
 
-    public Expirable<GroupUser> ExpGroupSender { get; protected set; } = default!;
+    public IExpirable<GroupUser> ExpGroupSender { get; protected set; } = default!;
 
     public JoinedGroup Group => ExpGroup.Value;
 
@@ -69,8 +69,8 @@ public class GroupMessage : Message, IGroupMessage
     internal GroupMessage LoadGroupAndSenderFromMessageId()
     {
         base.LoadFromMessageId();
-        ExpGroup = Client.MakeDependencyExpirable(ApiCallResult, GroupFactory).WithNoExpirable();
-        ExpGroupSender = Client.MakeDependencyExpirable(ApiCallResult, GroupSenderFactory).WithNoExpirable();
+        ExpGroup = Client.MakeDependencyExpirable(ApiCallResult, GroupFactory);
+        ExpGroupSender = Client.MakeDependencyExpirable(ApiCallResult, GroupSenderFactory);
 
         return this;
         JoinedGroup GroupFactory(GetMessageActionResultData d)

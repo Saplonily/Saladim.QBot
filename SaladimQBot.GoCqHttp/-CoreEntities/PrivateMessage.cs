@@ -10,7 +10,7 @@ public class PrivateMessage : Message, IPrivateMessage
 
     public long? TempSourceGroupId { get; protected set; } = null;
 
-    public Expirable<User> ExpPrivateSender { get => ExpSender; }
+    public IExpirable<User> ExpPrivateSender { get => ExpSender; }
 
     public User PrivateSender { get => ExpPrivateSender.Value; }
 

@@ -9,13 +9,13 @@ namespace SaladimQBot.GoCqHttp;
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public class Message : CqEntity, IMessage
 {
-    public Expirable<MessageEntity> ExpMessageEntity { get; protected set; } = default!;
+    public IExpirable<MessageEntity> ExpMessageEntity { get; protected set; } = default!;
 
-    public Expirable<User> ExpSender { get; protected set; } = default!;
+    public IExpirable<User> ExpSender { get; protected set; } = default!;
 
-    public Expirable<bool>? IsFromGroup { get; protected set; } = null;
+    public IExpirable<bool>? IsFromGroup { get; protected set; } = null;
 
-    public Expirable<DateTime> SendTime { get; protected set; } = default!;
+    public IExpirable<DateTime> SendTime { get; protected set; } = default!;
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
@@ -30,7 +30,7 @@ public class Message : CqEntity, IMessage
 
     public int MessageId { get; protected set; } = default!;
 
-    protected internal Expirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
+    protected internal IDependencyExpirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
 
     protected internal Message(CqClient client, int messageId)
         : base(client)
@@ -62,22 +62,13 @@ public class Message : CqEntity, IMessage
 
     internal Message LoadFromMessageId()
     {
-        ExpSender = Client.MakeDependencyExpirable(
-            ApiCallResult,
-            d => User.CreateFromNicknameAndId(Client, d.Sender.Nickname, d.Sender.UserId)
-            ).WithNoExpirable();
+        ExpSender = Client.MakeDependencyExpirable(ApiCallResult, d => User.CreateFromNicknameAndId(Client, d.Sender.Nickname, d.Sender.UserId));
+        IsFromGroup = Client.MakeDependencyExpirable(ApiCallResult, d => d.IsGroupMessage);
+        SendTime = Client.MakeDependencyExpirable(ApiCallResult, d => DateTimeHelper.GetFromUnix(d.Time));
         ExpMessageEntity = Client.MakeDependencyExpirable(
             ApiCallResult,
             d => new MessageEntity(Client, d.MessageEntity, MessageChainModelHelper.ChainToRawString(d.MessageEntity))
-            ).WithNoExpirable();
-        IsFromGroup = Client.MakeDependencyExpirable(
-            ApiCallResult,
-            d => d.IsGroupMessage
-            ).WithNoExpirable();
-        SendTime = Client.MakeDependencyExpirable(
-            ApiCallResult,
-            d => DateTimeHelper.GetFromUnix(d.Time)
-            ).WithNoExpirable();
+            );
         return this;
     }
 

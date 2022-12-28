@@ -11,21 +11,21 @@ public class User : CqEntity, IUser
 {
     public long UserId { get; protected set; }
 
-    public Expirable<string> Nickname { get; protected set; } = default!;
+    public IExpirable<string> Nickname { get; protected set; } = default!;
 
-    public Expirable<Sex> Sex { get; protected set; } = default!;
+    public IExpirable<Sex> Sex { get; protected set; } = default!;
 
-    public Expirable<int> Age { get; protected set; } = default!;
+    public IExpirable<int> Age { get; protected set; } = default!;
 
-    public Expirable<string> Qid { get; protected set; } = default!;
+    public IExpirable<string> Qid { get; protected set; } = default!;
 
-    public Expirable<int> Level { get; protected set; } = default!;
+    public IExpirable<int> Level { get; protected set; } = default!;
 
-    public Expirable<int> LoginDays { get; protected set; } = default!;
+    public IExpirable<int> LoginDays { get; protected set; } = default!;
 
     public string CqAt => MessageChainModelHelper.CqStringify(new MessageChainAtNode(Client, UserId, Nickname.Value).ToModel());
 
-    protected Expirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;
+    protected IDependencyExpirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;
 
     protected User(CqClient client, long userId) : base(client)
     {
