@@ -25,7 +25,7 @@ public class IntegralCalculatorService
         var yourString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var st = "<span id=result1>";
         var ed = "</span>&nbsp;<a class='noprint copy'";
-        var stLoc = yourString.IndexOf(st) + st.Length ;
+        var stLoc = yourString.IndexOf(st) + st.Length;
         var edLoc = yourString.IndexOf(ed);
         if (stLoc <= 0 || edLoc <= 0)
         {

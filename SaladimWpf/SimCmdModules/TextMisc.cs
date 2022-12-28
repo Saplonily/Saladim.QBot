@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
@@ -12,9 +11,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using ISColor = SixLabors.ImageSharp.Color;
 using SysColor = System.Drawing.Color;
-using SysSize = System.Drawing.Size;
 
 namespace SaladimWpf.SimCmdModules;
 

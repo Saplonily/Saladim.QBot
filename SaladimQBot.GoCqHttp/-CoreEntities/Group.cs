@@ -3,7 +3,6 @@ using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
-using static System.Net.WebRequestMethods;
 
 namespace SaladimQBot.GoCqHttp;
 
