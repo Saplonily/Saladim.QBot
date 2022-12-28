@@ -39,4 +39,9 @@ public interface IUser : IClientEntity, IMessageWindow
     /// 连续登录天数
     /// </summary>
     int LoginDays { get; }
+
+    /// <summary>
+    /// 头像url
+    /// </summary>
+    string AvatarUrl { get; }
 }

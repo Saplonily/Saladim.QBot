@@ -220,12 +220,11 @@ public class TextMisc : CommandModule
     [Command("echo")]
     public void Echo(string s)
     {
-        if (s.Contains("禁言"))
+        if (s.Contains("禁言") || s.Contains("傻逼") || s.Contains("智障") || s.Contains("煞笔"))
         {
-            Content.MessageWindow.SendMessageAsync("想陷害bot被禁言是吧. 这条我才不会复读, 哼");
             return;
         }
-        Content.MessageWindow.SendMessageAsync(s);
+        Content.MessageWindow.SendMessageAsync("echo:\n" + s);
     }
 
     [Command("不定积分")]
@@ -237,5 +236,22 @@ public class TextMisc : CommandModule
             await Content.MessageWindow.SendMessageAsync(result).ConfigureAwait(false);
         else
             await Content.MessageWindow.SendMessageAsync("计算错误").ConfigureAwait(false);
+    }
+
+    [Command("my_avatar")]
+    public void MyAvatar()
+    {
+        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(Content.Executer.AvatarUrl).Build();
+        Content.MessageWindow.SendMessageAsync(entity);
+    }
+
+    [Command("group_avatar")]
+    public void GroupAvatar()
+    {
+        if (Content.Message is IGroupMessage groupMessage)
+        {
+            var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(groupMessage.Group.AvatarUrl).Build();
+            Content.MessageWindow.SendMessageAsync(entity);
+        }
     }
 }

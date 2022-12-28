@@ -23,6 +23,8 @@ public class User : CqEntity, IUser
 
     public IExpirable<int> LoginDays { get; protected set; } = default!;
 
+    public string AvatarUrl => $"https://q1.qlogo.cn/g?b=qq&nk={UserId}&s=640";
+
     public string CqAt => MessageChainModelHelper.CqStringify(new MessageChainAtNode(Client, UserId, Nickname.Value).ToModel());
 
     protected IDependencyExpirable<GetStrangerInfoActionResultData> ApiCallResult { get; set; } = default!;

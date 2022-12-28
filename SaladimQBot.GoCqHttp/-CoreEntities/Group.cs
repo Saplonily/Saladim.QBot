@@ -3,6 +3,7 @@ using SaladimQBot.Core;
 using SaladimQBot.GoCqHttp.Apis;
 using SaladimQBot.GoCqHttp.Posts;
 using SaladimQBot.Shared;
+using static System.Net.WebRequestMethods;
 
 namespace SaladimQBot.GoCqHttp;
 
@@ -13,6 +14,8 @@ public class Group : CqEntity, IGroup
     public IExpirable<string> Name { get; protected set; } = default!;
 
     public IExpirable<string> Remark { get; protected set; } = default!;
+
+    public string AvatarUrl => $"https://p.qlogo.cn/gh/{GroupId}/{GroupId}/100";
 
     protected IDependencyExpirable<GetGroupInfoActionResultData> ApiCallResultData { get; set; } = default!;
 

@@ -523,9 +523,6 @@ public abstract class CqClient : IClient
                     {
                         GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        //TODO 重构可过期类型(Expirable), 将依赖过期写入Expirable类中
-                        //以能够在上游调用强制过期时下游知道自己过期了
-                        //在这里的例子是群员群名片更改时得让get_group_member_info的所有下游都过期
                         OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
                     }
                     break;

@@ -19,4 +19,9 @@ public interface IGroup : IClientEntity
     /// 群备注
     /// </summary>
     string Remark { get; }
+
+    /// <summary>
+    /// 群头像url
+    /// </summary>
+    string AvatarUrl { get; }
 }
