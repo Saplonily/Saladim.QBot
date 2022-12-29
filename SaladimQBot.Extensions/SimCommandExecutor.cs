@@ -153,7 +153,7 @@ public sealed partial class SimCommandExecutor
             }
             else
             {
-                Type baseType = cmd.Parameters[0].ParameterType.GetElementType();
+                Type baseType = cmd.Parameters[0].ParameterType.GetElementType()!;
                 var invokingParamsTypes = Enumerable.Repeat(baseType, cmdParams.Length);
                 var array = Array.CreateInstance(baseType, cmdParams.Length);
                 object[]? paramObjects = ParseParams(cmdParams, invokingParamsTypes);
