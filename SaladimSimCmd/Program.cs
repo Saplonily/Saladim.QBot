@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Text;
 using Saladim.SalLogger;
@@ -27,10 +28,13 @@ public class Program
 
     private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
         if (message.Group.GroupId == 860355679)
         {
-            simCmd.MatchAndExecuteAll(message);
+            _ = simCmd.MatchAndExecuteAllAsync(message);
         }
+        stopwatch.Stop();
     }
 }
 
@@ -83,7 +87,7 @@ public class SampleModule : CommandModule
     }
 
     [Command("choose")]
-    public void Choose(string[] strs)
+    public void Choose(params string[] strs)
     {
         StringBuilder sb = new();
         sb.AppendLine("你给出了如下的东西, 以\" | \"分隔");

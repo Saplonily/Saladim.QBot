@@ -143,6 +143,7 @@ public class TextMisc : CommandModule
         }
     }
 
+    [Command("做旗子")]
     public void MakeFlagInternal(params SysColor[] colors)
     {
         var pointsCount = colors.Length;
@@ -159,27 +160,20 @@ public class TextMisc : CommandModule
             }
         });
         IMessageEntityBuilder builder = Content.Client.CreateMessageBuilder().WithImage(url);
+        StringBuilder sb = new();
         foreach (var color in colors)
         {
-            builder.WithTextLine(GetColorText(color));
+            sb.Append(GetColorText(color));
+            sb.Append(" | ");
         }
+        string s = sb.ToString();
+        if (s.Length > 250)
+        {
+            s = "颜色信息长于250字符, 已默认屏蔽.";
+        }
+        builder.WithTextLine(s);
         Content.MessageWindow.SendMessageAsync(builder.Build());
     }
-
-    [Command("做旗子")]
-    public void MakeFlag(SysColor c1) => MakeFlagInternal(c1);
-
-    [Command("做旗子")]
-    public void MakeFlag(SysColor c1, SysColor c2) => MakeFlagInternal(c1, c2);
-
-    [Command("做旗子")]
-    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3) => MakeFlagInternal(c1, c2, c3);
-
-    [Command("做旗子")]
-    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3, SysColor c4) => MakeFlagInternal(c1, c2, c3, c4);
-
-    [Command("做旗子")]
-    public void MakeFlag(SysColor c1, SysColor c2, SysColor c3, SysColor c4, SysColor c5) => MakeFlagInternal(c1, c2, c3, c4, c5);
 
     public static string GetColorText(SysColor color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
 
@@ -229,8 +223,10 @@ public class TextMisc : CommandModule
     {
         var service = serviceProvider.GetRequiredService<IntegralCalculatorService>();
         var result = await service.IntegralOf(s).ConfigureAwait(false);
-        if (result != null)
+        if (!string.IsNullOrWhiteSpace(result))
+        {
             await Content.MessageWindow.SendMessageAsync(result).ConfigureAwait(false);
+        }
         else
             await Content.MessageWindow.SendMessageAsync("计算错误").ConfigureAwait(false);
     }

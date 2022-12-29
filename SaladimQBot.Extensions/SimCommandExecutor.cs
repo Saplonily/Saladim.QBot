@@ -11,7 +11,7 @@ public sealed partial class SimCommandExecutor
 {
     public static readonly Type StringType = typeof(string);
     public static readonly Regex CommandParamRegex = new("(\"[^\"]*\")|[^\\s]+", RegexOptions.Compiled);
-    public static char SplitChar { get; set; } = ',';
+    public static char ArraySplitChar { get; set; } = ',';
 
     private readonly List<MethodBasedCommand> commands;
     private readonly Func<Type, object?> moduleInstanceFactory;
@@ -46,22 +46,22 @@ public sealed partial class SimCommandExecutor
             [typeof(Vector2)] = s => CommonTypeParsers.Vector2(s),
             [typeof(Vector3)] = s => CommonTypeParsers.Vector3(s),
 
-            [typeof(int[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Int, SplitChar),
-            [typeof(uint[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Uint, SplitChar),
-            [typeof(byte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Byte, SplitChar),
-            [typeof(char[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Char, SplitChar),
-            [typeof(long[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Long, SplitChar),
-            [typeof(sbyte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Sbyte, SplitChar),
-            [typeof(float[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Float, SplitChar),
-            [typeof(short[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Short, SplitChar),
-            [typeof(ulong[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ulong, SplitChar),
-            [typeof(Color[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Color, SplitChar),
-            [typeof(ushort[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ushort, SplitChar),
-            [typeof(double[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Double, SplitChar),
-            [typeof(Vector2[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector2, SplitChar),
-            [typeof(Vector3[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector3, SplitChar),
+            [typeof(int[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Int, ArraySplitChar),
+            [typeof(uint[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Uint, ArraySplitChar),
+            [typeof(byte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Byte, ArraySplitChar),
+            [typeof(char[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Char, ArraySplitChar),
+            [typeof(long[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Long, ArraySplitChar),
+            [typeof(sbyte[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Sbyte, ArraySplitChar),
+            [typeof(float[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Float, ArraySplitChar),
+            [typeof(short[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Short, ArraySplitChar),
+            [typeof(ulong[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ulong, ArraySplitChar),
+            [typeof(Color[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Color, ArraySplitChar),
+            [typeof(ushort[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ushort, ArraySplitChar),
+            [typeof(double[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Double, ArraySplitChar),
+            [typeof(Vector2[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector2, ArraySplitChar),
+            [typeof(Vector3[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector3, ArraySplitChar),
 
-            [typeof(string[])] = s => CommonTypeParsers.ArrayPacker(s, s => s, SplitChar),
+            [typeof(string[])] = s => CommonTypeParsers.ArrayPacker(s, s => s, ArraySplitChar),
         };
         moduleInstanceFactory = Activator.CreateInstance;
     }
@@ -99,23 +99,26 @@ public sealed partial class SimCommandExecutor
                     return true;
                 return false;
             })
-            //trim它
+            //trim掉前后的空格
             .Select(node => node.Text.Trim());
-        //遍历这些文本节点
+
+        //遍历这些文本节点, 执行所有的指令
         foreach (var matchedNodeText in matchedNodeTexts)
         {
             var cmdTextWithoutRootPrefix = matchedNodeText.AsSpan(RootCommandPrefix.Length);
             //现在这个字符串就形如 "add 1 2 3" 了
-            //切分, 但忽略引号内的空格, 同时去除引号
+            //以空格切分, 但忽略引号内的空格, 同时去除引号
             var matches = CommandParamRegex.Matches(cmdTextWithoutRootPrefix.ToString());
             if (matches.Count == 0) continue;
             string[] argAsString = new string[matches.Count - 1];
+            //现在我们得到了它的参数的以字符串形式的参数数组
+            //开始查找所有符合的指令
             foreach (var cmd in commands)
             {
                 if (cmd.Name == matches[0].Value)
                 {
-                    //昵称相同, 现在检查参数数目是否相同
-                    if (cmd.Parameters.Length != matches.Count - 1)
+                    //昵称相同, 现在检查参数数目是否相同(如果不是params指令的话)
+                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsParamsCommand)
                         continue;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
@@ -132,54 +135,81 @@ public sealed partial class SimCommandExecutor
     internal bool ExecuteInternal(IMessage msg, MethodBasedCommand cmd, string[]? cmdParams)
     {
         var paramsLength = cmd.Parameters.Length;
-        Debug.Assert(cmd.Parameters.Length == cmdParams?.Length);
+        if (cmd.Parameters.Length != cmdParams?.Length && !cmd.IsParamsCommand)
+            return false;
+
         if (moduleInstanceFactory?.Invoke(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
         moduleIns.Content = new(this, msg);
-        if (moduleIns.PreCheck(moduleIns.Content))
+        if (!moduleIns.PreCheck(moduleIns.Content))
+            return false;
+
+        var paramsTypes = from p in cmd.Parameters select p.ParameterType;
+        if (cmd.IsParamsCommand)
         {
-            var paramsTypes =
-                from p in cmd.Parameters
-                select p.ParameterType;
             if (cmdParams is null)
             {
-                cmd.Method.Invoke(moduleIns, null);
-                return true;
-            }
-            else if (paramsTypes.All(t => t == StringType))
-            {
-                cmd.Method.Invoke(moduleIns, cmdParams);
+                cmd.Method.Invoke(moduleIns, new object[] { });
                 return true;
             }
             else
             {
-                object[] paramObjects = new object[paramsLength];
-                for (int i = 0; i < paramsLength; i++)
-                {
-                    Type paramsType = paramsTypes.ElementAt(i);
-                    if (paramsType == StringType)
-                    {
-                        paramObjects[i] = cmdParams[i];
-                        continue;
-                    }
-                    if (!CommandParamParsers.TryGetValue(paramsType, out var parser))
-                        throw new KeyNotFoundException($"Not found parser for type `{paramsType}`");
-                    try
-                    {
-                        var parsedValue = parser(cmdParams[i]);
-                        if (parsedValue is null)
-                            return false;
-                        paramObjects[i] = parsedValue;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
-                cmd.Method.Invoke(moduleIns, paramObjects);
+                Type baseType = cmd.Parameters[0].ParameterType.GetElementType();
+                var invokingParamsTypes = Enumerable.Repeat(baseType, cmdParams.Length);
+                var array = Array.CreateInstance(baseType, cmdParams.Length);
+                object[]? paramObjects = ParseParams(cmdParams, invokingParamsTypes);
+                if (paramObjects is null) return false;
+                paramObjects.CopyTo(array, 0);
+                cmd.Method.Invoke(moduleIns, new object[] { array });
                 return true;
             }
         }
-        return false;
+
+        if (cmdParams is null)
+        {
+            cmd.Method.Invoke(moduleIns, null);
+            return true;
+        }
+        else if (paramsTypes.All(t => t == StringType))
+        {
+            cmd.Method.Invoke(moduleIns, cmdParams);
+            return true;
+        }
+        else
+        {
+            object[]? paramObjects = ParseParams(cmdParams, paramsTypes);
+            if (paramObjects is null) return false;
+            cmd.Method.Invoke(moduleIns, paramObjects);
+            return true;
+        }
+    }
+
+    internal object[]? ParseParams(string[] stringParams, IEnumerable<Type> paramsTypes)
+    {
+        var paramsLength = stringParams.Length;
+        object[] paramObjects = new object[paramsLength];
+        for (int i = 0; i < paramsLength; i++)
+        {
+            Type paramsType = paramsTypes.ElementAt(i);
+            if (paramsType == StringType)
+            {
+                paramObjects[i] = stringParams[i];
+                continue;
+            }
+            if (!CommandParamParsers.TryGetValue(paramsType, out var parser))
+                throw new KeyNotFoundException($"Not found parser for type `{paramsType}`");
+            try
+            {
+                var parsedValue = parser(stringParams[i]);
+                if (parsedValue is null)
+                    return null;
+                paramObjects[i] = parsedValue;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return paramObjects;
     }
 
     public async Task MatchAndExecuteAllAsync(IMessage msg)
@@ -191,11 +221,16 @@ internal class MethodBasedCommand
     public string Name;
     public MethodInfo Method;
     public ParameterInfo[] Parameters;
+    public bool IsParamsCommand = false;
 
     public MethodBasedCommand(string name, MethodInfo method)
     {
         Name = name;
         Method = method;
         Parameters = method.GetParameters();
+        if (Parameters.Length != 0)
+        {
+            IsParamsCommand = Parameters[0].GetCustomAttributes<ParamArrayAttribute>().Any();
+        }
     }
 }
