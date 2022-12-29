@@ -8,7 +8,7 @@
 		<Title>SaladimQBot.Core</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
-		<Version>0.3.0</Version>
+		<Version>0.3.1</Version>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
