@@ -47,6 +47,7 @@ public class SaladimWpfService : IClientService
                     "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
                     $"{groupMsg.Author.FullName} 说: " +
                     $"{groupMsg.MessageEntity.RawString}"
+                    .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
                     );
 #if DEBUG
                 if (groupMsg.Group.GroupId != 860355679)
@@ -59,6 +60,7 @@ public class SaladimWpfService : IClientService
                 logger.LogInfo(
                     "WpfConsole", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
                     $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
+                    .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
                     );
             }
             await next();

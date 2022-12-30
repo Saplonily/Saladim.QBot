@@ -211,11 +211,11 @@ public class TextMisc : CommandModule
     [Command("echo")]
     public void Echo(string s)
     {
-        if (s.Contains("禁言") || s.Contains("傻逼") || s.Contains("智障") || s.Contains("煞笔"))
+        if (s.Contains("禁言") || s.Contains("傻逼") || s.Contains("智障") || s.Contains("煞笔") || s.Contains("我") || s.Contains("你"))
         {
             return;
         }
-        Content.MessageWindow.SendMessageAsync("echo:\n" + s);
+        Content.MessageWindow.SendMessageAsync(s);
     }
 
     [Command("不定积分")]
@@ -246,5 +246,15 @@ public class TextMisc : CommandModule
             var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(groupMessage.Group.AvatarUrl).Build();
             Content.MessageWindow.SendMessageAsync(entity);
         }
+    }
+
+    [Command("tts")]
+    public void TTS(string tts)
+    {
+        var ttsParam = new Dictionary<string, string>()
+        {
+            ["text"] = tts
+        };
+        Content.MessageWindow.SendMessageAsync(Content.Client.CreateMessageBuilder().WithUnImpl("tts", ttsParam).Build());
     }
 }

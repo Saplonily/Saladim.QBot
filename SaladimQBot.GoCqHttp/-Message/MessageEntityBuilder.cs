@@ -61,6 +61,12 @@ public class MessageEntityBuilder : CqEntity, IMessageEntityBuilder
         return this;
     }
 
+    public MessageEntityBuilder WithUnImpl(string name, IDictionary<string, string> args)
+    {
+        chain.MessageChainNodes.Add(new MessageChainUnimplementedNode(Client, name, args));
+        return this;
+    }
+
     public MessageEntity Build(bool prepareRawString = false)
     {
         if (prepareRawString)
@@ -92,6 +98,9 @@ public class MessageEntityBuilder : CqEntity, IMessageEntityBuilder
 
     IMessageEntityBuilder IMessageEntityBuilder.WithReply(IMessage message)
         => WithReply(message is Message ourMessage ? ourMessage : throw new InvalidOperationException("Only support message in the same client."));
+
+    IMessageEntityBuilder IMessageEntityBuilder.WithUnImpl(string name, IDictionary<string, string> args)
+        => WithUnImpl(name, args);
 
     IMessageEntity IMessageEntityBuilder.Build(bool prepareRawString)
         => Build();

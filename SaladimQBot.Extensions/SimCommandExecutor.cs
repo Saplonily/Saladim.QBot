@@ -148,7 +148,7 @@ public sealed partial class SimCommandExecutor
         {
             if (cmdParams is null)
             {
-                cmd.Method.Invoke(moduleIns, new object[] { });
+                cmd.Method.Invoke(moduleIns, Array.Empty<object>());
                 return true;
             }
             else

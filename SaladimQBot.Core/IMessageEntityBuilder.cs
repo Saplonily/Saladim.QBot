@@ -14,5 +14,7 @@ public interface IMessageEntityBuilder : IClientEntity
 
     IMessageEntityBuilder WithReply(IMessage message);
 
+    IMessageEntityBuilder WithUnImpl(string name, IDictionary<string, string> args);
+
     IMessageEntity Build(bool prepareRawString = false);
 }
