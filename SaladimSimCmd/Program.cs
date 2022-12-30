@@ -28,18 +28,33 @@ public class Program
 
     private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
     {
-        Stopwatch stopwatch = new();
-        stopwatch.Start();
         if (message.Group.GroupId == 860355679)
         {
             _ = simCmd.MatchAndExecuteAllAsync(message);
         }
-        stopwatch.Stop();
     }
 }
 
 public class SampleModule : CommandModule
 {
+    [Command("set_group_name")]
+    public void SetGroupName(string name)
+    {
+        if (Content.Message is IGroupMessage groupMessage)
+        {
+            groupMessage.Group.SetGroupNameAsync(name);
+        }
+    }
+
+    [Command("set_card")]
+    public void SetCard(string name)
+    {
+        if (Content.Message is IGroupMessage groupMessage)
+        {
+            groupMessage.Sender.SetGroupCardAsync(name);
+        }
+    }
+
     [Command("random")]
     public void Random()
     {

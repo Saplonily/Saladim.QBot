@@ -54,6 +54,12 @@ public static class EntityExtensions
 
     #endregion
 
+    public static Task SetGroupNameAsync(this IGroup group, string newGroupName)
+        => group.Client.SetGroupNameAsync(group.GroupId, newGroupName);
+
+    public static Task SetGroupCardAsync(this IGroupUser groupUser, string newCard)
+        => groupUser.Client.SetGroupCardAsync(groupUser.Group.GroupId, groupUser.UserId, newCard);
+
     #endregion
 
     #region 实体额外操作

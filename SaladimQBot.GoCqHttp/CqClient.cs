@@ -660,7 +660,7 @@ public abstract class CqClient : IClient
 
     #endregion
 
-    #region IClient
+    #region 一些api
 
     #region 获取消息
     IGroupMessage IClient.GetGroupMessageById(int messageId)
@@ -862,27 +862,41 @@ public abstract class CqClient : IClient
 
     #region 群的一些互动
 
-    public async Task BanGroupUserAsync(long groupId, long userId, TimeSpan time)
-    {
-        BanGroupUserAction api = new()
-        {
-            GroupId = groupId,
-            UserId = userId,
-            Duration = (int)time.TotalSeconds
-        };
-        await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
-    }
+    public Task BanGroupUserAsync(long groupId, long userId, TimeSpan time)
+        => this.CallApiWithCheckingAsync(
+            new BanGroupUserAction()
+            {
+                GroupId = groupId,
+                UserId = userId,
+                Duration = (int)time.TotalSeconds
+            });
 
-    public async Task LiftBanGroupUserAsync(long groupId, long userId)
-    {
-        BanGroupUserAction api = new()
-        {
-            GroupId = groupId,
-            UserId = userId,
-            Duration = 0
-        };
-        await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
-    }
+    public Task LiftBanGroupUserAsync(long groupId, long userId)
+        => this.CallApiWithCheckingAsync(
+            new BanGroupUserAction()
+            {
+                GroupId = groupId,
+                UserId = userId,
+                Duration = 0
+            });
+
+    public Task SetGroupNameAsync(long groupId, string newGroupName)
+        => this.CallApiWithCheckingAsync(
+            new SetGroupNameAction()
+            {
+                GroupId = groupId,
+                GroupName = newGroupName
+            });
+
+    public Task SetGroupCardAsync(long groupId, long userId, string newCard)
+        => this.CallApiWithCheckingAsync(
+            new SetGroupCardAction()
+            {
+                GroupId = groupId,
+                UserId = userId,
+                Card = newCard
+            }
+            );
 
     #endregion
 

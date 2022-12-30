@@ -135,6 +135,22 @@ public interface IClient
     /// <param name="userId">用户Id</param>
     Task LiftBanGroupUserAsync(long groupId, long userId);
 
+    /// <summary>
+    /// 设置群名
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="newGroupName">新群号</param>
+    Task SetGroupNameAsync(long groupId, string newGroupName);
+
+    /// <summary>
+    /// 设置群成员名片
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    /// <param name="newCard">新名片</param>
+    /// <returns></returns>
+    Task SetGroupCardAsync(long groupId, long userId, string newCard);
+
     #endregion
 
     #region 实体获取
