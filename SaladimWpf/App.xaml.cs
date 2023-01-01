@@ -25,13 +25,11 @@ public partial class App : Application
                 coll.AddSaladimWpf("ws://127.0.0.1:5000");
                 coll.AddSimCommand(simCommandConfig);
                 coll.AddSingleton<HttpRequesterService>();
-                coll.AddSingleton<HttpServerService>();
                 coll.AddSingleton<RandomService>();
                 coll.AddSingleton<JavaScriptService>();
                 coll.AddSingleton<IntegralCalculatorService>();
             })
             .Build();
-        _ = AppHost.Services.GetRequiredService<HttpServerService>();
         serviceProvider = AppHost.Services;
         Current.DispatcherUnhandledException += this.Current_DispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
@@ -43,6 +41,7 @@ public partial class App : Application
         if (e.ExceptionObject is Exception exc)
             ss.SalIns.LogFatal("SaladimWpf", "AppDomainUnhandled", exc);
         ss.FlushFileStream();
+        ss.Stop();
     }
 
     private void Current_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -51,6 +50,7 @@ public partial class App : Application
         var ss = AppHost.Services.GetRequiredService<SalLoggerService>();
         ss.SalIns.LogFatal("SaladimWpf", "Dispatcher", e.Exception);
         ss.FlushFileStream();
+        ss.Stop();
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)

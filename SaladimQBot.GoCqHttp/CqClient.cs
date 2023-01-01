@@ -483,7 +483,7 @@ public abstract class CqClient : IClient
                     {
                         GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        GroupFile groupFile = new(this, notice.File);
+                        UploadedGroupFile groupFile = new(this, notice.File);
                         OnGroupFileUploaded?.Invoke(group, uploader, groupFile);
                     }
                     break;
@@ -613,7 +613,7 @@ public abstract class CqClient : IClient
     public event IClient.OnGroupEssenceRemovedHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceRemoved;
 
     //群文件上传
-    public event IClient.OnGroupFileUploadedHandler<JoinedGroup, GroupUser, GroupFile>? OnGroupFileUploaded;
+    public event IClient.OnGroupFileUploadedHandler<JoinedGroup, GroupUser, UploadedGroupFile>? OnGroupFileUploaded;
 
     //群禁言
     public event IClient.OnGroupMemberBannedHandler<JoinedGroup, GroupUser>? OnGroupMemberBanned;
@@ -1076,7 +1076,7 @@ public abstract class CqClient : IClient
         remove => OnGroupEssenceRemoved -= value;
     }
 
-    event IClient.OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IGroupFile>? IClient.OnGroupFileUploaded
+    event IClient.OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IUploadedGroupFile>? IClient.OnGroupFileUploaded
     {
         add => OnGroupFileUploaded += value;
         remove => OnGroupFileUploaded -= value;

@@ -1,4 +1,6 @@
-﻿using IlyfairyLib.Unsafe;
+﻿using SaladimWpf.Services;
+
+/*using IlyfairyLib.Unsafe;
 
 var someInterface = UnsafeHelper.AllocObject<ISomeInterface>();
 var members = someInterface.GetType().GetMembers();
@@ -18,7 +20,7 @@ public class SomeClass : ISomeInterface
     {
         Console.WriteLine("somemethodoutput");
     }
-}
+}*/
 
 
 /*const int exTimes = 1000000;

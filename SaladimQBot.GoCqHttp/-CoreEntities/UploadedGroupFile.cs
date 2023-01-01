@@ -3,7 +3,7 @@ using SaladimQBot.GoCqHttp.Posts;
 
 namespace SaladimQBot.GoCqHttp;
 
-public class GroupFile : CqEntity, IGroupFile
+public class UploadedGroupFile : CqEntity, IUploadedGroupFile
 {
     public string FileId { get; protected set; }
 
@@ -13,14 +13,14 @@ public class GroupFile : CqEntity, IGroupFile
 
     public string FileSizeString => NumberHelper.GetSizeString(FileSize);
 
-    public GroupFile(CqClient client, string fileId, string fileName, long fileSize) : base(client)
+    public UploadedGroupFile(CqClient client, string fileId, string fileName, long fileSize) : base(client)
     {
         this.FileId = fileId;
         this.FileName = fileName;
         this.FileSize = fileSize;
     }
 
-    public GroupFile(CqClient client, CqGroupFileUploadedNoticePost.FileEntity fileEntity) : base(client)
+    public UploadedGroupFile(CqClient client, CqGroupFileUploadedNoticePost.FileEntity fileEntity) : base(client)
     {
         this.FileId = fileEntity.Id;
         this.FileName = fileEntity.Name;
@@ -29,7 +29,7 @@ public class GroupFile : CqEntity, IGroupFile
 
     public override bool Equals(object? obj)
     {
-        return obj is GroupFile file &&
+        return obj is UploadedGroupFile file &&
                this.FileId == file.FileId;
     }
 
@@ -38,12 +38,12 @@ public class GroupFile : CqEntity, IGroupFile
         return HashCode.Combine(this.FileId);
     }
 
-    public static bool operator ==(GroupFile? left, GroupFile? right)
+    public static bool operator ==(UploadedGroupFile? left, UploadedGroupFile? right)
     {
-        return EqualityComparer<GroupFile>.Default.Equals(left!, right!);
+        return EqualityComparer<UploadedGroupFile>.Default.Equals(left!, right!);
     }
 
-    public static bool operator !=(GroupFile? left, GroupFile? right)
+    public static bool operator !=(UploadedGroupFile? left, UploadedGroupFile? right)
     {
         return !(left == right);
     }

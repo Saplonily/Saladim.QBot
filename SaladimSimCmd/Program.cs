@@ -43,6 +43,7 @@ public class SampleModule : CommandModule
         if (Content.Message is IGroupMessage groupMessage)
         {
             groupMessage.Group.SetGroupNameAsync(name);
+            
         }
     }
 

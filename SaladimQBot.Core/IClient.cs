@@ -261,8 +261,8 @@ public interface IClient
     //群文件上传
     public delegate void OnGroupFileUploadedHandler<in TIJoinedGroup, in TIGroupUser, in TIGroupFile>
         (TIJoinedGroup group, TIGroupUser uploader, TIGroupFile groupFile)
-        where TIJoinedGroup : IJoinedGroup where TIGroupUser : IGroupUser where TIGroupFile : IGroupFile;
-    public event OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IGroupFile>? OnGroupFileUploaded;
+        where TIJoinedGroup : IJoinedGroup where TIGroupUser : IGroupUser where TIGroupFile : IUploadedGroupFile;
+    public event OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IUploadedGroupFile>? OnGroupFileUploaded;
 
     //离线文件收到
     public delegate void OnOfflineFileReceivedHandler<in TIUser, in TIOfflineFile>(TIUser user, TIOfflineFile file)

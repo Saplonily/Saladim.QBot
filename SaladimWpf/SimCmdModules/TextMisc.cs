@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
@@ -15,7 +16,7 @@ using SysColor = System.Drawing.Color;
 
 namespace SaladimWpf.SimCmdModules;
 
-public class TextMisc : CommandModule
+public partial class TextMisc : CommandModule
 {
     private readonly IServiceProvider serviceProvider;
     private readonly SalLoggerService salLoggerService;
@@ -185,7 +186,7 @@ public class TextMisc : CommandModule
         var imgName = $"{DateTime.Now.Ticks}.png";
         var fileName = $@"tempImages\{imgName}";
         image.SaveAsPng(fileName);
-        return "http://127.0.0.1:5702/?img_name=" + imgName;
+        return $"file:///{Path.GetFullPath(fileName)}";
     }
 
     [Command("homo")]
@@ -208,14 +209,32 @@ public class TextMisc : CommandModule
         }
     }
 
-    [Command("echo")]
-    public void Echo(string s)
+    public readonly string[] IgnoreWords = new string[]
     {
-        if (s.Contains("禁言") || s.Contains("傻逼") || s.Contains("智障") || s.Contains("煞笔") || s.Contains("我") || s.Contains("你"))
+        "禁言", "傻逼", "智障", "煞笔", "我是", "你是"
+    };
+    [GeneratedRegex("echo")]
+    private static partial Regex EchoCountRegex();
+
+    [Command("echo")]
+    public void Echo(params string[] s)
+    {
+        string str = string.Join(' ', s);
+        if (IgnoreWords.Any(str.Contains))
         {
             return;
         }
-        Content.MessageWindow.SendMessageAsync(s);
+        Regex r = EchoCountRegex();
+
+        if (r.Matches(str).Count >= 4)
+        {
+            if (Content.Message is IGroupMessage groupMessage)
+            {
+                groupMessage.Sender.BanAsync(TimeSpan.FromMinutes(1));
+            }
+            return;
+        }
+        Content.MessageWindow.SendMessageAsync(str);
     }
 
     [Command("不定积分")]
