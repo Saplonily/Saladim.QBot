@@ -226,7 +226,7 @@ public partial class TextMisc : CommandModule
         }
         Regex r = EchoCountRegex();
 
-        if (r.Matches(str).Count >= 4)
+        if (r.Matches(str).Count >= 3)
         {
             if (Content.Message is IGroupMessage groupMessage)
             {
@@ -234,7 +234,7 @@ public partial class TextMisc : CommandModule
             }
             return;
         }
-        Content.MessageWindow.SendMessageAsync(str);
+        Content.MessageWindow.SendMessageAsync(string.Join("​", str.ToCharArray()));
     }
 
     [Command("不定积分")]

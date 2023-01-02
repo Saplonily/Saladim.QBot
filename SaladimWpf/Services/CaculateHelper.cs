@@ -10,27 +10,167 @@ public class CaculateHelper
     {
         public static readonly char[] Game1A2BAllChars = new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
 
-        public static HashSet<char[]> Game1A2BGetAllPossibility(char[] nums, int sumCountOfAB)
+        public static HashSet<string> Game1A2BGetAllPossibility(char[] nums, int countOfA, int countOfB)
         {
-            if (sumCountOfAB == 0)
-            {
-                return CaculateHelper.GetPermutation(CopyArrayWithout(Game1A2BAllChars, nums), 4)!.ToHashSet();
-            }
             int[] indexs = new int[] { 0, 1, 2, 3 };
-            if (sumCountOfAB is < 0 or > 4)
-                throw new InvalidOperationException($"{nameof(sumCountOfAB)} must in 0~4");
-            List<int[]> indexsCombination = CaculateHelper.GetCombination(indexs, sumCountOfAB)!;
-            List<char[]> allPermutation = new();
-            for (int i = 0; i < indexsCombination.Count; i++)
+            if (countOfA + countOfB is < 0 or > 4)
+                throw new InvalidOperationException($"sum of A and B must in 0~4");
+            if (countOfA == 0 && countOfB == 0)
             {
-                char[] charsSpecified = CopyArrayWithIndexed(nums, indexsCombination[i]);
-                char[] charsWithoutSpecified = CopyArrayWithout(Game1A2BAllChars, CopyArrayWithout(nums, charsSpecified));
-                List<char[]> allSubPermutation = CaculateHelper.GetPermutation(charsWithoutSpecified, 4)!;
-                allSubPermutation.RemoveAll(chars => !IsAllIn(chars, charsSpecified));
-                allPermutation.AddRange(allSubPermutation);
+                return GetPermutation(CopyArrayWithout(Game1A2BAllChars, nums), 4)!.Select(chars => new string(chars))!.ToHashSet();
             }
-            return allPermutation.ToHashSet();
+            List<string> charsAllPermutation = new();
+            foreach (var chars in GetPermutation(Game1A2BAllChars, 4)!)
+                charsAllPermutation.Add(new string(chars));
+            if (countOfA == 0)
+            {
+                //此时只有B，我们是已知B的数量的
+                //所以我们的得到所有B可能的位置情况
+                List<int[]> indexCombinationOfAWhenA0 = GetCombination(indexs, countOfB)!;
+                //遍历这些B的位置情况, 获得所有可能性, 然后合起来
+                HashSet<string> allPermutation = new();
+                for (int curB = 0; curB < indexCombinationOfAWhenA0.Count; curB++)
+                {
+                    var curBIndexArray = indexCombinationOfAWhenA0[curB];
+                    foreach (var chars in charsAllPermutation)
+                    {
+                        bool needAdd = true;
+                        for (int i = 0; i < curBIndexArray.Length; i++)
+                        {
+                            //确保指定数字不在指定位置
+                            if (chars[curBIndexArray[i]] == nums[curBIndexArray[i]])
+                            {
+                                needAdd = false;
+                                break;
+                            }
+                            //确保指定数字在这个排列里
+                            bool isInChars = true;
+                            for (int j = 0; j < curBIndexArray.Length; j++)
+                            {
+                                //这是那个指定的数字
+                                var spNum = nums[curBIndexArray[j]];
+                                //判断是否在排列里
+                                if (!chars.Contains(spNum)) isInChars = false;
+                            }
+                            if (!isInChars)
+                            {
+                                needAdd = false;
+                                break;
+                            }
+                        }
+                        if (needAdd)
+                            allPermutation.Add(chars);
+                    }
+                }
+                return allPermutation;
+            }
+            if (countOfB == 0)
+            {
+                //此时只有A, 我们是已知A的数量的
+                //所以我们得得到所有A可能的位置情况
+                List<int[]> indexCombinationOfAWhenB0 = GetCombination(indexs, countOfA)!;
+                //遍历这些A的位置情况, 获得所有可能性, 然后合起来
+                HashSet<string> allPermutation = new();
+                for (int curA = 0; curA < indexCombinationOfAWhenB0.Count; curA++)
+                {
+                    var curAIndexArray = indexCombinationOfAWhenB0[curA];
+                    foreach (var chars in charsAllPermutation)
+                    {
+                        //chars是一种排列法, curAIndexArray是指目前假设位置正确的数字, index指向的是nums[]
+                        //现在需要排除chars中 curAIndexArray 所在的位置的项不是同位置的nums[]里的项
+                        bool needAdd = true;
+                        for (int i = 0; i < curAIndexArray.Length; i++)
+                        {
+                            if (chars[curAIndexArray[i]] != nums[curAIndexArray[i]])
+                            {
+                                needAdd = false;
+                                break;
+                            }
+                        }
+                        if (needAdd) allPermutation.Add(chars);
+                    }
+                }
+                //然后可以返回了
+                return allPermutation;
+            }
 
+
+            HashSet<string> curGuessPermutation = new();
+            List<int[]> indexCombinationOfA = GetCombination(indexs, countOfA)!;
+            List<int[]> indexCombinationOfB = GetCombination(indexs, countOfB)!;
+            for (int curA = 0; curA < indexCombinationOfA.Count; curA++)
+            {
+                for (int curB = 0; curB < indexCombinationOfB.Count; curB++)
+                {
+                    var curAIndexArray = indexCombinationOfA[curA];
+                    var curBIndexArray = indexCombinationOfB[curB];
+                    //不能允许假设的 A 和 B 假设了同一个index
+                    if (!IsMutexWithEachOther(curAIndexArray, curBIndexArray))
+                        continue;
+                    //首先假设目前curA指定的index的位置的数字是正确的, 那么所有可能性
+                    HashSet<string> curAPermutations = new();
+                    foreach (var chars in charsAllPermutation)
+                    {
+                        //chars是一种排列法, curAIndexArray是指目前假设位置正确的数字, index指向的是nums[]
+                        //现在需要排除chars中 curAIndexArray 所在的位置的项不是同位置的nums[]里的项
+                        bool needAdd = true;
+                        for (int i = 0; i < curAIndexArray.Length; i++)
+                            if (chars[curAIndexArray[i]] != nums[curAIndexArray[i]]) needAdd = false;
+                        if (needAdd) curAPermutations.Add(chars);
+                    }
+
+                    HashSet<string> curBPermutations = new();
+                    foreach (var chars in charsAllPermutation)
+                    {
+                        bool needAdd = true;
+                        for (int i = 0; i < curBIndexArray.Length; i++)
+                        {
+                            //确保指定数字不在指定位置
+                            if (chars[curBIndexArray[i]] == nums[curBIndexArray[i]])
+                            {
+                                needAdd = false;
+                                break;
+                            }
+                            //确保指定数字在这个排列里
+                            bool isInChars = true;
+                            for (int j = 0; j < curBIndexArray.Length; j++)
+                            {
+                                //这是那个指定的数字
+                                var spNum = nums[curBIndexArray[j]];
+                                //判断是否在排列里
+                                if (!chars.Contains(spNum)) isInChars = false;
+                            }
+                            if (!isInChars)
+                            {
+                                needAdd = false;
+                                break;
+                            }
+                        }
+                        if (needAdd)
+                            curBPermutations.Add(chars);
+                    }
+
+                    HashSet<string> allPermutations = new();
+                    //取交集
+                    curAPermutations.IntersectWith(curBPermutations);
+                    allPermutations = curAPermutations;
+                    curGuessPermutation.UnionWith(allPermutations);
+                }
+            }
+            return curGuessPermutation;
+        }
+
+        /// <summary>
+        /// 是否两个数组互斥(两个数组的元素没有交集)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="arrayA"></param>
+        /// <param name="arrayB"></param>
+        /// <returns></returns>
+        public static bool IsMutexWithEachOther<T>(T[] arrayA, T[] arrayB)
+        {
+            foreach (var itemInA in arrayA) if (arrayB.Contains(itemInA)) return false;
+            return true;
         }
 
         public static T[] CopyArrayWithoutIndex<T>(T[] array, int[] withoutsIndexs) where T : IEquatable<T>
@@ -74,6 +214,7 @@ public class CaculateHelper
             return things.ToArray();
         }
     }
+
     /// <summary>
     /// 交换两个变量
     /// </summary>

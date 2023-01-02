@@ -28,6 +28,7 @@ public partial class App : Application
                 coll.AddSingleton<RandomService>();
                 coll.AddSingleton<JavaScriptService>();
                 coll.AddSingleton<IntegralCalculatorService>();
+                coll.AddSingleton<Auto1A2BService>();
             })
             .Build();
         serviceProvider = AppHost.Services;
