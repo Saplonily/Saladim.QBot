@@ -2,12 +2,12 @@
 
 namespace SaladimQBot.Extensions;
 
-public class MessagePipeline
+public class Pipeline<T> where T : class
 {
-    public delegate Task Middleware(IMessage message, Func<Task> next);
+    public delegate Task Middleware(T message, Func<Task> next);
     protected List<Middleware> middlewares;
 
-    public MessagePipeline()
+    public Pipeline()
     {
         middlewares = new();
     }
@@ -22,10 +22,10 @@ public class MessagePipeline
         middlewares.Add(middleware);
     }
 
-    public Task ExecuteAsync(IMessage msg)
+    public Task ExecuteAsync(T msg)
         => ExecuteAtAsync(0, msg);
 
-    protected async Task ExecuteAtAsync(int index, IMessage msg)
+    protected async Task ExecuteAtAsync(int index, T msg)
     {
         var middleware = middlewares[index];
         Func<Task> next;

@@ -15,7 +15,7 @@ public class SaladimWpfService : IClientService
     protected CqWebSocketClient wsClient;
     protected SimCommandService simCommandService;
     protected IServiceProvider serviceProvider;
-    protected MessagePipeline messagePipeline;
+    protected Pipeline<IMessage> messagePipeline;
 
     public IClient Client { get; }
 
@@ -38,10 +38,18 @@ public class SaladimWpfService : IClientService
         this.serviceProvider = serviceProvider;
         messagePipeline = new();
         ConfigurePipeline(messagePipeline);
-        Client.OnMessageReceived += this.Client_OnMessageReceived;
+        Client.OnClientEventOccured += this.Client_OnClientEventOccured;
     }
 
-    private void ConfigurePipeline(MessagePipeline messagePipeline)
+    private void Client_OnClientEventOccured(IIClientEvent clientEvent)
+    {
+        if (clientEvent is ClientMessageReceivedEvent e)
+        {
+            Client_OnMessageReceived(e.Message);
+        }
+    }
+
+    private void ConfigurePipeline(Pipeline<IMessage> messagePipeline)
     {
 #if DEBUG
         //DEBUG时只接受测试群中间件
@@ -65,11 +73,6 @@ public class SaladimWpfService : IClientService
                     $"{groupMsg.MessageEntity.RawString}"
                     .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
                     );
-#if DEBUG
-                if (groupMsg.Group.GroupId != 860355679)
-                    return;
-#endif
-
             }
             else if (msg is PrivateMessage privateMsg)
             {
@@ -99,9 +102,9 @@ public class SaladimWpfService : IClientService
         messagePipeline.AppendMiddleware(serviceProvider.GetRequiredService<Auto1A2BService>().Middleware);
     }
 
-    private async void Client_OnMessageReceived(IMessage message)
+    private void Client_OnMessageReceived(IMessage message)
     {
-        await messagePipeline.ExecuteAsync(message).ConfigureAwait(false);
+        messagePipeline.ExecuteAsync(message);
     }
 
     public async Task StartAsync()

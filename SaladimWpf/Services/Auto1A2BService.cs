@@ -52,6 +52,11 @@ public class Auto1A2BService
                     }
                     break;
                 case Auto1A2BState.GuessWaiting:
+                    if (auto1A2BLastGuess is null)
+                    {
+                        state = Auto1A2BState.Idle;
+                        break;
+                    }
                     bool sameGroup = auto1A2BDoingUser!.Group.GroupId == groupMessage.Group.GroupId;
                     bool sameUser = auto1A2BDoingUser!.UserId == groupMessage.Sender.UserId;
                     if (sameGroup && sameUser)

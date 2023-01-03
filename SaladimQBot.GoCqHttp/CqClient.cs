@@ -35,6 +35,13 @@ public abstract class CqClient : IClient
     /// </summary>
     public bool Started { get; protected set; }
 
+    public event IClient.OnClientEventOccuredHandler<ClientEvent>? OnClientEventOccured;
+
+    event IClient.OnClientEventOccuredHandler<IIClientEvent>? IClient.OnClientEventOccured
+    {
+        add => OnClientEventOccured += value; remove => OnClientEventOccured -= value;
+    }
+
     protected Logger logger;
     protected readonly Dictionary<CqApi, IIndependentExpirable<CqApiCallResultData>> cachedApiCallResultData = new();
 
@@ -384,8 +391,8 @@ public abstract class CqClient : IClient
                             return;
                         }
                         GroupMessage gm = GroupMessage.CreateFromGroupMessagePost(this, groupMessagePost);
-                        OnMessageReceived?.Invoke(gm);
-                        OnGroupMessageReceived?.Invoke(gm, gm.Group);
+                        ClientGroupMessageReceivedEvent e = new(this, gm);
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -394,17 +401,16 @@ public abstract class CqClient : IClient
                         if (privateMessagePost.TempSource is MessageTempSource.Invalid)
                         {
                             FriendMessage fm = FriendMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
-                            OnMessageReceived?.Invoke(fm);
-                            OnPrivateMessageReceived?.Invoke(fm, fm.Sender);
-                            OnFriendMessageReceived?.Invoke(fm, fm.Sender);
+                            ClientFriendMessageReceivedEvent e = new(this, fm);
+                            OnClientEventOccured?.Invoke(e);
                             //ftm (无端联想)
                             //我sll不是跨啊(
                         }
                         else
                         {
                             PrivateMessage pm = PrivateMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
-                            OnMessageReceived?.Invoke(pm);
-                            OnPrivateMessageReceived?.Invoke(pm, pm.Sender);
+                            ClientPrivateMessageReceivedEvent e = new(this, pm);
+                            OnClientEventOccured?.Invoke(e);
                         }
                     }
                     break;
@@ -414,11 +420,11 @@ public abstract class CqClient : IClient
             case CqNoticePost noticePost:
                 switch (noticePost)
                 {
-                    case CqFriendMessageRecalledNoticePost notice:
+                    case CqPrivateMessageRecalledNoticePost notice:
                     {
                         var privateMsg = this.GetPrivateMessageById(notice.MessageId);
-                        OnMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
-                        OnPrivateMessageRecalled?.Invoke(privateMsg, privateMsg.Sender);
+                        ClientPrivateMessageRecalledEvent e = new(this, privateMsg);
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -426,14 +432,15 @@ public abstract class CqClient : IClient
                     {
                         var groupMsg = this.GetGroupMessageById(notice.MessageId);
                         var operatorUser = this.GetGroupUser(notice.GroupId, notice.UserId);
-                        OnMessageRecalled?.Invoke(groupMsg, operatorUser);
-                        OnGroupMessageRecalled?.Invoke(groupMsg, groupMsg.Group, operatorUser);
+                        ClientGroupMessageRecalledEvent e = new(this, groupMsg, operatorUser);
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
                     case CqFriendAddedNoticePost notice:
                     {
-                        OnFriendAdded?.Invoke(this.GetFriendUser(notice.UserId));
+                        ClientFriendAddedEvent e = new(this, this.GetFriendUser(notice.UserId));
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -449,11 +456,12 @@ public abstract class CqClient : IClient
                                 );
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
                         GroupUser user = this.GetGroupUser(group, notice.UserId);
-                        OnGroupAdminChanged?.Invoke(group, user, isSet);
+                        ClientEvent e;
                         if (isSet)
-                            OnGroupAdminSet?.Invoke(group, user);
+                            e = new ClientGroupAdminSetEvent(this, group, user);
                         else
-                            OnGroupAdminCancelled?.Invoke(group, user);
+                            e = new ClientGroupAdminCancelledEvent(this, group, user);
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -471,11 +479,12 @@ public abstract class CqClient : IClient
                         GroupUser user = this.GetGroupUser(group, notice.SenderId);
                         GroupUser operatorUser = this.GetGroupUser(group, notice.OperatorId);
                         GroupMessage message = this.GetGroupMessageById(notice.MessageId);
-                        OnGroupEssenceSet?.Invoke(group, operatorUser, user, message, isAdd);
+                        ClientEvent e;
                         if (isAdd)
-                            OnGroupEssenceAdded?.Invoke(group, operatorUser, user, message);
+                            e = new ClientGroupEssenceAddedEvent(this, group, operatorUser, user, message);
                         else
-                            OnGroupEssenceRemoved?.Invoke(group, operatorUser, user, message);
+                            e = new ClientGroupEssenceRemovedEvent(this, group, operatorUser, user, message);
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -484,7 +493,7 @@ public abstract class CqClient : IClient
                         GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
                         UploadedGroupFile groupFile = new(this, notice.File);
-                        OnGroupFileUploaded?.Invoke(group, uploader, groupFile);
+                        OnClientEventOccured?.Invoke(new ClientGroupFileUploadedEvent(this, group, uploader, groupFile));
                     }
                     break;
 
@@ -500,22 +509,24 @@ public abstract class CqClient : IClient
                                 );
                         GroupUser operatorUser = this.GetGroupUser(notice.GroupId, notice.OperatorId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
+                        ClientEvent e;
                         //确保不是全员禁言
                         if (notice.UserId != 0)
                         {
                             GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                             if (isBan)
-                                OnGroupMemberBanned?.Invoke(group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
+                                e = new ClientGroupMemberBannedEvent(this, group, user, operatorUser, TimeSpan.FromSeconds(notice.Duration));
                             else
-                                OnGroupMemberBanLifted?.Invoke(group, user, operatorUser);
+                                e = new ClientGroupMemberBanLiftedEvent(this, group, operatorUser, user);
                         }
                         else
                         {
                             if (isBan)
-                                OnGroupAllUserBanned?.Invoke(group, operatorUser);
+                                e = new ClientGroupAllUserBannedEvent(this, group, operatorUser);
                             else
-                                OnGroupAllUserBanLifted?.Invoke(group, operatorUser);
+                                e = new ClientGroupAllUserBanLiftedEvent(this, group, operatorUser);
                         }
+                        OnClientEventOccured?.Invoke(e);
                     }
                     break;
 
@@ -523,7 +534,7 @@ public abstract class CqClient : IClient
                     {
                         GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnGroupMemberCardChanged?.Invoke(group, user, notice.CardOld, notice.CardNew);
+                        OnClientEventOccured?.Invoke(new ClientGroupMemberCardChangedEvent(this, group, user, notice.CardOld, notice.CardNew));
                     }
                     break;
 
@@ -531,8 +542,7 @@ public abstract class CqClient : IClient
                     {
                         User user = this.GetUser(notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnGroupMemberChanged?.Invoke(group, user, false);
-                        OnGroupMemberDecreased?.Invoke(group, user);
+                        OnClientEventOccured?.Invoke(new ClientGroupMemberDecreasedEvent(this, group, user));
                     }
                     break;
 
@@ -540,8 +550,7 @@ public abstract class CqClient : IClient
                     {
                         GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnGroupMemberChanged?.Invoke(group, user, true);
-                        OnGroupMemberIncreased?.Invoke(group, user);
+                        OnClientEventOccured?.Invoke(new ClientGroupMemberIncreasedEvent(this, group, user));
                     }
                     break;
 
@@ -549,7 +558,7 @@ public abstract class CqClient : IClient
                     {
                         User user = this.GetUser(notice.UserId);
                         OfflineFile offlineFile = new(this, notice.File);
-                        OnOfflineFileReceived?.Invoke(user, offlineFile);
+                        OnClientEventOccured?.Invoke(new ClientOfflineFileReceivedEvent(this, user, offlineFile));
                     }
                     break;
                 }
@@ -561,7 +570,7 @@ public abstract class CqClient : IClient
                     case CqFriendRequestPost request:
                     {
                         var r = FriendAddRequest.CreateFromPost(this, request);
-                        OnFriendAddRequested?.Invoke(r);
+                        OnClientEventOccured?.Invoke(new ClientFriendAddRequestedEvent(this, r));
                     }
                     break;
                     case CqGroupRequestPost request:
@@ -569,12 +578,12 @@ public abstract class CqClient : IClient
                         if (request.SubType is CqGroupRequestPost.RequestSubType.Add)
                         {
                             var r = GroupJoinRequest.CreateFromPost(this, request);
-                            OnGroupJoinRequested?.Invoke(r);
+                            OnClientEventOccured?.Invoke(new ClientGroupJoinRequestedEvent(this, r));
                         }
                         else if (request.SubType is CqGroupRequestPost.RequestSubType.Invite)
                         {
                             var r = GroupInviteRequest.CreateFromPost(this, request);
-                            OnGroupInviteRequested?.Invoke(r);
+                            OnClientEventOccured?.Invoke(new ClientGroupInviteRequestedEvent(this, r));
                         }
                     }
                     break;
@@ -582,68 +591,6 @@ public abstract class CqClient : IClient
                 break;
         }
     }
-
-    #region 一堆用户层的事件
-
-    #region 消息收到
-    public event IClient.OnMessageReceivedHandler<Message>? OnMessageReceived;
-    public event IClient.OnGroupMessageReceivedHandler<GroupMessage, JoinedGroup>? OnGroupMessageReceived;
-    public event IClient.OnPrivateMessageReceivedHandler<PrivateMessage, User>? OnPrivateMessageReceived;
-    public event IClient.OnFriendMessageReceivedHandler<FriendMessage, FriendUser>? OnFriendMessageReceived;
-    #endregion
-
-    #region 消息撤回
-    public event IClient.OnMessageRecalledHandler<Message, User>? OnMessageRecalled;
-    public event IClient.OnPrivateMessageRecalledHandler<PrivateMessage, User>? OnPrivateMessageRecalled;
-    public event IClient.OnGroupMessageRecalledHandler<GroupMessage, JoinedGroup, GroupUser>? OnGroupMessageRecalled;
-    #endregion
-
-    #region Notice收到
-    //好友添加
-    public event IClient.OnFriendAddedHandler<FriendUser>? OnFriendAdded;
-
-    //群管理员变动
-    public event IClient.OnGroupAdminChangedHandler<JoinedGroup, GroupUser>? OnGroupAdminChanged;
-    public event IClient.OnGroupAdminSetHandler<JoinedGroup, GroupUser>? OnGroupAdminSet;
-    public event IClient.OnGroupAdminCancelledHandler<JoinedGroup, GroupUser>? OnGroupAdminCancelled;
-
-    //群精华变动
-    public event IClient.OnGroupEssenceSetHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceSet;
-    public event IClient.OnGroupEssenceAddedHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceAdded;
-    public event IClient.OnGroupEssenceRemovedHandler<JoinedGroup, GroupUser, GroupMessage>? OnGroupEssenceRemoved;
-
-    //群文件上传
-    public event IClient.OnGroupFileUploadedHandler<JoinedGroup, GroupUser, UploadedGroupFile>? OnGroupFileUploaded;
-
-    //群禁言
-    public event IClient.OnGroupMemberBannedHandler<JoinedGroup, GroupUser>? OnGroupMemberBanned;
-    public event IClient.OnGroupMemberBanLiftedHandler<JoinedGroup, GroupUser>? OnGroupMemberBanLifted;
-    //special: 全员禁言
-    public event IClient.OnGroupAllUserBannedHandler<JoinedGroup, GroupUser>? OnGroupAllUserBanned;
-    public event IClient.OnGroupAllUserBanLiftedHandler<JoinedGroup, GroupUser>? OnGroupAllUserBanLifted;
-
-    //群名片变更
-    public event IClient.OnGroupMemberCardChangedHandler<JoinedGroup, GroupUser>? OnGroupMemberCardChanged;
-
-    //离线文件收到
-    public event IClient.OnOfflineFileReceivedHandler<User, OfflineFile>? OnOfflineFileReceived;
-
-    //群成员变更
-    public event IClient.OnGroupMemberChangedHandler<JoinedGroup, User>? OnGroupMemberChanged;
-    public event IClient.OnGroupMemberIncreasedHandler<JoinedGroup, GroupUser>? OnGroupMemberIncreased;
-    public event IClient.OnGroupMemberDecreasedHandler<JoinedGroup, User>? OnGroupMemberDecreased;
-    #endregion
-
-    #region 请求
-
-    //加好友请求
-    public event IClient.OnFriendAddRequestedHandler<FriendAddRequest>? OnFriendAddRequested;
-    public event IClient.OnGroupJoinRequestedHandler<GroupJoinRequest>? OnGroupJoinRequested;
-    public event IClient.OnGroupInviteRequestedHandler<GroupInviteRequest>? OnGroupInviteRequested;
-
-    #endregion
-
-    #endregion
 
     #region 实用方法
     public MessageEntityBuilder CreateMessageBuilder()
@@ -988,173 +935,6 @@ public abstract class CqClient : IClient
 
     IForwardEntityBuilder IClient.CreateForwardBuilder()
         => new ForwardEntityBuilder(this);
-
-    #region 亿堆事件
-
-
-    event IClient.OnMessageReceivedHandler<IMessage>? IClient.OnMessageReceived
-    {
-        add => OnMessageReceived += value;
-        remove => OnMessageReceived -= value;
-    }
-
-    event IClient.OnGroupMessageReceivedHandler<IGroupMessage, IJoinedGroup>? IClient.OnGroupMessageReceived
-    {
-        add => OnGroupMessageReceived += value;
-        remove => OnGroupMessageReceived -= value;
-    }
-
-    event IClient.OnPrivateMessageReceivedHandler<IPrivateMessage, IUser>? IClient.OnPrivateMessageReceived
-    {
-        add => OnPrivateMessageReceived += value;
-        remove => OnPrivateMessageReceived -= value;
-    }
-
-    event IClient.OnFriendMessageReceivedHandler<IFriendMessage, IFriendUser>? IClient.OnFriendMessageReceived
-    {
-        add => OnFriendMessageReceived += value;
-        remove => OnFriendMessageReceived -= value;
-    }
-
-    event IClient.OnMessageRecalledHandler<IMessage, IUser>? IClient.OnMessageRecalled
-    {
-        add => OnMessageRecalled += value;
-        remove => OnMessageRecalled -= value;
-    }
-
-    event IClient.OnPrivateMessageRecalledHandler<IPrivateMessage, IUser>? IClient.OnPrivateMessageRecalled
-    {
-        add => OnPrivateMessageRecalled += value;
-        remove => OnPrivateMessageRecalled -= value;
-    }
-
-    event IClient.OnGroupMessageRecalledHandler<IGroupMessage, IJoinedGroup, IGroupUser>? IClient.OnGroupMessageRecalled
-    {
-        add => OnGroupMessageRecalled += value;
-        remove => OnGroupMessageRecalled -= value;
-    }
-
-    event IClient.OnFriendAddedHandler<IFriendUser>? IClient.OnFriendAdded
-    {
-        add => OnFriendAdded += value;
-        remove => OnFriendAdded -= value;
-    }
-
-    event IClient.OnGroupAdminChangedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminChanged
-    {
-        add => OnGroupAdminChanged += value;
-        remove => OnGroupAdminChanged -= value;
-    }
-
-    event IClient.OnGroupAdminSetHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminSet
-    {
-        add => OnGroupAdminSet += value;
-        remove => OnGroupAdminSet -= value;
-    }
-
-    event IClient.OnGroupAdminCancelledHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAdminCancelled
-    {
-        add => OnGroupAdminCancelled += value;
-        remove => OnGroupAdminCancelled -= value;
-    }
-
-    event IClient.OnGroupEssenceSetHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceSet
-    {
-        add => OnGroupEssenceSet += value;
-        remove => OnGroupEssenceSet -= value;
-    }
-
-    event IClient.OnGroupEssenceAddedHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceAdded
-    {
-        add => OnGroupEssenceAdded += value;
-        remove => OnGroupEssenceAdded -= value;
-    }
-
-    event IClient.OnGroupEssenceRemovedHandler<IJoinedGroup, IGroupUser, IGroupMessage>? IClient.OnGroupEssenceRemoved
-    {
-        add => OnGroupEssenceRemoved += value;
-        remove => OnGroupEssenceRemoved -= value;
-    }
-
-    event IClient.OnGroupFileUploadedHandler<IJoinedGroup, IGroupUser, IUploadedGroupFile>? IClient.OnGroupFileUploaded
-    {
-        add => OnGroupFileUploaded += value;
-        remove => OnGroupFileUploaded -= value;
-    }
-
-    event IClient.OnOfflineFileReceivedHandler<IUser, IOfflineFile>? IClient.OnOfflineFileReceived
-    {
-        add => OnOfflineFileReceived += value;
-        remove => OnOfflineFileReceived -= value;
-    }
-
-    event IClient.OnGroupMemberBannedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberBanned
-    {
-        add => OnGroupMemberBanned += value;
-        remove => OnGroupMemberBanned -= value;
-    }
-
-    event IClient.OnGroupMemberBanLiftedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberBanLifted
-    {
-        add => OnGroupMemberBanLifted += value;
-        remove => OnGroupMemberBanLifted -= value;
-    }
-
-    event IClient.OnGroupAllUserBannedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAllUserBanned
-    {
-        add => OnGroupAllUserBanned += value;
-        remove => OnGroupAllUserBanned -= value;
-    }
-
-    event IClient.OnGroupAllUserBanLiftedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupAllUserBanLifted
-    {
-        add => OnGroupAllUserBanLifted += value;
-        remove => OnGroupAllUserBanLifted -= value;
-    }
-
-    event IClient.OnGroupMemberCardChangedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberCardChanged
-    {
-        add => OnGroupMemberCardChanged += value;
-        remove => OnGroupMemberCardChanged -= value;
-    }
-
-    event IClient.OnGroupMemberChangedHandler<IJoinedGroup, IUser>? IClient.OnGroupMemberChanged
-    {
-        add => OnGroupMemberChanged += value;
-        remove => OnGroupMemberChanged -= value;
-    }
-
-    event IClient.OnGroupMemberIncreasedHandler<IJoinedGroup, IGroupUser>? IClient.OnGroupMemberIncreased
-    {
-        add => OnGroupMemberIncreased += value;
-        remove => OnGroupMemberIncreased -= value;
-    }
-
-    event IClient.OnGroupMemberDecreasedHandler<IJoinedGroup, IUser>? IClient.OnGroupMemberDecreased
-    {
-        add => OnGroupMemberDecreased += value;
-        remove => OnGroupMemberDecreased -= value;
-    }
-
-    event IClient.OnFriendAddRequestedHandler<IFriendAddRequest>? IClient.OnFriendAddRequested
-    {
-        add => OnFriendAddRequested += value;
-        remove => OnFriendAddRequested -= value;
-    }
-
-    event IClient.OnGroupJoinRequestedHandler<IGroupJoinRequest>? IClient.OnGroupJoinRequested
-    {
-        add => OnGroupJoinRequested += value;
-        remove => OnGroupJoinRequested -= value;
-    }
-
-    event IClient.OnGroupInviteRequestedHandler<IGroupInviteRequest>? IClient.OnGroupInviteRequested
-    {
-        add => OnGroupInviteRequested += value;
-        remove => OnGroupInviteRequested -= value;
-    }
-
-    #endregion
 
     #endregion
 }

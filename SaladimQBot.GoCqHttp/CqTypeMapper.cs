@@ -25,7 +25,7 @@ internal static class CqTypeMapper
         CqNoticeType.GroupMemberBanned => typeof(CqGroupMemberBannedNoticePost),
         CqNoticeType.GroupMemberCardChanged => typeof(CqGroupMemberCardChangedNoticePost),
         CqNoticeType.GroupMessageRecalled => typeof(CqGroupMessageRecalledNoticePost),
-        CqNoticeType.FriendRecalled => typeof(CqFriendMessageRecalledNoticePost),
+        CqNoticeType.FriendRecalled => typeof(CqPrivateMessageRecalledNoticePost),
         CqNoticeType.FriendAdded => typeof(CqFriendAddedNoticePost),
         CqNoticeType.SystemNotice => typeof(CqNotifyNoticePost),
         CqNoticeType.OfflineFileUploaded => typeof(CqOfflineFileUploadedNoticePost),

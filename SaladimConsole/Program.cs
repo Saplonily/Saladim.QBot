@@ -43,7 +43,7 @@ public static class Program
         //大部分情况下你会因为没有这个目录导致程序直接寄
         #region 初始化/配置日志
         //搞日志:
-        string rawLogFileName = $"D:\\Projects\\Saladim.QBot\\Logs\\{DateTime.Now.ToShortDateString()}";
+        string rawLogFileName = $"D:\\Projects\\Saladim.QBot\\Working\\Logs\\{DateTime.Now.ToShortDateString()}";
         int index = 0;
         while (File.Exists($"{rawLogFileName}-{index}.log"))
         {
@@ -68,7 +68,8 @@ public static class Program
 
         logger.LogInfo(SecProgram, "Starting...");
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
-        SubscribeEvents();
+        (client as CqClient)!.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
+        client.OnClientEventOccured += Client_OnClientEventOccured;
 
         bool connected = false;
         while (connected == false)
@@ -101,91 +102,79 @@ public static class Program
         logger.LogInfo(SecProgram, "Main method ended.");
         writer.Dispose();
         return 0;
+    }
 
-        static void SubscribeEvents()
+    private static async void Client_OnClientEventOccured(IIClientEvent clientEvent)
+    {
+        switch (clientEvent)
         {
-            (client as CqClient)!.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
-            client.OnGroupMemberIncreased += Client_OnGroupMemberIncreased;
-            client.OnGroupMemberChanged += Client_OnGroupMemberChanged;
-            client.OnGroupMemberDecreased += Client_OnGroupMemberDecreased;
-            client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
-            client.OnGroupAllUserBanned += Client_OnGroupAllUserBanned;
-            client.OnFriendMessageReceived += Client_OnFriendMessageReceived;
-            client.OnFriendAddRequested += Client_OnFriendAddRequested;
-            client.OnGroupInviteRequested += Client_OnGroupInviteRequested;
+            case IClientGroupMemberIncreasedEvent e:
+            {
+                logger.LogInfo("p", $"awa, 群{e.Group.Name}里人了: {e.User.Nickname}");
+            }
+            break;
+            case IClientGroupMemberDecreasedEvent e:
+            {
+                logger.LogInfo("p", $"qwq, 群{e.Group.Name}里{e.User.Nickname}走了");
+            }
+            break;
+            case IClientGroupMessageReceivedEvent e:
+            {
+                var message = e.Message;
+                var group = e.Group;
+                var entity = message.MessageEntity;
+                if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
+                logger.LogInfo("Program", $"群{group.Name}里的{message.Sender.GetFullName()}说: {message.MessageEntity.RawString}");
+                if (entity.Mentioned(client.Self))
+                {
+                    await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.").ConfigureAwait(false);
+                }
+                if (message.MessageEntity.RawString.Contains("/qwq"))
+                {
+                    await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime}的时候发的.").ConfigureAwait(false);
+                }
+                if (message.MessageEntity.MentionedAllUser())
+                {
+                    await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
+                }
+                if (message.MessageEntity.RawString.Contains("114514ppp"))
+                {
+                    IMessageEntity sendEntity = client.CreateMessageBuilder()
+                        .WithText("这是文字")
+                        .WithText(", 接下来的是图片: ")
+                        .WithImage("https://cn.bing.com/rp/QVXspp3oaMgMqbxnY2UzWAvA_fw.png")
+                        .WithFace(18)
+                        .WithAt(message.Sender)
+                        .Build();
+                    await message.ReplyAsync(sendEntity);
+                }
+            }
+            break;
+            case IClientGroupAllUserBannedEvent e:
+            {
+                logger.LogInfo("Program", $"{e.Group.Name}里的屑{e.Operator.GetFullName()}打开了全员禁言.");
+            }
+            break;
+            case IClientFriendMessageReceivedEvent e:
+            {
+                logger.LogInfo("Program", $"好友{e.Sender.Nickname}给你发消息了: {e.Message.MessageEntity.RawString}");
+            }
+            break;
+            case IClientFriendAddRequestedEvent e:
+            {
+                var request = e.Request;
+                logger.LogInfo("Program", $"有人想加你好友, 叫做{request.User.Nickname}, 验证消息:\"{request.Comment}\"");
+                await request.ApproveAsync().ConfigureAwait(false);
+            }
+            break;
+            case IClientGroupInviteRequestedEvent e:
+            {
+                var request = e.Request;
+                logger.LogInfo("Program", $"{request.User.Nickname}邀请你加入群{request.Group.Name}.");
+                await request.ApproveAsync().ConfigureAwait(false);
+            }
+            break;
         }
-    }
-
-    private static async void Client_OnGroupInviteRequested(IGroupInviteRequest request)
-    {
-        logger.LogInfo("Program", $"{request.User.Nickname}邀请你加入群{request.Group.Name}.");
-        await request.ApproveAsync().ConfigureAwait(false);
-    }
-
-    private static async void Client_OnFriendAddRequested(IFriendAddRequest request)
-    {
-        logger.LogInfo("Program", $"有人想加你好友, 叫做{request.User.Nickname}, 验证消息:\"{request.Comment}\"");
-        await request.ApproveAsync().ConfigureAwait(false);
-    }
-
-    private static void Client_OnFriendMessageReceived(IFriendMessage message, IFriendUser friendUser)
-    {
-        logger.LogInfo("Program", $"好友{friendUser.Nickname}给你发消息了: {message.MessageEntity.RawString}");
-    }
-
-    private static void Client_OnGroupAllUserBanned(IJoinedGroup group, IGroupUser operatorUser)
-    {
-        logger.LogInfo("Program", $"{group.Name}里的屑{operatorUser.GetFullName()}打开了全员禁言.");
-    }
-
-    private static async void Client_OnGroupMessageReceived(IGroupMessage message, IJoinedGroup group)
-    {
-        var entity = message.MessageEntity;
-        if (group.GroupId != 860355679 || message.Sender.UserId == 2259113381) return;
-        logger.LogInfo("Program", $"群{group.Name}里的{message.Sender.GetFullName()}说: {message.MessageEntity.RawString}");
-        if (entity.Mentioned(client.Self))
-        {
-            await message.ReplyAsync($"qwq, 你@我了, 然后你这条消息@了{entity.AllAt().Count()}次别人.").ConfigureAwait(false);
-        }
-        if (message.MessageEntity.RawString.Contains("/qwq"))
-        {
-            await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime}的时候发的.").ConfigureAwait(false);
-        }
-        if (message.MessageEntity.MentionedAllUser())
-        {
-            await message.Group.SendMessageAsync("刚才是不是有人@了一下全体成员...?").ConfigureAwait(false);
-        }
-        if (message.MessageEntity.RawString.Contains("114514ppp"))
-        {
-            IMessageEntity sendEntity = client.CreateMessageBuilder()
-                .WithText("这是文字")
-                .WithText(", 接下来的是图片: ")
-                .WithImage("https://cn.bing.com/rp/QVXspp3oaMgMqbxnY2UzWAvA_fw.png")
-                .WithFace(18)
-                .WithAt(message.Sender)
-                .Build();
-            await message.ReplyAsync(sendEntity);
-        }
-        //nothing
-        Console.WriteLine();
-    }
-
-    private static void Client_OnGroupMemberDecreased(IJoinedGroup group, IUser user)
-    {
-        logger.LogInfo("p", $"qwq, 群{group.Name}里{user.Nickname}走了");
-    }
-
-    private static void Client_OnGroupMemberChanged(IJoinedGroup group, IUser user, bool isIncrease)
-    {
-        logger.LogInfo(
-            "p", $"qwq, 群{group.Name}里{user.Nickname}这个人要么退群了要么加群了" +
-            $", 答案是... {(isIncrease ? $"加群!(角色是:{user.Cast<GroupUser>().GroupRole.Value})" : "退群...")}"
-            );
-    }
-
-    private static void Client_OnGroupMemberIncreased(IJoinedGroup group, IGroupUser user)
-    {
-        logger.LogInfo("p", $"awa, 群{group.Name}里人了: {user.Nickname}");
     }
 
     private static void ProcessMessageTest01(Message message)
@@ -358,7 +347,7 @@ public static class Program
                         """,
                 CqGroupMessageRecalledNoticePost np5 =>
                     $"群{np5.GroupId}里{np5.UserId}的消息{np5.MessageId}被{np5.OperatorId}撤回了",
-                CqFriendMessageRecalledNoticePost np6 =>
+                CqPrivateMessageRecalledNoticePost np6 =>
                     $"{np6.UserId}发给你的消息{np6.MessageId}被撤回啦",
                 CqNotifyNoticePost np7 =>
                     $"{(np7 is CqPokeNotifyNoticePost pp ? $"{pp.SenderId}戳了戳{pp.TargetId},{pp.GroupId}" :

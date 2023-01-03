@@ -1,6 +1,6 @@
 ﻿namespace SaladimQBot.GoCqHttp.Posts;
 
-public class CqFriendMessageRecalledNoticePost : CqNoticePost
+public class CqPrivateMessageRecalledNoticePost : CqNoticePost
 {
     [Name("user_id")]
     public Int64 UserId { get; set; }
