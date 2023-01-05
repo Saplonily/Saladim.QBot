@@ -25,8 +25,10 @@ public class Auto1A2BService
         _ = msg.MessageWindow.SendMessageAsync("开始1a2b");
         IGroupMessage announceMessage = null!;
         yield return new MessageWaiter(
-            msg => msg is IGroupMessage groupMessage
-                && groupMessage.MessageEntity.RawString == "1A2B开始啦，来猜结果吧~",
+            msg => msg is IGroupMessage groupMessage && (
+                groupMessage.MessageEntity.RawString == "1A2B开始啦，来猜结果吧~" ||
+                (groupMessage.MessageEntity.MentionedSelf() && groupMessage.MessageEntity.RawString.Contains("1A2B已经开始啦，不能重复开启哦~"))
+                ),
             msg => announceMessage = (IGroupMessage)msg
             );
         IGroupUser game1A2BAnnounceUser = announceMessage.Sender;

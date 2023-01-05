@@ -147,7 +147,7 @@ public static class EntityExtensions
     /// </summary>
     /// <param name="user">目标用户</param>
     public static bool Mentioned(this IMessageEntity entity, IUser user)
-        => entity.AllAt().Where(n => !n.MentionedAllUser() && n.User! == user).Any();
+        => entity.AllAt().Where(n => !n.MentionedAllUser() && n.User!.IsSameUser(user)).Any();
 
     public static bool MentionedAllUser(this IMessageEntity entity)
         => entity.AllAt().Where(n => n.MentionedAllUser()).Any();
