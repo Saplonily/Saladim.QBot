@@ -5,29 +5,56 @@ namespace SaladimQBot.Extensions;
 
 public class CoroutineService
 {
-    protected List<IEnumerator> coroutines;
+    protected List<IEnumerator<EventWaiter>> coroutines;
 
     public CoroutineService()
     {
         coroutines = new();
     }
 
-    public void StartNewCoroutine(IEnumerator enumerator)
+    /// <summary>
+    /// 增加一个新的事件处理协程, 会被立即<see cref="IEnumerator.MoveNext()"/>一次
+    /// </summary>
+    /// <param name="enumerator"></param>
+    public void AddNewCoroutine(IEnumerator<EventWaiter> enumerator)
     {
-        coroutines.Add(enumerator);
+        if (enumerator.MoveNext())
+        {
+            lock (this)
+            {
+                coroutines.Add(enumerator);
+            }
+        }
     }
 
-
-}
-
-public struct MessageWaiter
-{
-    public MessageWaiterChecker Checker;
-
-    public MessageWaiter(MessageWaiterChecker checker)
+    /// <summary>
+    /// 使用一个事件推动该协程
+    /// 在遇到EventWaiter时会停止并且等待该事件
+    /// </summary>
+    /// <param name="clientEvent"></param>
+    public void PushCoroutines(IIClientEvent clientEvent)
     {
-        Checker = checker;
+        lock (this)
+        {
+            List<IEnumerator<EventWaiter>> markedRemoves = new();
+            foreach (var ie in coroutines)
+            {
+                if (ie.Current.Checker(clientEvent))
+                {
+                    if (ie.MoveNext())
+                        continue;
+                    else
+                        markedRemoves.Add(ie);
+                }
+            }
+            for (int i = coroutines.Count - 1; i >= 0; i--)
+            {
+                if (markedRemoves.Contains(coroutines[i]))
+                {
+                    coroutines.RemoveAt(i);
+                    markedRemoves.Remove(coroutines[i]);
+                }
+            }
+        }
     }
 }
-
-public delegate bool MessageWaiterChecker(IMessage message);

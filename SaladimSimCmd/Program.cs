@@ -12,7 +12,7 @@ namespace SaladimSimCmd;
 public class Program
 {
     public static CqClient client = null!;
-    public static SimCommandExecutor simCmd = null!;
+    public static SimCommandExecuter simCmd = null!;
 
     public static async Task Main(string[] args)
     {

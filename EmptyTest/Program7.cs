@@ -1,4 +1,37 @@
 ﻿using SaladimWpf.Services;
+using SQLite;
+
+SQLiteConnection connection = new(@"D:\User\Desktop\SaladimWPF\data\test.db");
+connection.CreateTable<TestClass>();
+connection.Insert(new TestClass(233L, "233"));
+
+connection.Find<TestClass>(233);
+
+connection.Close();
+
+[Table("TestClasses")]
+public class TestClass
+{
+    public TestClass()
+    {
+
+    }
+
+    public TestClass(long @long, string name)
+    {
+        this.Long = @long;
+        this.Name = name;
+    }
+
+    [Ignore]
+    public long Long { get; set; }
+
+    [Column("longwith2"), NotNull, PrimaryKey]
+    public long LongWith2 { get => 2 * Long; set => Long = value / 2; }
+
+    [Column("name"), NotNull]
+    public string Name { get; set; } = null!;
+}
 
 /*using IlyfairyLib.Unsafe;
 

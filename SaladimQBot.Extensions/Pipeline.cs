@@ -4,7 +4,7 @@ namespace SaladimQBot.Extensions;
 
 public class Pipeline<T> where T : class
 {
-    public delegate Task Middleware(T message, Func<Task> next);
+    public delegate Task Middleware(T thing, Func<Task> next);
     protected List<Middleware> middlewares;
 
     public Pipeline()
@@ -22,10 +22,10 @@ public class Pipeline<T> where T : class
         middlewares.Add(middleware);
     }
 
-    public Task ExecuteAsync(T msg)
-        => ExecuteAtAsync(0, msg);
+    public Task ExecuteAsync(T thing)
+        => ExecuteAtAsync(0, thing);
 
-    protected async Task ExecuteAtAsync(int index, T msg)
+    protected async Task ExecuteAtAsync(int index, T thing)
     {
         var middleware = middlewares[index];
         Func<Task> next;
@@ -35,8 +35,8 @@ public class Pipeline<T> where T : class
         }
         else
         {
-            next = () => ExecuteAtAsync(index + 1, msg);
+            next = () => ExecuteAtAsync(index + 1, thing);
         }
-        await middlewares[index].Invoke(msg, next).ConfigureAwait(false);
+        await middlewares[index].Invoke(thing, next).ConfigureAwait(false);
     }
 }

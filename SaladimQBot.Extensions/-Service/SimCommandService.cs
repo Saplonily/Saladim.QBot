@@ -2,7 +2,7 @@
 
 public class SimCommandService
 {
-    public SimCommandExecutor Executor { get; protected set; }
+    public SimCommandExecuter Executor { get; protected set; }
 
     public SimCommandService(SimCommandConfig config)
     {

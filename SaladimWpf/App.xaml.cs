@@ -29,6 +29,13 @@ public partial class App : Application
                 coll.AddSingleton<JavaScriptService>();
                 coll.AddSingleton<IntegralCalculatorService>();
                 coll.AddSingleton<Auto1A2BService>();
+                coll.AddSingleton<ISessionService, SessionSqliteService>();
+#if DEBUG
+                coll.AddSingleton(new SessionSqliteServiceConfig(new(@"D:\User\Desktop\SaladimWPF\data\debug.db")));
+#elif !DEBUG
+                coll.AddSingleton(new SessionSqliteServiceConfig(new(@"D:\User\Desktop\SaladimWPF\data\release.db")));
+#endif
+                coll.AddSingleton<CoroutineService>();
             })
             .Build();
         serviceProvider = AppHost.Services;

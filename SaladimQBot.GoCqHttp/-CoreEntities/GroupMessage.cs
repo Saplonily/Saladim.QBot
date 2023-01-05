@@ -71,6 +71,8 @@ public class GroupMessage : Message, IGroupMessage
         base.LoadFromMessageId();
         ExpGroup = Client.MakeDependencyExpirable(ApiCallResult, GroupFactory);
         ExpGroupSender = Client.MakeDependencyExpirable(ApiCallResult, GroupSenderFactory);
+        ExpSender = ExpGroupSender;
+
 
         return this;
         JoinedGroup GroupFactory(GetMessageActionResultData d)
@@ -93,6 +95,7 @@ public class GroupMessage : Message, IGroupMessage
     {
         base.LoadFromMessagePost(post);
         ExpGroupSender = Client.MakeNoneExpirableExpirable(GroupUser.CreateFromCqGroupMessagePost(Client, post));
+        ExpSender = ExpGroupSender;
         ExpGroup = Client.MakeNoneExpirableExpirable(JoinedGroup.CreateFromCqGroupMessagePost(Client, post));
         return this;
     }

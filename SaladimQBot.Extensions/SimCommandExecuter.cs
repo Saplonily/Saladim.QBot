@@ -7,7 +7,7 @@ using SaladimQBot.Core;
 
 namespace SaladimQBot.Extensions;
 
-public sealed partial class SimCommandExecutor
+public sealed partial class SimCommandExecuter
 {
     public static readonly Type StringType = typeof(string);
     public static readonly Regex CommandParamRegex = new("(\"[^\"]*\")|[^\\s]+", RegexOptions.Compiled);
@@ -20,12 +20,15 @@ public sealed partial class SimCommandExecutor
 
     public string RootCommandPrefix { get; }
 
+    public delegate void OnCommandExecutedHandler(MethodBasedCommand command, CommandContent content, object[] @params);
+    public event OnCommandExecutedHandler? OnCommandExecuted;
+
     /// <summary>
     /// 创建一个服务实例
     /// </summary>
     /// <param name="client">client实例</param>
     /// <param name="rootCommandPrefix">指令的前缀, 不需要前缀时请显式指定为空字符串</param>
-    public SimCommandExecutor(string rootCommandPrefix)
+    public SimCommandExecuter(string rootCommandPrefix)
     {
         this.RootCommandPrefix = rootCommandPrefix;
         commands = new();
@@ -66,7 +69,7 @@ public sealed partial class SimCommandExecutor
         moduleInstanceFactory = Activator.CreateInstance;
     }
 
-    public SimCommandExecutor(string rootCommandPrefix, Func<Type, object?> moduleInstanceFactory)
+    public SimCommandExecuter(string rootCommandPrefix, Func<Type, object?> moduleInstanceFactory)
         : this(rootCommandPrefix)
     {
         this.moduleInstanceFactory = moduleInstanceFactory;
@@ -126,20 +129,21 @@ public sealed partial class SimCommandExecutor
                     {
                         argAsString[i] = matches[i + 1].Value.Trim('"');
                     }
-                    ExecuteInternal(msg, cmd, argAsString);
+                    CommandContent content = new(this, msg);
+                    ExecuteInternal(cmd, argAsString, content);
                 }
             }
         }
     }
 
-    internal bool ExecuteInternal(IMessage msg, MethodBasedCommand cmd, string[]? cmdParams)
+    internal bool ExecuteInternal(MethodBasedCommand cmd, string[]? cmdParams, CommandContent content)
     {
         var paramsLength = cmd.Parameters.Length;
         if (cmd.Parameters.Length != cmdParams?.Length && !cmd.IsParamsCommand)
             return false;
 
         if (moduleInstanceFactory?.Invoke(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
-        moduleIns.Content = new(this, msg);
+        moduleIns.Content = content;
         if (!moduleIns.PreCheck(moduleIns.Content))
             return false;
 
@@ -149,6 +153,7 @@ public sealed partial class SimCommandExecutor
             if (cmdParams is null)
             {
                 cmd.Method.Invoke(moduleIns, Array.Empty<object>());
+                OnCommandExecuted?.Invoke(cmd, content, Array.Empty<object>());
                 return true;
             }
             else
@@ -160,18 +165,21 @@ public sealed partial class SimCommandExecutor
                 if (paramObjects is null) return false;
                 paramObjects.CopyTo(array, 0);
                 cmd.Method.Invoke(moduleIns, new object[] { array });
+                OnCommandExecuted?.Invoke(cmd, content, new object[] { array });
                 return true;
             }
         }
 
         if (cmdParams is null)
         {
-            cmd.Method.Invoke(moduleIns, null);
+            cmd.Method.Invoke(moduleIns, Array.Empty<object>());
+            OnCommandExecuted?.Invoke(cmd, content, Array.Empty<object>());
             return true;
         }
         else if (paramsTypes.All(t => t == StringType))
         {
             cmd.Method.Invoke(moduleIns, cmdParams);
+            OnCommandExecuted?.Invoke(cmd, content, cmdParams);
             return true;
         }
         else
@@ -179,6 +187,7 @@ public sealed partial class SimCommandExecutor
             object[]? paramObjects = ParseParams(cmdParams, paramsTypes);
             if (paramObjects is null) return false;
             cmd.Method.Invoke(moduleIns, paramObjects);
+            OnCommandExecuted?.Invoke(cmd, content, paramObjects);
             return true;
         }
     }
@@ -216,7 +225,7 @@ public sealed partial class SimCommandExecutor
         => await Task.Run(() => MatchAndExecuteAll(msg)).ConfigureAwait(false);
 }
 
-internal class MethodBasedCommand
+public class MethodBasedCommand
 {
     public string Name;
     public MethodInfo Method;

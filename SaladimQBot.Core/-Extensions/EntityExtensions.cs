@@ -67,6 +67,15 @@ public static class EntityExtensions
     public static bool IsFromFriends(this IPrivateMessage privateMessage)
         => privateMessage.TempSource == MessageTempSource.Invalid;
 
+    public static bool IsSameUser(this IUser user1, IUser user2)
+        => user1.UserId == user2.UserId;
+
+    public static bool IsSameGroup(this IGroup group1, IGroup group2)
+        => group1.GroupId == group2.GroupId;
+
+    public static bool IsSameGroupUser(this IGroupUser groupUser1, IGroupUser groupUser2)
+        => groupUser1.IsSameUser(groupUser2) && groupUser1.Group.IsSameGroup(groupUser2.Group);
+
 
     #endregion
 

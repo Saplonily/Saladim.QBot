@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -6,12 +8,14 @@ using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
+using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
 using SaladimWpf.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SQLite;
 using SysColor = System.Drawing.Color;
 
 namespace SaladimWpf.SimCmdModules;
@@ -20,14 +24,46 @@ public partial class TextMisc : CommandModule
 {
     private readonly IServiceProvider serviceProvider;
     private readonly SalLoggerService salLoggerService;
-    private readonly SaladimWpfService saladimWpfService;
+    private readonly ISessionService sessionService;
 
-
-    public TextMisc(SaladimWpfService saladimWpfService, IServiceProvider serviceProvider, SalLoggerService salLoggerService)
+    public TextMisc(IServiceProvider serviceProvider, SalLoggerService salLoggerService, ISessionService sessionService)
     {
-        this.saladimWpfService = saladimWpfService;
         this.serviceProvider = serviceProvider;
         this.salLoggerService = salLoggerService;
+        this.sessionService = sessionService;
+    }
+
+    [Table("test_session")]
+    public class TestSession : SqliteSession
+    {
+        [Column("test_num")]
+        public int Num { get; set; }
+    }
+
+    [Command("check_env")]
+    public void CheckEnv()
+    {
+        var os = Environment.OSVersion;
+        StringBuilder sb = new();
+        sb.AppendLine($"运行平台: {os.Platform}");
+#if DEBUG
+        sb.AppendLine($"环境: DEBUG");
+#else
+        sb.AppendLine($"环境: RELEASE");
+#endif
+        sb.AppendLine($"运行程序: {Process.GetCurrentProcess().ProcessName}");
+        sb.AppendLine($".NET clr版本: {Environment.Version}");
+        sb.AppendLine($"程序内存占用: {NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64)}");
+        Content.MessageWindow.SendMessageAsync(sb.ToString());
+    }
+
+    [Command("add_my")]
+    public void AddMy()
+    {
+        var s = sessionService.GetUserSession<TestSession>(Content.Executor.UserId);
+        s.Num += 1;
+        sessionService.SaveSession(s);
+        Content.MessageWindow.SendMessageAsync(Content.Client.CreateTextOnlyEntity($"已为您的session.Num增加1, 目前值: {s.Num}"));
     }
 
     [Command("random")]
@@ -37,7 +73,7 @@ public partial class TextMisc : CommandModule
         int num = r.Next(min, max);
         IMessageEntity e = Content.Client.CreateMessageBuilder()
             .WithAt(Content.Message.Sender)
-            .WithText($"{Content.Executer.Nickname},你的随机数为{num}哦~")
+            .WithText($"{Content.Executor.Nickname},你的随机数为{num}哦~")
             .Build();
         Content.MessageWindow.SendMessageAsync(e);
     }
@@ -213,6 +249,7 @@ public partial class TextMisc : CommandModule
     {
         "禁言", "傻逼", "智障", "煞笔", "我是", "你是"
     };
+
     [GeneratedRegex("echo")]
     private static partial Regex EchoCountRegex();
 
@@ -253,7 +290,7 @@ public partial class TextMisc : CommandModule
     [Command("my_avatar")]
     public void MyAvatar()
     {
-        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(Content.Executer.AvatarUrl).Build();
+        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(Content.Executor.AvatarUrl).Build();
         Content.MessageWindow.SendMessageAsync(entity);
     }
 
@@ -276,4 +313,34 @@ public partial class TextMisc : CommandModule
         };
         Content.MessageWindow.SendMessageAsync(Content.Client.CreateMessageBuilder().WithUnImpl("tts", ttsParam).Build());
     }
+
+    [Command("new_co")]
+    public void NewCo()
+    {
+        serviceProvider.GetRequiredService<CoroutineService>().AddNewCoroutine(Co());
+    }
+
+    public IEnumerator<EventWaiter> Co()
+    {
+        Content.MessageWindow.SendMessageAsync("协程开始了");
+        yield return new CommandWaiter(Content.SimCommandExecuter, Content.Executor, "push1");
+        Content.MessageWindow.SendMessageAsync("协程被推动了push1");
+
+        yield return new CommandWaiter(Content.SimCommandExecuter, Content.Executor, "push4");
+        Content.MessageWindow.SendMessageAsync("协程被推动了push4, 协程结束了");
+
+        if (Content.Executor is IGroupUser groupUser)
+        {
+            IGroupMessage groupMsg = null!;
+            yield return new MessageWaiter(groupUser, m => groupMsg = m);
+            Content.MessageWindow.SendMessageAsync($"你之后说了{groupMsg.MessageEntity.RawString}哦~");
+        }
+
+        yield break;
+    }
+
+    [Command("push1")] public void Push1() { }
+    [Command("push2")] public void Push2() { }
+    [Command("push3")] public void Push3() { }
+    [Command("push4")] public void Push4() { }
 }

@@ -23,19 +23,19 @@ public abstract class CommandModule
 
 public sealed class CommandContent
 {
-    public SimCommandExecutor Service { get; }
+    public SimCommandExecuter SimCommandExecuter { get; }
 
     public IMessage Message { get; }
 
-    public IUser Executer => Message.Sender;
+    public IUser Executor => Message.Sender;
 
     public IMessageWindow MessageWindow => Message.MessageWindow;
 
     public IClient Client => Message.Client;
 
-    public CommandContent(SimCommandExecutor service, IMessage message)
+    public CommandContent(SimCommandExecuter service, IMessage message)
     {
-        this.Service = service;
+        this.SimCommandExecuter = service;
         this.Message = message;
     }
 }

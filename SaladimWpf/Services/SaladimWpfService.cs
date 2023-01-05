@@ -15,6 +15,8 @@ public class SaladimWpfService : IClientService
     protected CqWebSocketClient wsClient;
     protected SimCommandService simCommandService;
     protected IServiceProvider serviceProvider;
+    protected CoroutineService coroutineService;
+    protected Pipeline<IIClientEvent> eventPipeline;
     protected Pipeline<IMessage> messagePipeline;
 
     public IClient Client { get; }
@@ -27,7 +29,8 @@ public class SaladimWpfService : IClientService
         SaladimWpfServiceConfig config,
         SalLoggerService loggerService,
         SimCommandService simCommandService,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        CoroutineService coroutineService
         )
     {
         wsClient = new(config.GoCqHttpWebSocketAddress, LogLevel.Trace);
@@ -36,20 +39,44 @@ public class SaladimWpfService : IClientService
         wsClient.OnLog += s => logger.LogInfo("WsClient", s);
         this.simCommandService = simCommandService;
         this.serviceProvider = serviceProvider;
-        messagePipeline = new();
-        ConfigurePipeline(messagePipeline);
+        this.coroutineService = coroutineService;
+
+        ConfigurePipeline(eventPipeline = new());
+        ConfigureMessagePipeline(messagePipeline = new());
         Client.OnClientEventOccured += this.Client_OnClientEventOccured;
     }
 
     private void Client_OnClientEventOccured(IIClientEvent clientEvent)
     {
-        if (clientEvent is ClientMessageReceivedEvent e)
-        {
-            Client_OnMessageReceived(e.Message);
-        }
+        Task.Run(() => eventPipeline.ExecuteAsync(clientEvent));
     }
 
-    private void ConfigurePipeline(Pipeline<IMessage> messagePipeline)
+    private void ConfigurePipeline(Pipeline<IIClientEvent> eventPipeline)
+    {
+        //转发消息处理给消息处理管线
+        eventPipeline.AppendMiddleware(async (e, next) =>
+        {
+            if (e is ClientMessageReceivedEvent mre)
+            {
+                await messagePipeline.ExecuteAsync(mre.Message).ContinueWith(t =>
+                {
+                    if (t.Exception is not null)
+                    {
+                        logger.LogError("WpfClient", "MessagePipeline", t.Exception);
+                    }
+                }).ConfigureAwait(false);
+            }
+            await next().ConfigureAwait(false);
+        });
+        //协程处理中间件
+        eventPipeline.AppendMiddleware(async (e, next) =>
+        {
+            coroutineService.PushCoroutines(e);
+            await next().ConfigureAwait(false);
+        });
+    }
+
+    private void ConfigureMessagePipeline(Pipeline<IMessage> messagePipeline)
     {
 #if DEBUG
         //DEBUG时只接受测试群中间件
@@ -62,6 +89,18 @@ public class SaladimWpfService : IClientService
             }
         });
 #endif
+        /*
+        //整活中间件
+        messagePipeline.AppendMiddleware(async (msg, next) =>
+        {
+            if (msg is IGroupMessage groupMessage && groupMessage.MessageEntity.RawString == "签到")
+            {
+                await groupMessage.MessageWindow.SendMessageAsync(
+                    msg.Client.CreateTextOnlyEntity("签到...失败, 根本没有签到功能哒!")
+                    ).ConfigureAwait(false);
+            }
+            await next().ConfigureAwait(false);
+        });*/
         //日志中间件
         messagePipeline.AppendMiddleware(async (msg, next) =>
         {
@@ -84,6 +123,7 @@ public class SaladimWpfService : IClientService
             }
             await next();
         });
+
         //屏蔽临时消息中间件
         messagePipeline.AppendMiddleware(async (msg, next) =>
         {
@@ -91,6 +131,7 @@ public class SaladimWpfService : IClientService
                 return;
             await next();
         });
+
         //simCommand中间件
         messagePipeline.AppendMiddleware(async (msg, next) =>
         {
@@ -100,11 +141,6 @@ public class SaladimWpfService : IClientService
 
         //全自动1A2B消息中间件
         messagePipeline.AppendMiddleware(serviceProvider.GetRequiredService<Auto1A2BService>().Middleware);
-    }
-
-    private void Client_OnMessageReceived(IMessage message)
-    {
-        messagePipeline.ExecuteAsync(message);
     }
 
     public async Task StartAsync()

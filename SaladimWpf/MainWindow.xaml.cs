@@ -30,6 +30,8 @@ public partial class MainWindow : Window
             });
         };
         logger = salLoggerService.SalIns;
+        ClientStateCheckBox.IsChecked = true;
+        
     }
 
     private void UpdateGuessNumBotDelay_Click(object sender, RoutedEventArgs e)
