@@ -57,4 +57,9 @@ public class CoroutineService
             }
         }
     }
+
+    public bool IsRunning(IEnumerator<EventWaiter> coroutine)
+    {
+        return coroutines.Contains(coroutine);
+    }
 }

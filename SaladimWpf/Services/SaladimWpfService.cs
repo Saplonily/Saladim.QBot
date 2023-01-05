@@ -56,17 +56,29 @@ public class SaladimWpfService : IClientService
         //转发消息处理给消息处理管线
         eventPipeline.AppendMiddleware(async (e, next) =>
         {
-            if (e is ClientMessageReceivedEvent mre)
+            do
             {
-                await messagePipeline.ExecuteAsync(mre.Message).ContinueWith(t =>
+                if (e is ClientMessageReceivedEvent mre)
                 {
-                    if (t.Exception is not null)
+#if DEBUG
+                    //DEBUG时只接受测试群消息
+                    if (mre.Message is IGroupMessage groupMsg)
                     {
-                        logger.LogError("WpfClient", "MessagePipeline", t.Exception);
+                        if (groupMsg.Group.GroupId != 860355679)
+                            break;
                     }
-                }).ConfigureAwait(false);
+#endif
+                    await messagePipeline.ExecuteAsync(mre.Message).ContinueWith(t =>
+                    {
+                        if (t.Exception is not null)
+                        {
+                            logger.LogError("WpfClient", "MessagePipeline", t.Exception);
+                        }
+                    }).ConfigureAwait(false);
+                }
+                await next().ConfigureAwait(false);
             }
-            await next().ConfigureAwait(false);
+            while (false);
         });
         //协程处理中间件
         eventPipeline.AppendMiddleware(async (e, next) =>
@@ -78,17 +90,6 @@ public class SaladimWpfService : IClientService
 
     private void ConfigureMessagePipeline(Pipeline<IMessage> messagePipeline)
     {
-#if DEBUG
-        //DEBUG时只接受测试群中间件
-        messagePipeline.AppendMiddleware(async (msg, next) =>
-        {
-            if (msg is IGroupMessage groupMsg)
-            {
-                if (groupMsg.Group.GroupId == 860355679)
-                    await next();
-            }
-        });
-#endif
         /*
         //整活中间件
         messagePipeline.AppendMiddleware(async (msg, next) =>
