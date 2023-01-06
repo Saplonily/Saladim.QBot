@@ -21,10 +21,6 @@ public class SaladimWpfService : IClientService
 
     public IClient Client { get; }
 
-    public bool OpenGuessNumberBot { get; set; }
-
-    public int GuessNumberBotDelay { get; set; }
-
     public SaladimWpfService(
         SaladimWpfServiceConfig config,
         SalLoggerService loggerService,

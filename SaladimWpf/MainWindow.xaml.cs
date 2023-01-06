@@ -34,39 +34,11 @@ public partial class MainWindow : Window
         
     }
 
-    private void UpdateGuessNumBotDelay_Click(object sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        if (int.TryParse(GuessNumBotDelayTextBox.Text, out int v))
-        {
-            swpfService.GuessNumberBotDelay = v;
-            logger.LogInfo("WpfConsole", $"更新完成! 延迟为{v}ms");
-        }
-        else
-        {
-            logger.LogInfo("WpfConsole", $"更新失败! 解析值时出错");
-        }
-    }
-
     private void ClearOutPutButton_Click(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         TextBoxLogging.Text = "";
         logger.LogInfo("WpfConsole", "Wpf控制台清空完成.");
-    }
-
-    private void GuessNumBotCheckBox_Checked(object sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        swpfService.OpenGuessNumberBot = true;
-        logger.LogInfo("WpfConsole", "开启自动猜数.");
-    }
-
-    private void GuessNumBotCheckBox_Unchecked(object sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        swpfService.OpenGuessNumberBot = false;
-        logger.LogInfo("WpfConsole", "关闭自动猜数.");
     }
 
     private async void ClientStateCheckBox_Checked(object sender, RoutedEventArgs e)
