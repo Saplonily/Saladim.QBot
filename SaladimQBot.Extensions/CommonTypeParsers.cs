@@ -19,7 +19,7 @@ public static class CommonTypeParsers
     public static Vector2 Vector2(string s)
     {
         //以逗号分隔
-        string[] ps = s.Split(',');
+        string[] ps = s.Split(',', '，');
         if (ps.Length != 2) throw new CommonTypeParseFailedException();
         //允许括号
         if (ps[0].StartsWith("(") && ps[1].EndsWith(")"))
@@ -32,7 +32,7 @@ public static class CommonTypeParsers
     public static Vector3 Vector3(string s)
     {
         //以逗号分隔
-        string[] ps = s.Split(',');
+        string[] ps = s.Split(',', '，');
         if (ps.Length != 3) throw new CommonTypeParseFailedException();
         //允许括号
         if (ps[0].StartsWith("(") && ps[2].EndsWith(")"))
@@ -78,12 +78,12 @@ public static class CommonTypeParsers
             }
         }
         //假设是以逗号分隔的形式
-        else if (s.Contains(','))
+        else if (s.Contains(',') || s.Contains('，'))
         {
             //不是小数的形式
             if (!s.Contains('.'))
             {
-                string[] nums = s.Split(',');
+                string[] nums = s.Split(',', '，');
                 if (nums.Length == 3)
                 {
                     int r = int.Parse(nums[0]);
@@ -107,7 +107,7 @@ public static class CommonTypeParsers
             //含小数点, 是小数形式
             else
             {
-                string[] nums = s.Split(',');
+                string[] nums = s.Split(',', '，');
                 if (nums.Length == 3)
                 {
                     float r = float.Parse(nums[0]);

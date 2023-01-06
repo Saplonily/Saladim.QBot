@@ -11,7 +11,7 @@ public class CommandWaiter : EventWaiter
 
     public override EventWaiterChecker Checker { get; }
 
-    public CommandWaiter(SimCommandExecuter simCommandExecuter, Func<MethodBasedCommand, CommandContent, object[]?, bool> checker)
+    public CommandWaiter(SimCommandExecuter simCommandExecuter, Func<MethodBasedCommand, CommandContent, object[], bool> checker)
     {
         simCommandExecuter.OnCommandExecuted += this.SimCommandExecutor_OnCommandExecuted;
         this.checker = checker;
@@ -38,6 +38,36 @@ public class CommandWaiter : EventWaiter
         : this(simCommandExecuter, executor, cmdName, Array.Empty<object>())
     {
 
+    }
+
+    public CommandWaiter(SimCommandExecuter simCommandExecuter, IUser executor, string cmdName, Action<object[]> argsReporter)
+    {
+        simCommandExecuter.OnCommandExecuted += this.SimCommandExecutor_OnCommandExecuted;
+        this.checker = (cmd, content, checkerArgs) =>
+        {
+            if (content.Executor.IsSameUser(executor) && cmd.Name == cmdName)
+            {
+                argsReporter(checkerArgs);
+                return true;
+            }
+            return false;
+        };
+        Checker = DefaultChecker;
+    }
+
+    public CommandWaiter(SimCommandExecuter simCommandExecuter, IGroupUser executor, string cmdName, Action<object[]> argsReporter)
+    {
+        simCommandExecuter.OnCommandExecuted += this.SimCommandExecutor_OnCommandExecuted;
+        this.checker = (cmd, content, checkerArgs) =>
+        {
+            if (content.Executor is IGroupUser groupUser && groupUser.IsSameGroupUser(executor) && cmd.Name == cmdName)
+            {
+                argsReporter(checkerArgs);
+                return true;
+            }
+            return false;
+        };
+        Checker = DefaultChecker;
     }
 
     protected bool DefaultChecker(IIClientEvent clientEvent)

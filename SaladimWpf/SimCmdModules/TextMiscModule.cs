@@ -20,13 +20,13 @@ using SysColor = System.Drawing.Color;
 
 namespace SaladimWpf.SimCmdModules;
 
-public partial class TextMisc : CommandModule
+public partial class TextMiscModule : CommandModule
 {
     private readonly IServiceProvider serviceProvider;
     private readonly SalLoggerService salLoggerService;
-    private readonly ISessionService sessionService;
+    private readonly SessionSqliteService sessionService;
 
-    public TextMisc(IServiceProvider serviceProvider, SalLoggerService salLoggerService, ISessionService sessionService)
+    public TextMiscModule(IServiceProvider serviceProvider, SalLoggerService salLoggerService, SessionSqliteService sessionService)
     {
         this.serviceProvider = serviceProvider;
         this.salLoggerService = salLoggerService;
@@ -34,7 +34,7 @@ public partial class TextMisc : CommandModule
     }
 
     [Table("test_session")]
-    public class TestSession : SqliteSession
+    public class TestSession : SqliteStoreSession
     {
         [Column("test_num")]
         public int Num { get; set; }
@@ -275,8 +275,9 @@ public partial class TextMisc : CommandModule
     }
 
     [Command("不定积分")]
-    public async void Integral(string s)
+    public async void Integral(params string[] strs)
     {
+        string s = string.Join(' ', strs);
         var service = serviceProvider.GetRequiredService<IntegralCalculatorService>();
         var result = await service.IntegralOf(s).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(result))

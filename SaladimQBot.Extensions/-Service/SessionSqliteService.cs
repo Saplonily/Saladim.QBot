@@ -3,7 +3,7 @@ using SQLite;
 
 namespace SaladimQBot.Extensions;
 
-public class SessionSqliteService : ISessionService
+public class SessionSqliteService : IStoreSessionService
 {
     protected SQLiteConnection sqliteConnection;
 
@@ -16,7 +16,7 @@ public class SessionSqliteService : ISessionService
     {
         lock (sqliteConnection)
         {
-            if (!typeof(SqliteSession).IsAssignableFrom(typeof(TSession)))
+            if (!typeof(SqliteStoreSession).IsAssignableFrom(typeof(TSession)))
                 throw new InvalidOperationException("The session type must subclass SqliteSession.");
             try
             {
@@ -45,14 +45,14 @@ public class SessionSqliteService : ISessionService
         sqliteConnection.InsertOrReplace(session);
     }
 
-    TSession ISessionService.GetSession<TSession>(SessionId sessionId)
+    TSession IStoreSessionService.GetSession<TSession>(SessionId sessionId)
         => this.GetSession<TSession>(sessionId);
 
-    void ISessionService.SaveSession<TSession>(TSession session)
+    void IStoreSessionService.SaveSession<TSession>(TSession session)
         => this.SaveSession(session);
 }
 
-public abstract class SqliteSession : ISession
+public abstract class SqliteStoreSession : ISession
 {
     [PrimaryKey, Column("session_string")]
     public string SessionString

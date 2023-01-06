@@ -28,6 +28,15 @@ public class CoroutineService
     }
 
     /// <summary>
+    /// 移除一个协程
+    /// </summary>
+    /// <param name="enumerator"></param>
+    public void RemoveCoroutine(IEnumerator<EventWaiter> enumerator)
+    {
+        coroutines.Remove(enumerator);
+    }
+
+    /// <summary>
     /// 使用一个事件推动该协程
     /// 在遇到EventWaiter时会停止并且等待该事件
     /// </summary>
@@ -51,8 +60,8 @@ public class CoroutineService
             {
                 if (markedRemoves.Contains(coroutines[i]))
                 {
-                    coroutines.RemoveAt(i);
                     markedRemoves.Remove(coroutines[i]);
+                    coroutines.RemoveAt(i);
                 }
             }
         }

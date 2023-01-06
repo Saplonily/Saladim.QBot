@@ -58,7 +58,7 @@ public class SaladimWpfService : IClientService
         {
             do
             {
-                if (e is ClientMessageReceivedEvent mre)
+                if (e is IClientMessageReceivedEvent mre)
                 {
 #if DEBUG
                     //DEBUG时只接受测试群消息
