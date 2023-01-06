@@ -190,7 +190,7 @@ public interface IClient
 
     public delegate void OnClientEventOccuredHandler<in TIIClientEvent>(TIIClientEvent clientEvent) where TIIClientEvent : IIClientEvent;
 
-    event OnClientEventOccuredHandler<IIClientEvent> OnClientEventOccured;
+    event OnClientEventOccuredHandler<IIClientEvent> OnClientEventOccurred;
 
     /// <summary>
     /// bot号本身的实体

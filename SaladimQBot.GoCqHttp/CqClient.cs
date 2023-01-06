@@ -37,7 +37,7 @@ public abstract class CqClient : IClient
 
     public event IClient.OnClientEventOccuredHandler<ClientEvent>? OnClientEventOccured;
 
-    event IClient.OnClientEventOccuredHandler<IIClientEvent>? IClient.OnClientEventOccured
+    event IClient.OnClientEventOccuredHandler<IIClientEvent>? IClient.OnClientEventOccurred
     {
         add => OnClientEventOccured += value; remove => OnClientEventOccured -= value;
     }
