@@ -69,7 +69,7 @@ public static class Program
         logger.LogInfo(SecProgram, "Starting...");
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         (client as CqClient)!.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
-        client.OnClientEventOccurred += Client_OnClientEventOccured;
+        client.OnClientEventOccurred += Client_OnClientEventOccurred;
 
         bool connected = false;
         while (connected == false)
@@ -104,7 +104,7 @@ public static class Program
         return 0;
     }
 
-    private static async void Client_OnClientEventOccured(IIClientEvent clientEvent)
+    private static async void Client_OnClientEventOccurred(IIClientEvent clientEvent)
     {
         switch (clientEvent)
         {

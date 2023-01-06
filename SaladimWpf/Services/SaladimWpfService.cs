@@ -39,10 +39,10 @@ public class SaladimWpfService : IClientService
 
         ConfigurePipeline(eventPipeline = new());
         ConfigureMessagePipeline(messagePipeline = new());
-        Client.OnClientEventOccurred += this.Client_OnClientEventOccured;
+        Client.OnClientEventOccurred += this.Client_OnClientEventOccurred;
     }
 
-    private void Client_OnClientEventOccured(IIClientEvent clientEvent)
+    private void Client_OnClientEventOccurred(IIClientEvent clientEvent)
     {
         Task.Run(() => eventPipeline.ExecuteAsync(clientEvent));
     }
