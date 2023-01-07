@@ -15,7 +15,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SQLite;
 using SysColor = System.Drawing.Color;
 
 namespace SaladimWpf.SimCmdModules;
@@ -24,20 +23,11 @@ public partial class TextMiscModule : CommandModule
 {
     private readonly IServiceProvider serviceProvider;
     private readonly SalLoggerService salLoggerService;
-    private readonly SessionSqliteService sessionService;
 
-    public TextMiscModule(IServiceProvider serviceProvider, SalLoggerService salLoggerService, SessionSqliteService sessionService)
+    public TextMiscModule(IServiceProvider serviceProvider, SalLoggerService salLoggerService)
     {
         this.serviceProvider = serviceProvider;
         this.salLoggerService = salLoggerService;
-        this.sessionService = sessionService;
-    }
-
-    [Table("test_session")]
-    public class TestSession : SqliteStoreSession
-    {
-        [Column("test_num")]
-        public int Num { get; set; }
     }
 
     [Command("check_env")]
@@ -55,15 +45,6 @@ public partial class TextMiscModule : CommandModule
         sb.AppendLine($".NET clr版本: {Environment.Version}");
         sb.AppendLine($"程序内存占用: {NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64)}");
         Content.MessageWindow.SendMessageAsync(sb.ToString());
-    }
-
-    [Command("add_my")]
-    public void AddMy()
-    {
-        var s = sessionService.GetUserSession<TestSession>(Content.Executor.UserId);
-        s.Num += 1;
-        sessionService.SaveSession(s);
-        Content.MessageWindow.SendMessageAsync(Content.Client.CreateTextOnlyEntity($"已为您的session.Num增加1, 目前值: {s.Num}"));
     }
 
     [Command("random")]

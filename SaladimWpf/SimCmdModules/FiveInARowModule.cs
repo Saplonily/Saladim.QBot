@@ -10,7 +10,7 @@ using SaladimWpf.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SQLite;
+using SqlSugar;
 using Point = System.Drawing.Point;
 
 namespace SaladimWpf.SimCmdModules;
@@ -48,46 +48,53 @@ public class FiveInARowModule : CommandModule
     {
         if (Content.Message is IGroupMessage groupMessage)
         {
-            if (!fiveInARowService.IsPlayerPlaying(groupMessage.Sender))
+            if (!fiveInARowService.IsGroupPlaying(groupMessage.Group))
             {
-                var s = memorySessionService.GetGroupSession<LineUpSession>(groupMessage.Group.GroupId);
-                lock (s)
+                if (!fiveInARowService.IsPlayerPlaying(groupMessage.Sender))
                 {
-                    if (s.CurrentWaitings.Count >= 1)
+                    var s = memorySessionService.GetGroupSession<LineUpSession>(groupMessage.Group.GroupId);
+                    lock (s)
                     {
-                        if (!s.CurrentWaitings[0].IsSameGroupUser(groupMessage.Sender))
+                        if (s.CurrentWaitings.Count >= 1)
                         {
-                            var gameRecord = fiveInARowService.CreateAndAddNewGame(s.CurrentWaitings[0], groupMessage.Sender, 17, 17, 5);
-                            var co = GetGameCoroutine(gameRecord);
-                            coroutineService.AddNewCoroutine(co);
-                            foreach (var user in gameRecord.Users)
+                            if (!s.CurrentWaitings[0].IsSameGroupUser(groupMessage.Sender))
                             {
-                                var gamingSession = memorySessionService.GetUserSession<GamingSession>(user.UserId);
-                                gamingSession.FiveInARowCorotine = co;
+                                var gameRecord = fiveInARowService.CreateAndAddNewGame(s.CurrentWaitings[0], groupMessage.Sender, 17, 17, 5);
+                                var co = GetGameCoroutine(gameRecord);
+                                coroutineService.AddNewCoroutine(co);
+                                foreach (var user in gameRecord.Users)
+                                {
+                                    var gamingSession = memorySessionService.GetUserSession<GamingSession>(user.UserId);
+                                    gamingSession.FiveInARowCorotine = co;
+                                }
+                                memorySessionService.TryRemoveGroupSession<LineUpSession>(groupMessage.Group.GroupId);
+                                Content.MessageWindow.SendMessageAsync(TipMsgGameStarted);
                             }
-                            memorySessionService.TryRemoveGroupSession<LineUpSession>(groupMessage.Group.GroupId);
-                            Content.MessageWindow.SendMessageAsync(TipMsgGameStarted);
+                            else
+                            {
+                                Content.MessageWindow.SendMessageAsync(TipMsgWaitingNextStartTwice);
+                            }
                         }
                         else
                         {
-                            Content.MessageWindow.SendMessageAsync(TipMsgWaitingNextStartTwice);
+                            s.CurrentWaitings.Add(groupMessage.Sender);
+                            Content.MessageWindow.SendMessageAsync(TipMsgWaitingNextStart);
                         }
                     }
-                    else
-                    {
-                        s.CurrentWaitings.Add(groupMessage.Sender);
-                        Content.MessageWindow.SendMessageAsync(TipMsgWaitingNextStart);
-                    }
+                }
+                else
+                {
+                    FiveInARowRecord record = fiveInARowService.GetPlayerPlaying(groupMessage.Sender);
+                    StringBuilder sb = new();
+                    sb.AppendLine(TipMsgAlreadyGaming);
+                    sb.Append($"你是在这个群开始游戏的: {record.Users[0].Group.Name}");
+                    sb.Append($"({record.Users[0].Group.GroupId})");
+                    Content.MessageWindow.SendMessageAsync(Content.Client.CreateTextOnlyEntity(sb.ToString()));
                 }
             }
             else
             {
-                FiveInARowRecord record = fiveInARowService.GetPlayerPlaying(groupMessage.Sender);
-                StringBuilder sb = new();
-                sb.AppendLine(TipMsgAlreadyGaming);
-                sb.Append($"你是在这个群开始游戏的: {record.Users[0].Group.Name}");
-                sb.Append($"({record.Users[0].Group.GroupId})");
-                Content.MessageWindow.SendMessageAsync(Content.Client.CreateTextOnlyEntity(sb.ToString()));
+                Content.MessageWindow.SendMessageAsync("该群已有人进行游戏了哦");
             }
         }
         else
@@ -120,7 +127,7 @@ public class FiveInARowModule : CommandModule
                 if (playingOne.ChessBoard.PlaceSucceedTimes >= 5)
                 {
                     Content.MessageWindow.SendMessageAsync("游戏已结束, 但是已经下了5个子以上了, 认为你认输了哦qwq");
-                    var s = sessionSqliteService.GetUserSession<FiveInARowWinnerSession>(groupMessage.Sender.UserId);
+                    var s = sessionSqliteService.GetUserSession<FiveInARowStoreSession>(groupMessage.Sender.UserId);
                     s.LoseTimes += 1;
                     sessionSqliteService.SaveSession(s);
                 }
@@ -138,6 +145,39 @@ public class FiveInARowModule : CommandModule
         {
             Content.MessageWindow.SendMessageAsync(TipMsgGroupOnly);
         }
+    }
+
+    [Command("五子棋排行")]
+    public void HighScores()
+    {
+        var winHighScores = sessionSqliteService
+            .GetQueryable<FiveInARowStoreSession>()
+            .OrderByDescending(s => s.WinTimes)
+            .Take(3)
+            .ToList();
+        var radioHighScores = sessionSqliteService
+            .GetQueryable<FiveInARowStoreSession>()
+            .Where(s => s.LoseTimes != 0)
+            .OrderByDescending(s => (float)s.WinTimes / s.LoseTimes)
+            .ToList();
+        StringBuilder sb = new();
+        int cur = 0;
+        sb.AppendLine("赢局排行榜:");
+        foreach (var winHighScore in winHighScores)
+        {
+            cur++;
+            sb.AppendLine($"{cur}. {Content.Client.GetUser(winHighScore.SessionId.UserId).Nickname} {winHighScore.WinTimes}次");
+        }
+        sb.AppendLine("赢输比例排行榜:");
+        cur = 0;
+        foreach (var radioHignScore in radioHighScores)
+        {
+            cur++;
+            string str = $"{cur}. {Content.Client.GetUser(radioHignScore.SessionId.UserId).Nickname} " +
+                $"比例: {(float)radioHignScore.WinTimes / radioHignScore.LoseTimes:F2}";
+            sb.AppendLine(str);
+        }
+        Content.MessageWindow.SendTextMessageAsync(sb.ToString());
     }
 
     public IEnumerator<EventWaiter> GetGameCoroutine(FiveInARowRecord record)
@@ -193,7 +233,7 @@ public class FiveInARowModule : CommandModule
                         fiveInARowService.EndGame(record);
                         foreach (var u in record.Users)
                         {
-                            var s = sessionSqliteService.GetUserSession<FiveInARowWinnerSession>(u.UserId);
+                            var s = sessionSqliteService.GetUserSession<FiveInARowStoreSession>(u.UserId);
                             if (u.IsSameUser(winnerUser))
                                 s.WinTimes += 1;
                             else
@@ -254,13 +294,13 @@ public class FiveInARowModule : CommandModule
         public List<IGroupUser> CurrentWaitings { get; set; } = new();
     }
 
-    [Table("fiveInARowWinner")]
-    public class FiveInARowWinnerSession : SqliteStoreSession
+    [SugarTable("five_in_a_row")]
+    public class FiveInARowStoreSession : SqliteStoreSession
     {
-        [Column("winTimes")]
+        [SugarColumn(ColumnName = "win_times")]
         public int WinTimes { get; set; }
 
-        [Column("loseTimes")]
+        [SugarColumn(ColumnName = "lose_times")]
         public int LoseTimes { get; set; }
     }
 }

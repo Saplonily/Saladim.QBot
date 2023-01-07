@@ -11,9 +11,5 @@ public class SimCommandService
             Executor = new(config.RootPrefix);
         else
             Executor = new(config.RootPrefix, mi);
-        foreach (var m in config.Modules)
-        {
-            Executor.AddModule(m);
-        }
     }
 }

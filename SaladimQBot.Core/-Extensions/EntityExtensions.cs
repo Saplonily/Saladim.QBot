@@ -37,6 +37,9 @@ public static class EntityExtensions
 
     #endregion
 
+    public static Task SendTextMessageAsync(this IMessageWindow messageWindow, string text)
+        => messageWindow.SendMessageAsync(messageWindow.Client.CreateTextOnlyEntity(text));
+
     public static Task RecallAsync(this IMessage message)
         => message.Client.RecallMessageAsync(message.MessageId);
 

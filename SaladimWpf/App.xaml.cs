@@ -6,41 +6,32 @@ using Saladim.SalLogger;
 using SaladimQBot.Extensions;
 using SaladimQBot.Shared;
 using SaladimWpf.Services;
+using SqlSugar;
 
 namespace SaladimWpf;
 
 public partial class App : Application
 {
+    public static readonly bool InDebug =
+#if DEBUG
+        true;
+#else
+        false;
+#endif
+
     public new static App Current => Application.Current.Cast<App>();
+
     public IHost AppHost { get; protected set; }
 
     public App()
     {
-        IServiceProvider serviceProvider = null!;
-        SimCommandConfig simCommandConfig = new("/", typeof(App).Assembly, t => (CommandModule)serviceProvider.GetRequiredService(t));
         AppHost = Host.CreateDefaultBuilder()
             .ConfigureServices((c, coll) =>
             {
                 coll.AddSalLoggerService(LogLevel.Trace);
                 coll.AddSaladimWpf("ws://127.0.0.1:5000");
-                coll.AddSimCommand(simCommandConfig);
-                coll.AddSingleton<HttpRequesterService>();
-                coll.AddSingleton<RandomService>();
-                coll.AddSingleton<JavaScriptService>();
-                coll.AddSingleton<IntegralCalculatorService>();
-                coll.AddSingleton<Auto1A2BService>();
-                coll.AddSingleton<SessionSqliteService>();
-#if DEBUG
-                coll.AddSingleton(new SessionSqliteServiceConfig(new(@"D:\User\Desktop\SaladimWPF\data\debug.db")));
-#elif !DEBUG
-                coll.AddSingleton(new SessionSqliteServiceConfig(new(@"D:\User\Desktop\SaladimWPF\data\release.db")));
-#endif
-                coll.AddSingleton<CoroutineService>();
-                coll.AddSingleton<FiveInARowService>();
-                coll.AddSingleton<MemorySessionService>();
             })
             .Build();
-        serviceProvider = AppHost.Services;
         Current.DispatcherUnhandledException += this.Current_DispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
     }

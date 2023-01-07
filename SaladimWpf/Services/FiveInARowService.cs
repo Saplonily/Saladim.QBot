@@ -27,6 +27,9 @@ public class FiveInARowService
     public bool IsPlayerPlaying(IGroupUser user)
         => PlayingGames.FirstOrDefault(g => g.Users.Any(p => p.IsSameUser(user))) is not null;
 
+    public bool IsGroupPlaying(IJoinedGroup group)
+        => PlayingGames.FirstOrDefault(g => g.Users.Any(u => u.Group.IsSameGroup(group))) is not null;
+
     public FiveInARowRecord GetPlayerPlaying(IGroupUser user)
         => PlayingGames.First(r => r.Users.Any(u => u.IsSameUser(user)));
 

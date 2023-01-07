@@ -119,7 +119,7 @@ public class ChessBoard
         {
             for (int c = 0; c < Columns; c++)
             {
-                aim = GetAt(c, r);
+                aim = GetAt(r, c);
                 if (aim == 0) continue;
                 var win1 = true;
                 var win2 = true;

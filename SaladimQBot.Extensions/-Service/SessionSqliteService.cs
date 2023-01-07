@@ -1,60 +1,68 @@
 ﻿using System.Reflection;
-using SQLite;
+using SqlSugar;
 
 namespace SaladimQBot.Extensions;
 
-public class SessionSqliteService : IStoreSessionService
+public class SessionSqliteService
 {
-    protected SQLiteConnection sqliteConnection;
+    protected SqlSugarScope sqlSugarScope;
 
-    public SessionSqliteService(SessionSqliteServiceConfig config)
+    public event Action<string, SugarParameter[]>? OnSqlSugarAopLogExecuting;
+
+    public SessionSqliteService(ConnectionConfig config)
     {
-        sqliteConnection = new(config.SQLiteConnectionString);
+        sqlSugarScope = new(config, client =>
+        {
+            client.Aop.OnLogExecuting = (s, args) => OnSqlSugarAopLogExecuting?.Invoke(s, args);
+        });
     }
 
-    public TSession GetSession<TSession>(SessionId sessionId) where TSession : ISession, new()
+    public TSession GetSession<TSession>(SessionId sessionId) where TSession : SqliteStoreSession, new()
     {
-        lock (sqliteConnection)
+        if (!typeof(SqliteStoreSession).IsAssignableFrom(typeof(TSession)))
+            throw new InvalidOperationException("The session type must subclass SqliteSession.");
+        try
         {
-            if (!typeof(SqliteStoreSession).IsAssignableFrom(typeof(TSession)))
-                throw new InvalidOperationException("The session type must subclass SqliteSession.");
-            try
+            string sessionName = $"{sessionId.UserId},{sessionId.GroupId}";
+            var foundResult = sqlSugarScope.Queryable<TSession>().Where(s => s.SessionId == sessionId).First();
+            return foundResult ?? CreateNew();
+        }
+        catch (SqlSugarException e)
+        {
+            if (e.Message.Contains("no such table"))
             {
-                var foundResult = sqliteConnection.Find<TSession>($"{sessionId.UserId},{sessionId.GroupId}");
-                return foundResult ?? CreateNew();
+                sqlSugarScope.CodeFirst.InitTables<TSession>();
+                return CreateNew();
             }
-            catch (SQLiteException e)
+            else
             {
-                if (e.Message.Contains("no such table"))
-                {
-                    sqliteConnection.CreateTable<TSession>();
-                    return CreateNew();
-
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
         }
         TSession CreateNew() => new() { SessionId = sessionId };
     }
 
-    public void SaveSession<TSession>(TSession session)
+    public void SaveSession<TSession>(TSession session) where TSession : class, ISession, new()
     {
-        sqliteConnection.InsertOrReplace(session);
+        sqlSugarScope.Storageable<TSession>(session);
     }
 
-    TSession IStoreSessionService.GetSession<TSession>(SessionId sessionId)
-        => this.GetSession<TSession>(sessionId);
+    public ISugarQueryable<TSession> GetQueryable<TSession>() where TSession : SqliteStoreSession, new()
+        => sqlSugarScope.Queryable<TSession>();
 
-    void IStoreSessionService.SaveSession<TSession>(TSession session)
-        => this.SaveSession(session);
+    public TSession GetUserSession<TSession>(long userId) where TSession : SqliteStoreSession, new()
+        => GetSession<TSession>(new SessionId(userId));
+
+    public TSession GetGroupSession<TSession>(long groupId) where TSession : SqliteStoreSession, new()
+        => GetSession<TSession>(new SessionId(0, groupId));
+
+    public TSession GetGroupUserSession<TSession>(long groupId, long userId) where TSession : SqliteStoreSession, new()
+        => GetSession<TSession>(new SessionId(userId, groupId));
 }
 
 public abstract class SqliteStoreSession : ISession
 {
-    [PrimaryKey, Column("session_string")]
+    [SugarColumn(ColumnName = "session_string", IsPrimaryKey = true)]
     public string SessionString
     {
         get => $"{SessionId.UserId},{SessionId.GroupId}";
@@ -65,16 +73,6 @@ public abstract class SqliteStoreSession : ISession
         }
     }
 
-    [Ignore]
+    [SugarColumn(IsIgnore = true)]
     public SessionId SessionId { get; set; }
-}
-
-public class SessionSqliteServiceConfig
-{
-    public SQLiteConnectionString SQLiteConnectionString { get; set; }
-
-    public SessionSqliteServiceConfig(SQLiteConnectionString sqliteConnectionString)
-    {
-        this.SQLiteConnectionString = sqliteConnectionString;
-    }
 }
