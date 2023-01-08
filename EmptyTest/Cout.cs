@@ -1,6 +1,5 @@
-﻿
+﻿namespace EmptyTest;
 
-namespace EmptyTest;
 public class Cout
 {
     public static ostream cout = new(Console.WriteLine);

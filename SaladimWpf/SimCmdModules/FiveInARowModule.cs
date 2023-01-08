@@ -167,11 +167,13 @@ public class FiveInARowModule : CommandModule
             .OrderByDescending(s => s.WinTimes)
             .Take(3)
             .ToList();
+
         var radioHighScores = sessionSqliteService
             .GetQueryable<FiveInARowStoreSession>()
             .Where(s => s.LoseTimes != 0)
             .OrderByDescending(s => (float)s.WinTimes / s.LoseTimes)
             .ToList();
+
         StringBuilder sb = new();
         int cur = 0;
         sb.AppendLine(TipMsgWinnerHighscore);

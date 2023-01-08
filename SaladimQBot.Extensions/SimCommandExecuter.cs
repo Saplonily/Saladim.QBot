@@ -137,6 +137,7 @@ public sealed partial class SimCommandExecuter
 
     internal bool ExecuteInternal(MethodBasedCommand cmd, string[]? cmdParams, CommandContent content)
     {
+        //算了你也别尝试看懂了, 我已经看不懂了qwq
         var paramsLength = cmd.Parameters.Length;
         if (cmd.Parameters.Length != cmdParams?.Length && !cmd.IsParamsCommand)
             return false;

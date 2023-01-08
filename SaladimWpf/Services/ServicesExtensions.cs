@@ -42,23 +42,6 @@ public static class ServicesExtensions
         services.AddSingleton<FiveInARowService>();
     }
 
-    public static void AddSimCommand(this IServiceCollection services, Func<IServiceProvider, SimCommandConfig> configProvider, Assembly modulesAsm)
-    {
-        var toBeAddModules = modulesAsm.GetTypes().Where(t => t.IsSubclassOf(typeof(CommandModule)));
-        services.AddSingleton<SimCommandService>(s =>
-        {
-            SimCommandService service = new(s.GetRequiredService<SimCommandConfig>());
-            foreach (var module in toBeAddModules)
-                service.Executor.AddModule(module);
-            return service;
-        });
-        services.AddSingleton(s => configProvider(s));
-        foreach (var module in toBeAddModules)
-        {
-            services.AddTransient(module);
-        }
-    }
-
     public static void AddSalLoggerService(this IServiceCollection services, LogLevel logLevel)
     {
         services.AddSingleton<SalLoggerService>(s => new(logLevel, s.GetRequiredService<IHostApplicationLifetime>()));

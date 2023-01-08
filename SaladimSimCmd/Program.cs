@@ -17,7 +17,13 @@ public class Program
     {
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnLog += Console.WriteLine;
-        client.OnGroupMessageReceived += Client_OnGroupMessageReceived;
+        client.OnClientEventOccured += e =>
+        {
+            if (e is IClientGroupMessageReceivedEvent groupMsgEvent)
+            {
+                Client_OnGroupMessageReceived(groupMsgEvent.Message, groupMsgEvent.Group);
+            }
+        };
         simCmd = new("/");
         simCmd.AddModule(typeof(SampleModule));
         await client.StartAsync();
@@ -25,7 +31,7 @@ public class Program
         await client.StopAsync();
     }
 
-    private static void Client_OnGroupMessageReceived(GroupMessage message, JoinedGroup group)
+    private static void Client_OnGroupMessageReceived(IGroupMessage message, IJoinedGroup group)
     {
         if (message.Group.GroupId == 860355679)
         {

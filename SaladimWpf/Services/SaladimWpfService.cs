@@ -5,6 +5,7 @@ using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
+using SqlSugar;
 
 namespace SaladimWpf.Services;
 
@@ -25,13 +26,16 @@ public class SaladimWpfService : IClientService
         SalLoggerService loggerService,
         SimCommandService simCommandService,
         IServiceProvider serviceProvider,
-        CoroutineService coroutineService
+        CoroutineService coroutineService,
+        SessionSqliteService sessionSqliteService
         )
     {
         wsClient = new(config.GoCqHttpWebSocketAddress, LogLevel.Trace);
         Client = wsClient;
         logger = loggerService.SalIns;
         wsClient.OnLog += s => logger.LogInfo("WsClient", s);
+        sessionSqliteService.OnSqlSugarAopLogExecuting +=
+            (sql, args) => logger.LogDebug("SqlExecuting", UtilMethods.GetSqlString(DbType.Sqlite, sql, args));
         this.simCommandService = simCommandService;
         this.serviceProvider = serviceProvider;
         this.coroutineService = coroutineService;
@@ -85,58 +89,51 @@ public class SaladimWpfService : IClientService
 
     private void ConfigureMessagePipeline(Pipeline<IMessage> messagePipeline)
     {
-        /*
-        //整活中间件
-        messagePipeline.AppendMiddleware(async (msg, next) =>
-        {
-            if (msg is IGroupMessage groupMessage && groupMessage.MessageEntity.RawString == "签到")
-            {
-                await groupMessage.MessageWindow.SendMessageAsync(
-                    msg.Client.CreateTextOnlyEntity("签到...失败, 根本没有签到功能哒!")
-                    ).ConfigureAwait(false);
-            }
-            await next().ConfigureAwait(false);
-        });*/
         //日志中间件
-        messagePipeline.AppendMiddleware(async (msg, next) =>
-        {
-            if (msg is GroupMessage groupMsg)
-            {
-                logger.LogInfo(
-                    "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
-                    $"{groupMsg.Author.FullName} 说: " +
-                    $"{groupMsg.MessageEntity.RawString}"
-                    .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
-                    );
-            }
-            else if (msg is PrivateMessage privateMsg)
-            {
-                logger.LogInfo(
-                    "WpfConsole", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
-                    $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
-                    .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
-                    );
-            }
-            await next();
-        });
+        messagePipeline.AppendMiddleware(LogMiddleware);
 
         //屏蔽临时消息中间件
-        messagePipeline.AppendMiddleware(async (msg, next) =>
-        {
-            if (msg is not (GroupMessage or FriendMessage))
-                return;
-            await next();
-        });
+        messagePipeline.AppendMiddleware(IgnoreTempMsgMiddleware);
 
         //simCommand中间件
-        messagePipeline.AppendMiddleware(async (msg, next) =>
-        {
-            await simCommandService.Executor.MatchAndExecuteAllAsync(msg).ConfigureAwait(false);
-            await next();
-        });
+        messagePipeline.AppendMiddleware(SimCmdMiddleware);
 
         //全自动1A2B消息中间件
         messagePipeline.AppendMiddleware(serviceProvider.GetRequiredService<Auto1A2BService>().Middleware);
+    }
+
+    private async Task LogMiddleware(IMessage msg, Func<Task> next)
+    {
+        if (msg is GroupMessage groupMsg)
+        {
+            logger.LogInfo(
+                "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
+                $"{groupMsg.Author.FullName} 说: " +
+                $"{groupMsg.MessageEntity.RawString}"
+                .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
+                );
+        }
+        else if (msg is PrivateMessage privateMsg)
+        {
+            logger.LogInfo(
+                "WpfConsole", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
+                $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
+                .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
+                );
+        }
+        await next();
+    }
+
+    private async Task SimCmdMiddleware(IMessage msg, Func<Task> next)
+    {
+        await simCommandService.Executor.MatchAndExecuteAllAsync(msg).ConfigureAwait(false);
+        await next();
+    }
+
+    private async Task IgnoreTempMsgMiddleware(IMessage msg, Func<Task> next)
+    {
+        if (msg is not (GroupMessage or FriendMessage)) return;
+        await next();
     }
 
     public async Task StartAsync()
