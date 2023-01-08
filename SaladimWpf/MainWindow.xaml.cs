@@ -31,7 +31,7 @@ public partial class MainWindow : Window
         };
         logger = salLoggerService.SalIns;
         ClientStateCheckBox.IsChecked = true;
-        
+
     }
 
     private void ClearOutPutButton_Click(object sender, RoutedEventArgs e)

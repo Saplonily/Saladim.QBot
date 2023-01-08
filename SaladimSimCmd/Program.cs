@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 using System.Text;
 using Saladim.SalLogger;
@@ -43,7 +42,7 @@ public class SampleModule : CommandModule
         if (Content.Message is IGroupMessage groupMessage)
         {
             groupMessage.Group.SetGroupNameAsync(name);
-            
+
         }
     }
 

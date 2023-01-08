@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace SaladimQBot.Extensions;
+﻿namespace SaladimQBot.Extensions;
 
 public class SimCommandConfig
 {

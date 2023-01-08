@@ -1,6 +1,4 @@
-﻿using SaladimQBot.Core;
-
-namespace SaladimQBot.Extensions;
+﻿namespace SaladimQBot.Extensions;
 
 public class Pipeline<T> where T : class
 {

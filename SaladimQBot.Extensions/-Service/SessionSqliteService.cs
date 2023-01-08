@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using SqlSugar;
+﻿using SqlSugar;
 
 namespace SaladimQBot.Extensions;
 
@@ -19,8 +18,6 @@ public class SessionSqliteService
 
     public TSession GetSession<TSession>(SessionId sessionId) where TSession : SqliteStoreSession, new()
     {
-        if (!typeof(SqliteStoreSession).IsAssignableFrom(typeof(TSession)))
-            throw new InvalidOperationException("The session type must subclass SqliteSession.");
         try
         {
             string sessionName = $"{sessionId.UserId},{sessionId.GroupId}";

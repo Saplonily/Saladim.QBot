@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using SaladimQBot.Core;
+﻿using SaladimQBot.Core;
 
 namespace SaladimQBot.Extensions;
 

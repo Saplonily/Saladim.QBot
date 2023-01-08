@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SaladimQBot.Extensions;
+﻿namespace SaladimQBot.Extensions;
 
 public class MemorySessionService
 {

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Windows.Interop;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 

@@ -3,10 +3,8 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
-using SaladimQBot.Extensions;
 using SaladimQBot.Shared;
 using SaladimWpf.Services;
-using SqlSugar;
 
 namespace SaladimWpf;
 

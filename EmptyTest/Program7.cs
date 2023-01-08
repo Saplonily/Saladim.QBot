@@ -1,5 +1,4 @@
-﻿using SaladimWpf.Services;
-using SQLite;
+﻿using SQLite;
 
 SQLiteConnection connection = new(@"D:\User\Desktop\SaladimWPF\data\test.db");
 connection.CreateTable<TestClass>();

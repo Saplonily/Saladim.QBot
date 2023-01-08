@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.Core.Services;
