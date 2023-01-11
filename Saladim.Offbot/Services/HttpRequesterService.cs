@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-
-namespace SaladimWpf.Services;
+﻿namespace Saladim.Offbot.Services;
 
 public class HttpRequesterService
 {
@@ -11,6 +9,6 @@ public class HttpRequesterService
     public HttpRequesterService()
     {
         httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Saladim.QBot external value fetcher");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Saladim.Offbot external value fetcher");
     }
 }

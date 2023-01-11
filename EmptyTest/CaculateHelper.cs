@@ -1,4 +1,4 @@
-﻿namespace SaladimWpf.Services;
+﻿namespace Saladim.Offbot.Services;
 
 /*
     来源: https://www.cnblogs.com/zhao-yi/p/8533035.html

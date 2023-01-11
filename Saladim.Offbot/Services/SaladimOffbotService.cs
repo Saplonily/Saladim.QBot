@@ -7,9 +7,9 @@ using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
 using SqlSugar;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot.Services;
 
-public class SaladimWpfService : IClientService
+public class SaladimOffbotService : IClientService
 {
     protected Logger logger;
     protected CqWebSocketClient wsClient;
@@ -21,8 +21,8 @@ public class SaladimWpfService : IClientService
 
     public IClient Client { get; }
 
-    public SaladimWpfService(
-        SaladimWpfServiceConfig config,
+    public SaladimOffbotService(
+        SaladimOffbotServiceConfig config,
         SalLoggerService loggerService,
         SimCommandService simCommandService,
         IServiceProvider serviceProvider,
@@ -60,12 +60,8 @@ public class SaladimWpfService : IClientService
                 if (e is IClientMessageReceivedEvent mre)
                 {
 #if DEBUG
-                    //DEBUG时只接受测试群消息
-                    if (mre.Message is IGroupMessage groupMsg)
-                    {
-                        if (groupMsg.Group.GroupId != 860355679)
-                            break;
-                    }
+                    if (mre.Message is IGroupMessage groupMsg && groupMsg.Group.GroupId != 860355679)
+                        break;
 #endif
                     await messagePipeline.ExecuteAsync(mre.Message).ContinueWith(t =>
                     {

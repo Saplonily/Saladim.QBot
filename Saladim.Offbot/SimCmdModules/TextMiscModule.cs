@@ -1,22 +1,21 @@
 ﻿using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.Extensions.DependencyInjection;
+using Saladim.Offbot.Services;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
-using SaladimWpf.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SysColor = System.Drawing.Color;
 
-namespace SaladimWpf.SimCmdModules;
+namespace Saladim.Offbot.SimCmdModules;
 
 public partial class TextMiscModule : CommandModule
 {
@@ -44,6 +43,18 @@ public partial class TextMiscModule : CommandModule
         sb.AppendLine($".NET clr版本: {Environment.Version}");
         sb.AppendLine($"程序内存占用: {NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64)}");
         Content.MessageWindow.SendMessageAsync(sb.ToString());
+    }
+
+    [Command("gc_collect")]
+    public void GCCollect()
+    {
+        string before = NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64);
+        Console.Clear();
+        GC.Collect(0);
+        GC.Collect(1);
+        GC.Collect(2);
+        string after = NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64);
+        Content.MessageWindow.SendTextMessageAsync($"已完成0,1,2三代清理工作, {before} -> {after}");
     }
 
     [Command("random")]
@@ -205,26 +216,6 @@ public partial class TextMiscModule : CommandModule
         return $"file:///{Path.GetFullPath(fileName)}";
     }
 
-    [Command("homo")]
-    public void Homo(double num)
-    {
-        var jsService = serviceProvider.GetRequiredService<JavaScriptService>();
-        string rst = jsService.Homo(num);
-        string output = $"恶臭后的 {num} = {rst}";
-        if (rst.Length <= 100)
-        {
-            Content.MessageWindow.SendMessageAsync(output);
-        }
-        else
-        {
-            IForwardEntity f = Content.Client.CreateForwardBuilder()
-                .AddMessage(Content.Client.CreateTextOnlyEntity(output))
-                .AddMessage(Content.Client.CreateTextOnlyEntity("内容长度过长, 已转换至群体转发消息."))
-                .Build();
-            Content.MessageWindow.SendMessageAsync(f);
-        }
-    }
-
     public readonly string[] IgnoreWords = new string[]
     {
         "禁言", "傻逼", "智障", "煞笔", "我是", "你是"
@@ -251,7 +242,7 @@ public partial class TextMiscModule : CommandModule
             }
             return;
         }
-        Content.MessageWindow.SendMessageAsync(string.Join("​", str.ToCharArray()));
+        Content.MessageWindow.SendMessageAsync(string.Join((char)8203, str.ToCharArray()));
     }
 
     [Command("不定积分")]
@@ -295,33 +286,20 @@ public partial class TextMiscModule : CommandModule
         Content.MessageWindow.SendMessageAsync(Content.Client.CreateMessageBuilder().WithUnImpl("tts", ttsParam).Build());
     }
 
-    [Command("new_co")]
-    public void NewCo()
+    [Command("homo")]
+    public void Homo(double num)
     {
-        serviceProvider.GetRequiredService<CoroutineService>().AddNewCoroutine(Co());
-    }
-
-    public IEnumerator<EventWaiter> Co()
-    {
-        Content.MessageWindow.SendMessageAsync("协程开始了");
-        yield return new CommandWaiter(Content.SimCommandExecuter, Content.Executor, "push1");
-        Content.MessageWindow.SendMessageAsync("协程被推动了push1");
-
-        yield return new CommandWaiter(Content.SimCommandExecuter, Content.Executor, "push4");
-        Content.MessageWindow.SendMessageAsync("协程被推动了push4, 协程结束了");
-
-        if (Content.Executor is IGroupUser groupUser)
+        var homoService = serviceProvider.GetRequiredService<HomoService>();
+        string text = $"恶臭后的{num} = {homoService.Homo(num)}";
+        IMessageEntity entity = Content.Client.CreateTextOnlyEntity(text);
+        if (text.Length >= 150)
         {
-            IGroupMessage groupMsg = null!;
-            yield return new MessageWaiter(groupUser, m => groupMsg = m);
-            Content.MessageWindow.SendMessageAsync($"你之后说了{groupMsg.MessageEntity.RawString}哦~");
+            IForwardEntity forwardEntity = Content.Client.CreateForwardBuilder().AddMessage(entity).Build();
+            Content.MessageWindow.SendMessageAsync(forwardEntity);
         }
-
-        yield break;
+        else
+        {
+            Content.MessageWindow.SendMessageAsync(entity);
+        }
     }
-
-    [Command("push1")] public void Push1() { }
-    [Command("push2")] public void Push2() { }
-    [Command("push3")] public void Push3() { }
-    [Command("push4")] public void Push4() { }
 }

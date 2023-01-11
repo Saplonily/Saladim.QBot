@@ -1,26 +1,30 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Saladim.Offbot.Services;
 using Saladim.SalLogger;
 using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SqlSugar;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot;
 
 public static class ServicesExtensions
 {
     public static void AddSaladimWpf(this IServiceCollection services, string goCqHttpWebSocketAddress)
     {
-        services.AddSingleton(_ => new SaladimWpfServiceConfig(goCqHttpWebSocketAddress));
-        services.AddSingleton<SaladimWpfService>();
-        services.AddSingleton<IClientService, SaladimWpfService>(s => s.GetRequiredService<SaladimWpfService>());
+        services.AddSingleton(_ => new SaladimOffbotServiceConfig(goCqHttpWebSocketAddress));
+        services.AddSingleton<SaladimOffbotService>();
+        services.AddSingleton<IClientService, SaladimOffbotService>(s => s.GetRequiredService<SaladimOffbotService>());
 
-        services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(App).Assembly);
+        services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(SaladimOffbot).Assembly);
 
-        string connectionString = App.InDebug ?
-                    @"DataSource=D:\User\Desktop\SaladimWPF\data\debug.db" :
-                    @"DataSource=D:\User\Desktop\SaladimWPF\data\release.db";
+        string connectionString =
+#if DEBUG
+            @"DataSource=D:\User\Desktop\SaladimWPF\data\debug.db";
+#else
+            @"DataSource=D:\User\Desktop\SaladimWPF\data\release.db";
+#endif
         services.AddSingleton(s => new ConnectionConfig()
         {
             DbType = DbType.Sqlite,
@@ -35,15 +39,15 @@ public static class ServicesExtensions
         services.AddSingleton<SessionSqliteService>();
         services.AddSingleton<MemorySessionService>();
 
-        services.AddSingleton<JavaScriptService>();
         services.AddSingleton<IntegralCalculatorService>();
         services.AddSingleton<Auto1A2BService>();
+        services.AddSingleton<HomoService>();
 
         services.AddSingleton<FiveInARowService>();
     }
 
     public static void AddSalLoggerService(this IServiceCollection services, LogLevel logLevel)
     {
-        services.AddSingleton<SalLoggerService>(s => new(logLevel, s.GetRequiredService<IHostApplicationLifetime>()));
+        services.TryAddSingleton<SalLoggerService>(s => new(logLevel, s.GetRequiredService<IHostApplicationLifetime>()));
     }
 }

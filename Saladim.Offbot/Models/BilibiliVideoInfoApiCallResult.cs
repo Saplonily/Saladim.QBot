@@ -1,4 +1,4 @@
-﻿namespace SaladimWpf.Models;
+﻿namespace Saladim.Offbot.Models;
 #nullable disable
 
 using System.Text.Json.Serialization;

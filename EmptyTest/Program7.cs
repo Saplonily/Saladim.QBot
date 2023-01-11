@@ -1,4 +1,11 @@
-﻿using SQLite;
+﻿using System.Globalization;
+
+Console.WriteLine($"默认Culture: {3.12}");
+CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("");
+Console.WriteLine($"fr-FR Culture: {3.12}");
+
+
+/*using SQLite;
 
 SQLiteConnection connection = new(@"D:\User\Desktop\SaladimWPF\data\test.db");
 connection.CreateTable<TestClass>();
@@ -30,7 +37,7 @@ public class TestClass
 
     [Column("name"), NotNull]
     public string Name { get; set; } = null!;
-}
+}*/
 
 /*using IlyfairyLib.Unsafe;
 

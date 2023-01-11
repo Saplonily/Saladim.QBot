@@ -1,6 +1,6 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 
-namespace SaladimWpf;
+namespace Saladim.Offbot;
 
 public static class Extensions
 {

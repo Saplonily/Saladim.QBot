@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot.Services;
 
 public class ChessBoard
 {

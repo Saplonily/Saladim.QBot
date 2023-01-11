@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.Text;
 using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot.Services;
 
 public class SalLoggerService
 {
@@ -14,53 +15,33 @@ public class SalLoggerService
 
     public SalLoggerService(LogLevel logLevelLimit, IHostApplicationLifetime hl)
     {
-        this.Start();
         SalIns = new LoggerBuilder()
             .WithAction(s =>
             {
                 OnLog?.Invoke(s);
                 streamWriter.WriteLine(s);
+                Debug.WriteLine(s);
             })
             .WithLevelLimit(logLevelLimit)
             .Build();
+        this.Start();
         hl.ApplicationStopped.Register(Stop);
     }
 
-    ~SalLoggerService()
-    {
-        Stop();
-    }
-
-    public void Start()
+    private void Start()
     {
         DateTime now = DateTime.Now;
-#if !DEBUG
         string path = @"Logs\";
-#else
-        string path = @"D:\User\Desktop\SaladimWPF\Logs\debug\";
-#endif
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
-        string unindexedFileName = $"{now.Year}.{now.Month}.{now.Day}";
-        int index = 0;
-        string filePath;
-        do
-        {
-            string indexedFileName = $"{unindexedFileName} {index}.log";
-            string combinedPath = Path.Combine(path, indexedFileName);
-            if (!File.Exists(combinedPath))
-            {
-                filePath = combinedPath;
-                break;
-            }
-            else
-            {
-                index++;
-                continue;
-            }
-        }
-        while (true);
-        streamWriter = new(filePath);
+        string filePath = $@"{path}{now.Year}.{now.Month}.{now.Day}.log";
+        bool fileExists = false;
+        if (File.Exists(filePath))
+            fileExists = true;
+        streamWriter = new(filePath, true, Encoding.UTF8);
+        if (fileExists)
+            SalIns.LogRaw(LogLevel.Info, "\n\n\n");
+        SalIns.LogInfo("LoggerService", $"Starting logging service at {DateTime.Now}.");
     }
 
     public void Stop()

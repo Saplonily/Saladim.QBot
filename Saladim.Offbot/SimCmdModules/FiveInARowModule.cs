@@ -1,17 +1,17 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
+using Saladim.Offbot.Services;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 using SaladimQBot.Shared;
-using SaladimWpf.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SqlSugar;
 using Point = System.Drawing.Point;
 
-namespace SaladimWpf.SimCmdModules;
+namespace Saladim.Offbot.SimCmdModules;
 
 public class FiveInARowModule : CommandModule
 {
@@ -277,6 +277,7 @@ public class FiveInARowModule : CommandModule
     }
 
     [Command("下")]
+    [SuppressMessage("Style", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
     public void Drop(Vector2 pos) => GamePlayCheck();
 
     public void GamePlayCheck()

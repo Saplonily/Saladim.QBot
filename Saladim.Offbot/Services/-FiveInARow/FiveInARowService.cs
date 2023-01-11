@@ -4,7 +4,7 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot.Services;
 
 public class FiveInARowService
 {

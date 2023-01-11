@@ -1,4 +1,4 @@
-﻿namespace SaladimWpf.Services;
+﻿namespace Saladim.Offbot.Services;
 
 public class RandomService
 {

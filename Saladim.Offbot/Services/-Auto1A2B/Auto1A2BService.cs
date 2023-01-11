@@ -2,7 +2,7 @@
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 
-namespace SaladimWpf.Services;
+namespace Saladim.Offbot.Services;
 
 public class Auto1A2BService
 {

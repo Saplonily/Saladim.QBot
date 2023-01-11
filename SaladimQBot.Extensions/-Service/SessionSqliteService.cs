@@ -41,7 +41,7 @@ public class SessionSqliteService
 
     public void SaveSession<TSession>(TSession session) where TSession : class, ISession, new()
     {
-        sqlSugarScope.Storageable<TSession>(session);
+        sqlSugarScope.Storageable(session).ExecuteCommand();
     }
 
     public ISugarQueryable<TSession> GetQueryable<TSession>() where TSession : SqliteStoreSession, new()
