@@ -197,7 +197,7 @@ public class FiveInARowModule : CommandModule
     public IEnumerator<EventWaiter> GetGameCoroutine(FiveInARowRecord record)
     {
         IMessageEntity startMsgEntity = Content.Client.CreateMessageBuilder()
-            .WithImage($"file:///{GenerateChessImage(record.ChessBoard)}")
+            .WithImage(GenerateChessImage(record.ChessBoard))
             .WithText("\n")
             .WithAt(record.Users[0])
             .WithText(TipMsgStartFromYou)
@@ -226,7 +226,7 @@ public class FiveInARowModule : CommandModule
                         if (record.Users.Count == curPlayer)
                             curPlayer = 0;
                         IMessageEntity entity = Content.Client.CreateMessageBuilder()
-                            .WithImage($"file:///{GenerateChessImage(record.ChessBoard)}")
+                            .WithImage(GenerateChessImage(record.ChessBoard))
                             .WithText("\n")
                             .WithAt(record.Users[curPlayer])
                             .WithText(TipMsgTurnYour)
@@ -238,7 +238,7 @@ public class FiveInARowModule : CommandModule
                         //有人赢了
                         IGroupUser winnerUser = record.Users[winner - 1];
                         IMessageEntity entity = Content.Client.CreateMessageBuilder()
-                            .WithImage($"file:///{GenerateChessImage(record.ChessBoard)}")
+                            .WithImage(GenerateChessImage(record.ChessBoard))
                             .WithText($"\n{TipMsgCongratulations}")
                             .WithAt(winnerUser)
                             .WithText(TipMsgWined)
@@ -265,7 +265,7 @@ public class FiveInARowModule : CommandModule
         }
     }
 
-    protected string GenerateChessImage(ChessBoard chessBoard)
+    protected Uri GenerateChessImage(ChessBoard chessBoard)
     {
         Image<Rgba32> image = new(chessBoard.Width, chessBoard.Height, chessBoard.BgColor);
         image.Mutate(chessBoard.GetImageGenerateAction(fiveInARowService.ChessPieceTextFont));
@@ -273,7 +273,7 @@ public class FiveInARowModule : CommandModule
         if (!Directory.Exists("tempImages"))
             Directory.CreateDirectory("tempImages");
         image.SaveAsPng(fileName);
-        return Path.GetFullPath(fileName);
+        return new Uri(Path.GetFullPath(fileName));
     }
 
     [Command("下")]

@@ -54,7 +54,7 @@ public partial class TextMiscModule : CommandModule
         GC.Collect(1);
         GC.Collect(2);
         string after = NumberHelper.GetSizeString(Process.GetCurrentProcess().PagedMemorySize64);
-        Content.MessageWindow.SendTextMessageAsync($"已完成0,1,2三代清理工作, {before} -> {after}");
+        Content.MessageWindow.SendTextMessageAsync($"已完成0,1,2三代清理工作");
     }
 
     [Command("random")]
@@ -67,6 +67,24 @@ public partial class TextMiscModule : CommandModule
             .WithText($"{Content.Executor.Nickname},你的随机数为{num}哦~")
             .Build();
         Content.MessageWindow.SendMessageAsync(e);
+    }
+
+    [Command("随机色块")]
+    public void RandomPicColor(int size)
+    {
+        Random r = serviceProvider.GetRequiredService<RandomService>().Random;
+        Image<Rgba32> image = new(size, size);
+        for (int i = 0; i < size; i++)
+            for (int j = 0; j < size; j++)
+            {
+                image[i, j] = new Color(new Rgba32((byte)r.Next(256), (byte)r.Next(256), (byte)r.Next(256)));
+            }
+        if (!Directory.Exists("tempImages"))
+            Directory.CreateDirectory("tempImages");
+        string fileName = $@"tempImages\{DateTime.Now.Ticks}.png";
+        image.SaveAsPng(fileName);
+        IMessageEntity entity = Content.Client.CreateMessageBuilder().WithImage(new Uri(Path.GetFullPath(fileName))).Build();
+        Content.MessageWindow.SendMessageAsync(entity);
     }
 
     [Command("算")]
@@ -93,7 +111,7 @@ public partial class TextMiscModule : CommandModule
         string s = httpClient.GetStringAsync("https://img.xjh.me/random_img.php?return=json").GetResultOfAwaiter();
         string imgUrl = "http:" + JsonDocument.Parse(s).RootElement.GetProperty("img").GetString();
         IMessageEntity m = Content.Client.CreateMessageBuilder()
-            .WithImage(imgUrl)
+            .WithImage(new Uri(imgUrl))
             .Build();
         Content.MessageWindow.SendMessageAsync(m);
     }
@@ -153,13 +171,13 @@ public partial class TextMiscModule : CommandModule
     public void GetSomeColor()
     {
         var color = GetRandomColor();
-        string url = HappyDrawing(50, 50, process =>
+        Uri fileUri = HappyDrawing(50, 50, process =>
         {
             SolidBrush brush = new(color.ToISColor());
             process.Fill(brush, new RectangleF(0.0f, 0.0f, 50.0f, 50.0f));
         });
         IMessageEntity entity = Content.Client.CreateMessageBuilder()
-            .WithImage(url)
+            .WithImage(fileUri)
             .WithTextLine(GetColorText(color))
             .Build();
         Content.MessageWindow.SendMessageAsync(entity);
@@ -176,7 +194,7 @@ public partial class TextMiscModule : CommandModule
     {
         var pointsCount = colors.Length;
         float width = 576; float height = 384;
-        string url = HappyDrawing((int)width, (int)height, process =>
+        Uri uri = HappyDrawing((int)width, (int)height, process =>
         {
             var partWidth = width / pointsCount;
             var solidBrushes = new SolidBrush[pointsCount];
@@ -187,7 +205,7 @@ public partial class TextMiscModule : CommandModule
                 process.Fill(solidBrushes[i], new RectangleF(curLeftTop, new SizeF(partWidth, height)));
             }
         });
-        IMessageEntityBuilder builder = Content.Client.CreateMessageBuilder().WithImage(url);
+        IMessageEntityBuilder builder = Content.Client.CreateMessageBuilder().WithImage(uri);
         StringBuilder sb = new();
         foreach (var color in colors)
         {
@@ -205,7 +223,7 @@ public partial class TextMiscModule : CommandModule
 
     public static string GetColorText(SysColor color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}({color.R},{color.G},{color.B})";
 
-    public static string HappyDrawing(int width, int height, Action<IImageProcessingContext> processContext)
+    public static Uri HappyDrawing(int width, int height, Action<IImageProcessingContext> processContext)
     {
         Image<Rgba32> image = new(width, height);
         image.Mutate(processContext);
@@ -213,7 +231,7 @@ public partial class TextMiscModule : CommandModule
         var imgName = $"{DateTime.Now.Ticks}.png";
         var fileName = $@"tempImages\{imgName}";
         image.SaveAsPng(fileName);
-        return $"file:///{Path.GetFullPath(fileName)}";
+        return new Uri(Path.GetFullPath(fileName));
     }
 
     public readonly string[] IgnoreWords = new string[]
@@ -262,7 +280,7 @@ public partial class TextMiscModule : CommandModule
     [Command("my_avatar")]
     public void MyAvatar()
     {
-        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(Content.Executor.AvatarUrl).Build();
+        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(new Uri(Content.Executor.AvatarUrl)).Build();
         Content.MessageWindow.SendMessageAsync(entity);
     }
 
@@ -271,7 +289,7 @@ public partial class TextMiscModule : CommandModule
     {
         if (Content.Message is IGroupMessage groupMessage)
         {
-            var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(groupMessage.Group.AvatarUrl).Build();
+            var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(new Uri(groupMessage.Group.AvatarUrl)).Build();
             Content.MessageWindow.SendMessageAsync(entity);
         }
     }
@@ -301,5 +319,105 @@ public partial class TextMiscModule : CommandModule
         {
             Content.MessageWindow.SendMessageAsync(entity);
         }
+    }
+
+    [Command("图片编码")]
+    public void EncodePicture(string s)
+    {
+        string fileName = $"tempImages\\{DateTime.Now.Ticks}.png";
+        Encode(s, fileName);
+        IMessageEntity entity = Content.Client.CreateMessageBuilder()
+            .WithTextLine("编码成功, 以下是图片:")
+            .WithImage(new Uri(Path.GetFullPath(fileName)))
+            .Build();
+        Content.MessageWindow.SendMessageAsync(entity);
+    }
+
+    [Command("图片解码")]
+    public void DecodePicture()
+    {
+        var image = Content.Message.MessageEntity.FirstImageOrNull();
+        if (image is null)
+        {
+            Content.MessageWindow.SendTextMessageAsync("请输入一张图片");
+            return;
+        }
+        try
+        {
+            if (image.FileUri.Scheme is ("http" or "https"))
+            {
+                HttpClient httpClient = serviceProvider.GetRequiredService<HttpRequesterService>().HttpClient;
+                string fileName = $"tempImages\\{DateTime.Now.Ticks}";
+                Stream s = httpClient.GetStreamAsync(image.FileUri).GetResultOfAwaiter();
+                string str = Decode(s);
+                Content.MessageWindow.SendTextMessageAsync($"解码成功, 内容如下\n{str}");
+            }
+            else
+            {
+                Content.MessageWindow.SendTextMessageAsync($"内部错误, 图片uri期望的scheme:http, https, 实际: {image.FileUri.Scheme}");
+            }
+        }
+        catch
+        {
+            Content.MessageWindow.SendTextMessageAsync("解码失败, 可能原因: 图片不是正方形、utf8解码失败");
+        }
+    }
+
+    public static string Decode(Stream stream)
+    {
+        using Image rawImage = Image.Load(stream);
+        using Image<Rgba32> image = rawImage.CloneAs<Rgba32>();
+        int width = image.Width == image.Height ? image.Width : throw new Exception("no equal width and height");
+        int pixelCounts = width * width;
+        Rgba32[] pixels = new Rgba32[pixelCounts];
+        pixels.Initialize();
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < width; j++)
+            {
+                pixels[i + j * width] = image[i, j];
+            }
+        byte[] bytes = new byte[pixelCounts * 4];
+        for (int i = 0; i < pixelCounts; i++)
+        {
+            bytes[i * 4] = pixels[i].R;
+            bytes[i * 4 + 1] = pixels[i].G;
+            bytes[i * 4 + 2] = pixels[i].B;
+            bytes[i * 4 + 3] = pixels[i].A;
+        }
+        string s = Encoding.UTF8.GetString(bytes);
+        s = s.Replace("\0", "");
+        return s;
+    }
+
+    public static void Encode(string text, string path)
+    {
+        int bytesCount = Encoding.UTF8.GetByteCount(text);
+        int bytesAlineWith4 = (int)Math.Ceiling((double)bytesCount / 4) * 4;
+        Span<byte> bytes = new Span<byte>(new byte[bytesAlineWith4]);
+        Encoding.UTF8.GetBytes(text.AsSpan(), bytes);
+
+        int width = (int)Math.Ceiling(Math.Sqrt(bytesAlineWith4 / 4));
+        int pixelsCount = bytesAlineWith4 / 4;
+        Rgba32[] pixels = new Rgba32[pixelsCount];
+        for (int i = 0; i < pixelsCount; i++)
+        {
+            pixels[i] = new Rgba32(bytes[i * 4], bytes[i * 4 + 1], bytes[i * 4 + 2], bytes[i * 4 + 3]);
+        }
+
+        using Image<Rgba32> image = new(width, width);
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < width; j++)
+            {
+                try
+                {
+                    image[i, j] = pixels[i + j * width];
+                }
+                catch
+                {
+                    image[i, j] = new Rgba32(0, 0, 0, 0);
+                }
+            }
+        using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
+        image.SaveAsPng(fs);
     }
 }

@@ -6,19 +6,23 @@ public class MessageChainImageNode : MessageChainNode, IMessageChainImageNode
 {
     public override CqCodeType NodeType => CqCodeType.Image;
 
-    public string FileUri { get; set; }
+    public Uri FileUri { get; set; }
 
-    public MessageChainImageNode(CqClient client, string file) : base(client)
+    public MessageChainImageNode(CqClient client, Uri fileUri) : base(client)
     {
-        FileUri = file;
+        FileUri = fileUri;
     }
 
+    public MessageChainImageNode(CqClient client, string file, string? url) : base(client)
+    {
+        FileUri = url is null ? (new(file)) : (new(url));
+    }
 
     internal override CqMessageChainNodeModel ToModel()
     {
         StringDictionary dic = new()
         {
-            ["file"] = FileUri
+            ["file"] = FileUri.ToString()
         };
         return new(NodeType, dic);
     }

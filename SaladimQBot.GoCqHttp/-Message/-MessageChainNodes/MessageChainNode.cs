@@ -33,7 +33,7 @@ public abstract class MessageChainNode : CqEntity, IMessageChainNode
                 new MessageChainFaceNode(client, int.Parse(model.Params["id"])),
 
             CqCodeType.Image =>
-                new MessageChainImageNode(client, model.Params["file"]),
+                new MessageChainImageNode(client, model.Params["file"], model.Params.TryGetValue("url", out string? value) ? value : null),
 
             CqCodeType.Reply =>
                 new MessageChainReplyNode(client, client.GetMessageById(int.Parse(model.Params["id"]))),

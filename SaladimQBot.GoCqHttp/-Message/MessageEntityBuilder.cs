@@ -19,7 +19,7 @@ public class MessageEntityBuilder : CqEntity, IMessageEntityBuilder
 
     public MessageEntityBuilder WithTextLine(string text) => this.WithText(text + "\r\n");
 
-    public MessageEntityBuilder WithImage(string uri)
+    public MessageEntityBuilder WithImage(Uri uri)
     {
         chain.MessageChainNodes.Add(new MessageChainImageNode(Client, uri));
         return this;
@@ -84,7 +84,7 @@ public class MessageEntityBuilder : CqEntity, IMessageEntityBuilder
     IMessageEntityBuilder IMessageEntityBuilder.WithText(string text)
         => WithText(text);
 
-    IMessageEntityBuilder IMessageEntityBuilder.WithImage(string uri)
+    IMessageEntityBuilder IMessageEntityBuilder.WithImage(Uri uri)
         => WithImage(uri);
 
     IMessageEntityBuilder IMessageEntityBuilder.WithAt(long userId)

@@ -4,7 +4,7 @@ public interface IMessageEntityBuilder : IClientEntity
 {
     IMessageEntityBuilder WithText(string text);
 
-    IMessageEntityBuilder WithImage(string uri);
+    IMessageEntityBuilder WithImage(Uri uri);
 
     IMessageEntityBuilder WithAt(long userId);
 
