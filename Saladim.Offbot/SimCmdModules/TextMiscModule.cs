@@ -420,4 +420,13 @@ public partial class TextMiscModule : CommandModule
         using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
         image.SaveAsPng(fs);
     }
+
+    [Command("add_lost")]
+    public void AddLost()
+    {
+        var s = serviceProvider.GetRequiredService<SessionSqliteService>();
+        var session = s.GetUserSession<FiveInARowModule.FiveInARowStoreSession>(Content.Executor.UserId);
+        session.LoseTimes++;
+        s.SaveSession(session);
+    }
 }

@@ -21,7 +21,7 @@ public class SessionSqliteService
         try
         {
             string sessionName = $"{sessionId.UserId},{sessionId.GroupId}";
-            var foundResult = sqlSugarScope.Queryable<TSession>().Where(s => s.SessionId == sessionId).First();
+            var foundResult = sqlSugarScope.Queryable<TSession>().Where(s => s.SessionString == sessionName).First();
             return foundResult ?? CreateNew();
         }
         catch (SqlSugarException e)
