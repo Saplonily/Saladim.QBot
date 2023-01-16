@@ -43,5 +43,5 @@ public interface IUser : IClientEntity, IMessageWindow
     /// <summary>
     /// 头像url
     /// </summary>
-    string AvatarUrl { get; }
+    Uri AvatarUrl { get; }
 }

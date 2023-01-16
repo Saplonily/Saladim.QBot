@@ -8,13 +8,25 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+/// <summary>
+/// 用于连接go-cqhttp的Client
+/// </summary>
 [DebuggerDisplay("CqClient, Started={Started}, StartedBefore={StartedBefore}")]
 public abstract class CqClient : IClient
 {
+    /// <summary>
+    /// Api 连接会话
+    /// </summary>
     public abstract ICqSession ApiSession { get; }
 
+    /// <summary>
+    /// Post 上报接口会话
+    /// </summary>
     public abstract ICqSession PostSession { get; }
 
+    /// <summary>
+    /// 可过期类型的值有效期时长
+    /// </summary>
     public abstract TimeSpan ExpireTimeSpan { get; }
 
     //TODO 改为SelfUser类型
@@ -35,6 +47,9 @@ public abstract class CqClient : IClient
     /// </summary>
     public bool Started { get; protected set; }
 
+    /// <summary>
+    /// 该Client发生事件时触发
+    /// </summary>
     public event IClient.OnClientEventOccuredHandler<ClientEvent>? OnClientEventOccured;
 
     event IClient.OnClientEventOccuredHandler<IIClientEvent>? IClient.OnClientEventOccurred
@@ -73,6 +88,7 @@ public abstract class CqClient : IClient
     #region OnPost和OnLog事件
 
     public delegate void OnPostHandler(CqPost post);
+
     /// <summary>
     /// <para>收到原始上报时发生,CqPost类型参数为实际实体上报类</para>
     /// <para>事件源以「同步」方式触发此事件</para>
@@ -80,6 +96,7 @@ public abstract class CqClient : IClient
     public event OnPostHandler OnPost;
 
     public delegate void OnLogHandler(string logMessageString);
+
     /// <summary>
     /// <para>客户端日志事件</para>
     /// </summary>
@@ -593,15 +610,34 @@ public abstract class CqClient : IClient
     }
 
     #region 实用方法
+
+    /// <summary>
+    /// 创建一个空的消息构建器
+    /// </summary>
+    /// <returns></returns>
     public MessageEntityBuilder CreateMessageBuilder()
         => new(this);
 
+    /// <summary>
+    /// 创建一个消息构建器并附带一个回复消息节点在首
+    /// </summary>
+    /// <param name="msgToReply"></param>
+    /// <returns></returns>
     public MessageEntityBuilder CreateMessageBuilder(Message msgToReply)
         => new MessageEntityBuilder(this).WithReply(msgToReply);
 
+    /// <summary>
+    /// 创建一个消息构建器并附带一个文件节点在首
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
     public MessageEntityBuilder CreateMessageBuilderWithText(string text)
         => new MessageEntityBuilder(this).WithText(text);
 
+    /// <summary>
+    /// 创建一个空转发消息节点构建器
+    /// </summary>
+    /// <returns></returns>
     public ForwardEntityBuilder CreateForwardBuilder()
         => new(this);
 
@@ -756,6 +792,12 @@ public abstract class CqClient : IClient
             throw new InvalidOperationException(StringConsts.NotSameClientError);
     }
 
+    /// <summary>
+    /// 向群内发送消息转发消息
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="forwardEntity">消息转发实体</param>
+    /// <returns>异步Task, 返回值为发送出的消息</returns>
     public async Task<GroupMessage> SendGroupMessageAsync(long groupId, ForwardEntity forwardEntity)
     {
         SendForwardMessageToGroupAction api = new()
@@ -770,6 +812,12 @@ public abstract class CqClient : IClient
     Task<IPrivateMessage> IClient.SendPrivateMessageAsync(long userId, IForwardEntity forwardEntity)
         => throw new NotImplementedException("send forward as private msg is not impl");
 
+    /// <summary>
+    /// 向好友发送消息转发消息
+    /// </summary>
+    /// <param name="friendUserId">好友Id</param>
+    /// <param name="forwardEntity">消息转发实体</param>
+    /// <returns>异步Task, 返回值为发送出的消息</returns>
     public async Task<FriendMessage> SendFriendMessageAsync(long friendUserId, ForwardEntity forwardEntity)
     {
         SendForwardMessageToUserAction api = new()
@@ -794,6 +842,11 @@ public abstract class CqClient : IClient
     Task IClient.RecallMessageAsync(int messageId)
         => RecallMessageAsync(messageId);
 
+    /// <summary>
+    /// 撤回目标消息
+    /// </summary>
+    /// <param name="messageId">消息id</param>
+    /// <returns>异步Task</returns>
     public async Task RecallMessageAsync(int messageId)
     {
         DeleteMessageAction api = new()
@@ -809,6 +862,13 @@ public abstract class CqClient : IClient
 
     #region 群的一些互动
 
+    /// <summary>
+    /// 禁言一个群用户
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    /// <param name="time">禁言时长</param>
+    /// <returns>异步Task</returns>
     public Task BanGroupUserAsync(long groupId, long userId, TimeSpan time)
         => this.CallApiWithCheckingAsync(
             new BanGroupUserAction()
@@ -818,6 +878,12 @@ public abstract class CqClient : IClient
                 Duration = (int)time.TotalSeconds
             });
 
+    /// <summary>
+    /// 解禁一个群用户
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">用户Id</param>
+    /// <returns>异步Task</returns>
     public Task LiftBanGroupUserAsync(long groupId, long userId)
         => this.CallApiWithCheckingAsync(
             new BanGroupUserAction()
@@ -827,6 +893,12 @@ public abstract class CqClient : IClient
                 Duration = 0
             });
 
+    /// <summary>
+    /// 设置群名
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="newGroupName">新群名</param>
+    /// <returns>异步Task</returns>
     public Task SetGroupNameAsync(long groupId, string newGroupName)
         => this.CallApiWithCheckingAsync(
             new SetGroupNameAction()
@@ -835,6 +907,13 @@ public abstract class CqClient : IClient
                 GroupName = newGroupName
             });
 
+    /// <summary>
+    /// 设置群名片
+    /// </summary>
+    /// <param name="groupId">群号</param>
+    /// <param name="userId">目标群用户</param>
+    /// <param name="newCard">新群名片</param>
+    /// <returns>异步Task</returns>
     public Task SetGroupCardAsync(long groupId, long userId, string newCard)
         => this.CallApiWithCheckingAsync(
             new SetGroupCardAction()

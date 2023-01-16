@@ -21,7 +21,7 @@ public interface IGroup : IClientEntity
     string Remark { get; }
 
     /// <summary>
-    /// 群头像url
+    /// 群头像uri
     /// </summary>
-    string AvatarUrl { get; }
+    Uri AvatarUrl { get; }
 }

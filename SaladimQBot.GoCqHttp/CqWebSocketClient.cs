@@ -21,7 +21,7 @@ public sealed class CqWebSocketClient : CqClient
     /// <param name="logLevelLimit">日志等级限制, 低于该等级的日志将不会触发<see cref="CqClient.OnLog"/>事件</param>
     public CqWebSocketClient(string gocqHttpAddress, LogLevel logLevelLimit = LogLevel.Info) : base(logLevelLimit)
     {
-        apiSession = new(gocqHttpAddress, "api", useApiEndPoint: true);
+        apiSession = new(gocqHttpAddress, "event", useApiEndPoint: true);
         postSession = new(gocqHttpAddress, "event", useEventEndPoint: true);
     }
 }

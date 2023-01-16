@@ -6,15 +6,24 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+/// <summary>
+/// 一个群实体, 允许bot号未加入
+/// </summary>
 public class Group : CqEntity, IGroup
 {
+    /// <summary>
+    /// 群号
+    /// </summary>
     public long GroupId { get; protected set; }
 
     public IExpirable<string> Name { get; protected set; } = default!;
 
     public IExpirable<string> Remark { get; protected set; } = default!;
 
-    public string AvatarUrl => $"https://p.qlogo.cn/gh/{GroupId}/{GroupId}/100";
+    /// <summary>
+    /// 群头像uri (https)
+    /// </summary>
+    public Uri AvatarUrl => new($"https://p.qlogo.cn/gh/{GroupId}/{GroupId}/100");
 
     protected IDependencyExpirable<GetGroupInfoActionResultData> ApiCallResultData { get; set; } = default!;
 

@@ -4,12 +4,24 @@ using SaladimQBot.GoCqHttp.Posts;
 
 namespace SaladimQBot.GoCqHttp;
 
+/// <summary>
+/// 好友添加请求实体
+/// </summary>
 public class FriendAddRequest : CqEntity, IFriendAddRequest
 {
+    /// <summary>
+    /// 请求被添加为好友的用户
+    /// </summary>
     public User User { get; protected set; } = default!;
 
+    /// <summary>
+    /// 验证消息
+    /// </summary>
     public string Comment { get; protected set; } = default!;
 
+    /// <summary>
+    /// 该请求的处理情况, 存在此属性是为了方便异步环境下的请求处理
+    /// </summary>
     public RequestProcessStatus ProcessState { get; protected set; }
 
     protected internal string Flag { get; protected set; } = default!;
@@ -19,6 +31,9 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         ProcessState = RequestProcessStatus.Idle;
     }
 
+    /// <summary>
+    /// 同意请求
+    /// </summary>
     public async Task<FriendUser> ApproveAsync()
     {
         lock (this)
@@ -35,6 +50,9 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         return FriendUser.CreateFromId(this.Client, User.UserId);
     }
 
+    /// <summary>
+    /// 拒绝请求
+    /// </summary>
     public async Task DisapproveAsync()
     {
         lock (this)
@@ -45,7 +63,7 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         SetFriendAddRequestAction api = new()
         {
             Flag = this.Flag,
-            IsApprove = false
+            IsApprove = false,
         };
         await Client.CallApiWithCheckingAsync(api).ConfigureAwait(false);
         return;
@@ -62,7 +80,7 @@ public class FriendAddRequest : CqEntity, IFriendAddRequest
         }
     }
 
-    public static FriendAddRequest CreateFromPost(CqClient client, CqFriendRequestPost post) => new(client)
+    internal static FriendAddRequest CreateFromPost(CqClient client, CqFriendRequestPost post) => new(client)
     {
         User = User.CreateFromId(client, post.UserId),
         Comment = post.Comment,

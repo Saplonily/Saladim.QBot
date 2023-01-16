@@ -6,6 +6,9 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+/// <summary>
+/// 一个消息实体
+/// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public class Message : CqEntity, IMessage
 {
@@ -19,15 +22,27 @@ public class Message : CqEntity, IMessage
 
     public MessageEntity MessageEntity => ExpMessageEntity.Value;
 
+    /// <summary>
+    /// 消息窗口
+    /// </summary>
     public virtual ICqMessageWindow MessageWindow =>
         throw new InvalidOperationException("Raw Message hasn't MessageWindow.");
 
     IMessageWindow IMessage.MessageWindow => MessageWindow;
 
+    /// <summary>
+    /// 消息发送者
+    /// </summary>
     public User Sender => ExpSender.Value;
 
+    /// <summary>
+    /// 消息发送者
+    /// </summary>
     public User Author => Sender;
 
+    /// <summary>
+    /// 消息id
+    /// </summary>
     public int MessageId { get; protected set; } = default!;
 
     protected internal IDependencyExpirable<GetMessageActionResultData> ApiCallResult { get; set; } = default!;
@@ -38,6 +53,10 @@ public class Message : CqEntity, IMessage
         MessageId = messageId;
     }
 
+    /// <summary>
+    /// 撤回该条消息
+    /// </summary>
+    /// <returns></returns>
     public Task RecallAsync()
         => Client.RecallMessageAsync(this.MessageId);
 

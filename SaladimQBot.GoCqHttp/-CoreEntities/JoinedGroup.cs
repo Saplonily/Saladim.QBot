@@ -6,6 +6,9 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+/// <summary>
+/// 一个bot号加入的群
+/// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 {
@@ -40,12 +43,24 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     {
     }
 
+    /// <summary>
+    /// 向群内发送一个消息(使用消息实体)
+    /// </summary>
+    /// <param name="messageEntity">消息实体</param>
     public Task<GroupMessage> SendMessageAsync(MessageEntity messageEntity)
         => Client.SendGroupMessageAsync(this.GroupId, messageEntity);
 
+    /// <summary>
+    /// 向群内发送一个消息(使用cq码格式的消息)
+    /// </summary>
+    /// <param name="rawString">cq码格式消息</param>
     public Task<GroupMessage> SendMessageAsync(string rawString)
         => Client.SendGroupMessageAsync(this.GroupId, rawString);
 
+    /// <summary>
+    /// 向群内发送一个消息转发消息
+    /// </summary>
+    /// <param name="entity">消息转发实体</param>
     public Task<GroupMessage> SendMessageAsync(ForwardEntity entity)
         => Client.SendGroupMessageAsync(this.GroupId, entity);
 
