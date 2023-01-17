@@ -1,9 +1,14 @@
 # Saladim.QBot
 <br>
 <div align="center">
-一个基于<a href="https://github.com/Mrs4s/go-cqhttp">go-cqhttp</a>的QQ机器人.net框架
+一个基于<a href="https://github.com/Mrs4s/go-cqhttp">go-cqhttp</a>的QQ机器人.net框架  
+
+![LICENSE](https://img.shields.io/github/license/saladim-org/Saladim.QBot)
+
 </div>
 <br>
+
+
 
 ## 文档: 请见仓库 [Saladim.QBot-docs](https://github.com/saladim-org/Saladim.QBot-docs)
 
@@ -19,8 +24,6 @@
 - [ ] 完成高级应用层, 例如消息/命令解析处理管道等
 
 ~~暂时就只能想到这些了, 作为一个废物能活到我做完上面这三项就不错了~~
-
-因为<a href="https://github.com/Mrs4s/go-cqhttp">go-cqhttp</a>基于AGPL-3.0, 故选择[AGPL-3.0](LICENSE.txt)许可证
 
 ### 目前支持情况
 
@@ -76,7 +79,7 @@
 `未来也可能加入压力测试等
 5. `SaladimQBot.Shared`共享的一个库, 与项目大致无关, 仅包含极其简单的一些通用实现
 6. `SaladimConsole` 目前 3. 正在使用的控制台调用测试,在这里你可以找到一些使用的例子
-7. `SaladimWpf` 与6差不多, 但是是使用wpf构建的gui项目
+7. `SaladimOffbot` 与6差不多, 但是更加完善
 8. 未来可能会加入的项目:
     - `SaladimQBot.Mirai` 见3.
     - `SaladimQBot.Extensions.MessagePipeline` 消息处理管线
