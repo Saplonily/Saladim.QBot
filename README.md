@@ -3,7 +3,7 @@
 <div align="center">
 一个基于<a href="https://github.com/Mrs4s/go-cqhttp">go-cqhttp</a>的QQ机器人.net框架  
 
-![LICENSE](https://img.shields.io/github/license/saladim-org/Saladim.QBot)
+![LICENSE](https://img.shields.io/github/license/Saladim-org/Saladim.QBot)
 
 </div>
 <br>
