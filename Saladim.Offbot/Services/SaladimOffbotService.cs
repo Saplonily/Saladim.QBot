@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.Core.Services;
@@ -80,6 +83,30 @@ public class SaladimOffbotService : IClientService
         {
             coroutineService.PushCoroutines(e);
             await next().ConfigureAwait(false);
+        });
+        //同意好友、群消息中间件
+        eventPipeline.AppendMiddleware(async (e, next) =>
+        {
+            if (e is IClientFriendAddRequestedEvent eFriend)
+            {
+                string comment = eFriend.Request.Comment;
+                byte[] md5Result = MD5.HashData(Encoding.UTF8.GetBytes(eFriend.Request.User.UserId + "offKey"));
+                string expectKey = string.Concat(md5Result.Select(b => b.ToString("0x")))[..4];
+                bool approve = false;
+                if (expectKey.Equals(comment, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await eFriend.Request.ApproveAsync().ConfigureAwait(false);
+                    approve = true;
+                }
+                else
+                {
+                    await eFriend.Request.DisapproveAsync().ConfigureAwait(false);
+                    approve = false;
+                }
+                string log = $"{eFriend.Request.User.Nickname} 请求添加好友, " +
+                    $"期望key值: {expectKey}, 实际给出: {comment}, 是否同意: {approve}";
+                logger.LogInfo("WpfConsole", log);
+            }
         });
     }
 

@@ -72,6 +72,11 @@ public partial class TextMiscModule : CommandModule
     [Command("随机色块")]
     public void RandomPicColor(int size)
     {
+        if (size > 1920)
+        {
+            Content.MessageWindow.SendTextMessageAsync("你这大小怎么大于1920了都, 想爆bot内存是吧(((");
+            return;
+        }
         Random r = serviceProvider.GetRequiredService<RandomService>().Random;
         Image<Rgba32> image = new(size, size);
         for (int i = 0; i < size; i++)
@@ -280,7 +285,7 @@ public partial class TextMiscModule : CommandModule
     [Command("my_avatar")]
     public void MyAvatar()
     {
-        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(new Uri(Content.Executor.AvatarUrl)).Build();
+        var entity = Content.Client.CreateMessageBuilder().WithTextLine("你的头像:").WithImage(Content.Executor.AvatarUrl).Build();
         Content.MessageWindow.SendMessageAsync(entity);
     }
 
@@ -289,7 +294,7 @@ public partial class TextMiscModule : CommandModule
     {
         if (Content.Message is IGroupMessage groupMessage)
         {
-            var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(new Uri(groupMessage.Group.AvatarUrl)).Build();
+            var entity = Content.Client.CreateMessageBuilder().WithTextLine("群头像:").WithImage(groupMessage.Group.AvatarUrl).Build();
             Content.MessageWindow.SendMessageAsync(entity);
         }
     }
@@ -393,7 +398,7 @@ public partial class TextMiscModule : CommandModule
     {
         int bytesCount = Encoding.UTF8.GetByteCount(text);
         int bytesAlineWith4 = (int)Math.Ceiling((double)bytesCount / 4) * 4;
-        Span<byte> bytes = new Span<byte>(new byte[bytesAlineWith4]);
+        Span<byte> bytes = new(new byte[bytesAlineWith4]);
         Encoding.UTF8.GetBytes(text.AsSpan(), bytes);
 
         int width = (int)Math.Ceiling(Math.Sqrt(bytesAlineWith4 / 4));
@@ -419,14 +424,5 @@ public partial class TextMiscModule : CommandModule
             }
         using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
         image.SaveAsPng(fs);
-    }
-
-    [Command("add_lost")]
-    public void AddLost()
-    {
-        var s = serviceProvider.GetRequiredService<SessionSqliteService>();
-        var session = s.GetUserSession<FiveInARowModule.FiveInARowStoreSession>(Content.Executor.UserId);
-        session.LoseTimes++;
-        s.SaveSession(session);
     }
 }
