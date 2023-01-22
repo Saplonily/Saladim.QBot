@@ -7,7 +7,7 @@
 		<Title>SaladimQBot.Shared</Title>
 		<Authors>Saplonily</Authors>
 		<PackAsTool>False</PackAsTool>
-		<Version>0.4.1</Version>
+		<Version>0.4.2</Version>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

@@ -5,12 +5,12 @@
 		<LangVersion>preview</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>0.4.1</Version>
+		<Version>0.4.2</Version>
 		<Title>SaladimQBot.Extensions</Title>
 		<Authors>Saplonily</Authors>
 		<Company>Saplonily</Company>
 		<Description>SaladimQBot的Official拓展包</Description>
-		<Copyright>以AGPL-3许可开源</Copyright>
+		<Copyright>以MIT许可开源</Copyright>
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
