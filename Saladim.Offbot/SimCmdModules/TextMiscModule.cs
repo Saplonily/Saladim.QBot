@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CodingSeb.ExpressionEvaluator;
@@ -7,13 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Saladim.Offbot.Services;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
-using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SysColor = System.Drawing.Color;
 
 namespace Saladim.Offbot.SimCmdModules;
 

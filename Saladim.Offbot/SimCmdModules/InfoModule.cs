@@ -1,6 +1,6 @@
-﻿using SaladimQBot.Core;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
+using SaladimQBot.Core;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 
