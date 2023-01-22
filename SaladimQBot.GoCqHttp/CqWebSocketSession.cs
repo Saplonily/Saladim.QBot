@@ -7,12 +7,12 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-public delegate void OnCqSessionReceivedHandler(in JsonDocument parsedDocument);
+public delegate void OnCqSessionReceivedHandler(in JsonDocument? parsedDocument);
 
 [DebuggerDisplay("wsSession, Started={Started}, Uri={Uri}")]
 public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 {
-    public const int BufferSize = 1 * Size.MiB;
+    public const int BufferSize = Size.MiB / 2;
     public static readonly Encoding Encoding = Encoding.UTF8;
     public readonly Uri Uri;
 
@@ -44,7 +44,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
     public event OnCqSessionReceivedHandler? OnReceived;
 
     /// <summary>
-    /// 可接受异常发生时的通知事件
+    /// 可接受异常发生(比如Json解析失败)时的通知事件
     /// </summary>
     public event Action<Exception>? OnReceivedAcceptableException;
 
@@ -59,14 +59,17 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         (UseEventEndPoint, UseApiEndPoint) =
         (useEventEndPoint, useApiEndPoint);
 
-    private async Task ConnectAsync(CancellationToken token)
+    public async Task ConnectAsync(CancellationToken token)
     {
+        if (Started)
+            throw new InvalidOperationException("The session has been started.");
         try
         {
             MakeWebSocketAvailable();
+            //只把token传给ws, 
             await webSocket.ConnectAsync(Uri, token).ConfigureAwait(false);
             Started = true;
-            ReceivingTask = Task.Run(ReceivingLoop);
+            ReceivingTask = Task.Run(ReceivingLoop, CancellationToken.None);
         }
         catch (Exception)
         {
@@ -93,13 +96,13 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         webSocket.Dispose();
     }
 
-    public void EmitOnReceived(JsonDocument docToEmit)
+    public void EmitOnReceived(JsonDocument? docToEmit)
     {
         if (this.UseEventEndPoint)
         {
             OnReceived?.Invoke(docToEmit);
         }
-        if (this.UseApiEndPoint && docToEmit.RootElement.TryGetProperty(StringConsts.ApiEchoProperty, out var echoProp))
+        if (this.UseApiEndPoint && docToEmit?.RootElement.TryGetProperty(StringConsts.ApiEchoProperty, out var echoProp) is true)
         {
             try
             {
@@ -134,8 +137,15 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
                 string str = Encoding.GetString(segment.Array!, segment.Offset, count);
                 try
                 {
-                    var doc = JsonDocument.Parse(str);
-                    this.EmitOnReceived(doc);
+                    try
+                    {
+                        var doc = JsonDocument.Parse(str);
+                        this.EmitOnReceived(doc);
+                    }
+                    catch (JsonException)
+                    {
+                        this.EmitOnReceived(null);
+                    }
                 }
                 catch (JsonException jsonException)
                 {
@@ -163,16 +173,14 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
     }
 
     /// <summary>
-    /// 使用该Session调用一个api,
-    /// 成功时返回调用结果,
-    /// 无法被解析为实体时返回null,
-    /// 表明失败时Result内部Data为null
+    /// 使用该Session调用一个api
+    /// 状态码请看<see cref="ICqSession.CallApiAsync(CqApi)"/>的注释
     /// </summary>
     /// <param name="api">api实例</param>
     /// <param name="echo">echo, 任意在短时间内不会重复的值</param>
     /// <returns>api调用结果</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public async Task<CqApiCallResult?> CallApiAsync(CqApi api, string echo)
+    public async Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api, string echo)
     {
         if (!UseApiEndPoint) throw new InvalidOperationException("This session doesn't use api endpoint.");
         if (!Started) throw new InvalidOperationException("This session hasn't started receiving.");
@@ -194,16 +202,17 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 
         CqApiCallResult? result = new();
         JsonDocument? docForDeserialize = null;
+        bool hasResponse = false;
 
         AutoResetEvent e = new(false);
-        void Callback(JsonDocument doc) => (_, docForDeserialize) = (e.Set(), doc);
+        void Callback(JsonDocument doc) => (_, docForDeserialize, hasResponse) = (e.Set(), doc, true);
         suspendedApiResponseWaitings.Add(echo, Callback);
-        e.WaitOne();
-
-        if (docForDeserialize is null) return null;
+        e.WaitOne(TimeSpan.FromSeconds(10));
+        if (!hasResponse) return (null, 22);
+        if (docForDeserialize is null) return (null, 20);
         result = CqApiJsonSerializer.DeserializeApiResult(docForDeserialize, api);
-        if (result is null) return null;
-        return result;
+        if (result is null) return (null, 23);
+        return (result, result.Data is null ? 21 : 10);
     }
 
     private static ArraySegment<byte> GetArraySegment(int size)
@@ -212,6 +221,6 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
     Task ICqSession.StartAsync()
         => ConnectAsync(CancellationToken.None);
 
-    Task<CqApiCallResult?> ICqSession.CallApiAsync(CqApi api)
+    Task<(CqApiCallResult? result, int statusCode)> ICqSession.CallApiAsync(CqApi api)
         => CallApiAsync(api, seq++.ToString());
 }

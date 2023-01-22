@@ -111,7 +111,7 @@ public abstract class CqClient : IClient
     /// </summary>
     /// <param name="api">要调用的api实体</param>
     /// <returns>一个结果为<see cref="CqApiCallResult"/>的task</returns>
-    public async Task<CqApiCallResult?> CallApiAsync(CqApi api)
+    public async Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api)
     {
         if (!Started)
             throw new ClientException(this, ClientException.ExceptionType.NotStartedBeforeCallApi);
@@ -123,16 +123,41 @@ public abstract class CqClient : IClient
         return await ApiSession.CallApiAsync(api).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// 使用该客户端调用原始Api, 同时转换返回的Data类型
-    /// </summary>
-    /// <typeparam name="T">api调用结果的Data(<see cref="CqApiCallResult.Data"/>)的类型</typeparam>
-    /// <param name="api">要调用的api实体</param>
-    /// <returns></returns>
-    public async Task<(CqApiCallResult?, T?)> CallApiAsync<T>(CqApi api) where T : CqApiCallResultData
+    internal async Task<CqApiCallResult> CallApiWithCheckingAsync(CqApi api, bool implicitly)
     {
-        var result = await CallApiAsync(api).ConfigureAwait(false);
-        return (result, result?.Data as T);
+        (CqApiCallResult? result, int statusCode) = await this.CallApiAsync(api).ConfigureAwait(false);
+        if (result is null) throw new CqApiCallFailedException(this, implicitly, api);
+        if (api.ApiResultDataType is not null && result.Data is null)
+            throw new CqApiCallFailedException(this, implicitly, api, result: result, message: statusCode switch
+            {
+                10 => "",
+                20 => "Failed to parse the post string into JsonDocument.",
+                21 => "Call Succuessfully but action error received.",
+                22 => "Call api timeout.",
+                23 => "Failed to deserialize json to instance.",
+                _ => $"Unknown reason cause got a status code `{statusCode}`."
+            });
+        return result;
+    }
+
+    internal Task<CqApiCallResult> CallApiImplicitlyWithCheckingAsync(CqApi api)
+        => this.CallApiWithCheckingAsync(api, true);
+
+    internal async Task<(CqApiCallResult, T)> CallApiImplicitlyWithCheckingAsync<T>(CqApi api)
+        where T : CqApiCallResultData
+    {
+        var r = await CallApiImplicitlyWithCheckingAsync(api).ConfigureAwait(false);
+        return (r, (T)r.Data!);
+    }
+
+    public Task<CqApiCallResult> CallApiWithCheckingAsync(CqApi api)
+        => this.CallApiWithCheckingAsync(api, false);
+
+    public async Task<(CqApiCallResult, T)> CallApiWithCheckingAsync<T>(CqApi api)
+        where T : CqApiCallResultData
+    {
+        var r = await CallApiWithCheckingAsync(api).ConfigureAwait(false);
+        return (r, (T)r.Data!);
     }
 
     #endregion
@@ -227,9 +252,14 @@ public abstract class CqClient : IClient
         return;
     }
 
-    internal void OnSessionReceived(in JsonDocument srcDoc)
+    internal void OnSessionReceived(in JsonDocument? srcDoc)
     {
         //TODO 可选的将所有switch分支抽离为一个函数
+        if(srcDoc is null)
+        {
+            logger.LogWarn("Client", "Received a post than can't deseralized into a JsonDocument.");
+            return;
+        }
         CqJsonPostLoader loader = new(srcDoc.RootElement);
         CqPostType postType = loader.EnumFromString<CqPostType>(StringConsts.PostTypeProperty);
         switch (postType)
@@ -421,7 +451,6 @@ public abstract class CqClient : IClient
                             ClientFriendMessageReceivedEvent e = new(this, fm);
                             OnClientEventOccured?.Invoke(e);
                             //ftm (无端联想)
-                            //我sll不是跨啊(
                         }
                         else
                         {

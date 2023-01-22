@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Saladim.SalLogger;
@@ -8,6 +9,7 @@ using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
 using SqlSugar;
+
 
 namespace Saladim.Offbot.Services;
 
@@ -49,7 +51,13 @@ public class SaladimOffbotService : IClientService
 
     private void Client_OnClientEventOccurred(IIClientEvent clientEvent)
     {
-        Task.Run(() => eventPipeline.ExecuteAsync(clientEvent));
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
+        Task.Run(() => eventPipeline.ExecuteAsync(clientEvent)).ContinueWith(_ =>
+        {
+            stopwatch.Stop();
+            logger.LogDebug("DebugTest",$"本次上报处理耗时: {stopwatch.Elapsed}");
+        });
     }
 
     private void ConfigurePipeline(Pipeline<IIClientEvent> eventPipeline)

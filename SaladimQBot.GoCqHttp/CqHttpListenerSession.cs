@@ -27,7 +27,7 @@ public class CqHttpListenerSession : ICqSession
         listener.Prefixes.Add(goCqHttpBaseUrl + "/");
     }
 
-    public Task<CqApiCallResult?> CallApiAsync(CqApi api)
+    public Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api)
         => throw new NotSupportedException("CqHttpListenerSession doesn't support CallApi.");
 
     public void Dispose()

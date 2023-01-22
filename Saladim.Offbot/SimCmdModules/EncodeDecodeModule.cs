@@ -91,8 +91,15 @@ public class EncodeDecodeModule : CommandModule
     [Command("base64decode")]
     public void Base64Decode(string str)
     {
-        var result = Convert.FromBase64String(str);
-        Content.MessageWindow.SendTextMessageAsync($"base64解码结果: {Encoding.UTF8.GetString(result)}");
+        try
+        {
+            var result = Convert.FromBase64String(str);
+            Content.MessageWindow.SendTextMessageAsync($"base64解码结果: {Encoding.UTF8.GetString(result)}");
+        }
+        catch (FormatException)
+        {
+            Content.MessageWindow.SendTextMessageAsync("解码错误, 字符串不符合base64编码.");
+        }
     }
 
     public static string PicDecode(Stream stream)
