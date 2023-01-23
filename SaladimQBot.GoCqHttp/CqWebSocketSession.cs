@@ -37,9 +37,11 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 
     public bool Started { get; private set; }
 
+    public event Action<Exception>? OnErrorOccurred;
+
 
     /// <summary>
-    /// 收到上报时引发的事件,注意Cancel/Abort/Stop后会主动清空事件的订阅者
+    /// 收到上报时引发的事件, 注意Cancel/Abort/Stop后**不会**清空事件的订阅者
     /// </summary>
     public event OnCqSessionReceivedHandler? OnReceived;
 
@@ -66,7 +68,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         try
         {
             MakeWebSocketAvailable();
-            //只把token传给ws, 
+            //只把token传给ws
             await webSocket.ConnectAsync(Uri, token).ConfigureAwait(false);
             Started = true;
             ReceivingTask = Task.Run(ReceivingLoop, CancellationToken.None);
@@ -130,38 +132,35 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
                 WebSocketReceiveResult result;
                 do
                 {
-                    result = webSocket.ReceiveAsync(segment, receiveTokenSource.Token).Result;
+                    result = webSocket.ReceiveAsync(segment, receiveTokenSource.Token).GetResultOfAwaiter();
                     count += result.Count;
                 }
                 while (!result.EndOfMessage);
                 string str = Encoding.GetString(segment.Array!, segment.Offset, count);
                 try
                 {
-                    try
-                    {
-                        var doc = JsonDocument.Parse(str);
-                        this.EmitOnReceived(doc);
-                    }
-                    catch (JsonException)
-                    {
-                        this.EmitOnReceived(null);
-                    }
+                    var doc = JsonDocument.Parse(str);
+                    this.EmitOnReceived(doc);
                 }
                 catch (JsonException jsonException)
                 {
+                    this.EmitOnReceived(null);
                     var e = new PostParseFailedException(jsonException);
                     OnReceivedAcceptableException?.Invoke(e);
                 }
             }
         }
-        catch (AggregateException e)
-        {
-            if (e.InnerException is not TaskCanceledException)
-                throw;
-        }
         catch (ObjectDisposedException)
         {
             return;
+        }
+        catch (Exception e)
+        {
+            if (e is not TaskCanceledException)
+            {
+                OnErrorOccurred?.Invoke(e);
+                throw;
+            }
         }
         finally
         {
@@ -223,4 +222,5 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 
     Task<(CqApiCallResult? result, int statusCode)> ICqSession.CallApiAsync(CqApi api)
         => CallApiAsync(api, seq++.ToString());
+
 }

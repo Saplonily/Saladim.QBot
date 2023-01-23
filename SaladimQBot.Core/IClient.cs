@@ -192,6 +192,8 @@ public interface IClient
 
     event OnClientEventOccuredHandler<IIClientEvent> OnClientEventOccurred;
 
+    event Action<Exception> OnStoppedUnexpectedly;
+
     /// <summary>
     /// bot号本身的实体
     /// </summary>

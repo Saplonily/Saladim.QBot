@@ -21,4 +21,6 @@ public interface ICqSession : IDisposable
     Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api);
 
     event OnCqSessionReceivedHandler OnReceived;
+
+    event Action<Exception> OnErrorOccurred;
 }

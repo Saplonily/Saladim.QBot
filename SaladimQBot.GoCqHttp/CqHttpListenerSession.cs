@@ -20,6 +20,8 @@ public class CqHttpListenerSession : ICqSession
     /// </summary>
     public event Action<Exception>? OnReceivedAcceptableException;
 
+    public event Action<Exception>? OnErrorOccurred;
+
     public CqHttpListenerSession(string goCqHttpBaseUrl)
     {
         listener = new HttpListener();
@@ -76,10 +78,12 @@ public class CqHttpListenerSession : ICqSession
                     content.Response.Close();
                 }
             }
-            catch (HttpListenerException)
+            catch (HttpListenerException e)
             {
+                OnErrorOccurred?.Invoke(e);
                 break;
             }
         }
     }
+
 }

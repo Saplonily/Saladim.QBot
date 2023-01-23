@@ -132,6 +132,11 @@ public static class Program
                 if (message.MessageEntity.RawString.Contains("/qwq"))
                 {
                     await message.ReplyAsync($"你发了qwq是吧qwq, 你那条消息是在{message.SendTime}的时候发的.").ConfigureAwait(false);
+                    try
+                    {
+                        await message.Sender.SendTextMessageAsync("test");
+                    }
+                    catch (CqApiCallFailedException) { }
                 }
                 if (message.MessageEntity.MentionedAllUser())
                 {
@@ -142,7 +147,7 @@ public static class Program
                     IMessageEntity sendEntity = client.CreateMessageBuilder()
                         .WithText("这是文字")
                         .WithText(", 接下来的是图片: ")
-                        .WithImage("https://cn.bing.com/rp/QVXspp3oaMgMqbxnY2UzWAvA_fw.png")
+                        .WithImage(new("https://cn.bing.com/rp/QVXspp3oaMgMqbxnY2UzWAvA_fw.png"))
                         .WithFace(18)
                         .WithAt(message.Sender)
                         .Build();

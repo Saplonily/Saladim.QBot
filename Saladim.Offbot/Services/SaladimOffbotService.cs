@@ -51,13 +51,7 @@ public class SaladimOffbotService : IClientService
 
     private void Client_OnClientEventOccurred(IIClientEvent clientEvent)
     {
-        Stopwatch stopwatch = new();
-        stopwatch.Start();
-        Task.Run(() => eventPipeline.ExecuteAsync(clientEvent)).ContinueWith(_ =>
-        {
-            stopwatch.Stop();
-            logger.LogDebug("DebugTest",$"本次上报处理耗时: {stopwatch.Elapsed}");
-        });
+        Task.Run(() => eventPipeline.ExecuteAsync(clientEvent));
     }
 
     private void ConfigurePipeline(Pipeline<IIClientEvent> eventPipeline)

@@ -13,6 +13,8 @@ public class CqHttpRequestorSession : ICqSession, IDisposable
 
 #pragma warning disable 
     public event OnCqSessionReceivedHandler? OnReceived;
+
+    public event Action<Exception>? OnErrorOccurred;
 #pragma warning restore
 
     public bool Started { get; protected set; }

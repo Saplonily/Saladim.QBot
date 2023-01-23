@@ -14,15 +14,19 @@ namespace SaladimQBot.GoCqHttp;
 [DebuggerDisplay("CqClient, Started={Started}, StartedBefore={StartedBefore}")]
 public abstract class CqClient : IClient
 {
+    internal Lazy<User> lazySelf;
+    protected Logger logger;
+    protected readonly Dictionary<CqApi, IIndependentExpirable<CqApiCallResultData>> cachedApiCallResultData = new();
+
     /// <summary>
     /// Api 连接会话
     /// </summary>
-    public abstract ICqSession ApiSession { get; }
+    public ICqSession ApiSession { get; protected set; }
 
     /// <summary>
     /// Post 上报接口会话
     /// </summary>
-    public abstract ICqSession PostSession { get; }
+    public ICqSession PostSession { get; protected set; }
 
     /// <summary>
     /// 可过期类型的值有效期时长
@@ -35,7 +39,6 @@ public abstract class CqClient : IClient
     /// </summary>
     public User Self => lazySelf.Value;
 
-    internal Lazy<User> lazySelf;
 
     /// <summary>
     /// 该Client之前是否尝试开启过
@@ -47,6 +50,8 @@ public abstract class CqClient : IClient
     /// </summary>
     public bool Started { get; protected set; }
 
+    public event Action<Exception>? OnStoppedUnexpectedly;
+
     /// <summary>
     /// 该Client发生事件时触发
     /// </summary>
@@ -57,10 +62,8 @@ public abstract class CqClient : IClient
         add => OnClientEventOccured += value; remove => OnClientEventOccured -= value;
     }
 
-    protected Logger logger;
-    protected readonly Dictionary<CqApi, IIndependentExpirable<CqApiCallResultData>> cachedApiCallResultData = new();
 
-    public CqClient(LogLevel logLevelLimit)
+    public CqClient(LogLevel logLevelLimit, ICqSession apiSession, ICqSession postSession)
     {
         OnPost += InternalPostProcessor;
         logger =
@@ -70,11 +73,23 @@ public abstract class CqClient : IClient
                 .WithFormatter(ClientLogFormatter)
                 .Build();
         lazySelf = new(LazySelfFactory, true);
+        this.ApiSession = apiSession;
+        this.PostSession = postSession;
+        PostSession.OnReceived += OnSessionReceived;
+
+        ApiSession.OnErrorOccurred += this.OnSessionErrorOccurred;
+        PostSession.OnErrorOccurred += this.OnSessionErrorOccurred;
 
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[" +
             $"{l}][{s}/{(ss is null ? "" : $"{ss}")}" +
             $"] {content}";
+    }
+
+    private void OnSessionErrorOccurred(Exception e)
+    {
+        this.InternalStop();
+        OnStoppedUnexpectedly?.Invoke(e);
     }
 
     private User LazySelfFactory()
@@ -169,7 +184,7 @@ public abstract class CqClient : IClient
     /// </summary>
     /// <returns>异步Task</returns>
     /// <exception cref="ClientException"></exception>
-    public Task StartAsync()
+    public async Task StartAsync()
     {
         if (Started)
             throw new ClientException(this, ClientException.ExceptionType.AlreadyStarted);
@@ -177,7 +192,8 @@ public abstract class CqClient : IClient
         {
             logger.LogWarn("Client", "Connection", "Either of session has been started.");
         }
-        return InternalStartAsync();
+        await InternalStartAsync();
+        return;
     }
 
     /// <summary>
@@ -212,8 +228,6 @@ public abstract class CqClient : IClient
             await PostSession.StartAsync().ConfigureAwait(false);
             logger.LogInfo("Client", "Connection", "Connection completed.");
 
-            PostSession.OnReceived += OnSessionReceived;
-
             StartedBefore = true;
             Started = true;
         }
@@ -237,25 +251,27 @@ public abstract class CqClient : IClient
 
     internal void InternalStop()
     {
-        if (Started)
+        lock (this)
         {
-            logger.LogInfo("Client", "Connection", "Stopping connection...");
-            ApiSession.Dispose();
-            PostSession.Dispose();
-            PostSession.OnReceived -= OnSessionReceived;
-            Started = false;
+            if (Started)
+            {
+                logger.LogInfo("Client", "Connection", "Stopping connection...");
+                ApiSession.Dispose();
+                PostSession.Dispose();
+                Started = false;
+            }
+            else
+            {
+                logger.LogWarn("Client", "Connection", "Try to stop a not started client.");
+            }
+            return;
         }
-        else
-        {
-            logger.LogWarn("Client", "Connection", "Try to stop a not started client.");
-        }
-        return;
     }
 
     internal void OnSessionReceived(in JsonDocument? srcDoc)
     {
         //TODO 可选的将所有switch分支抽离为一个函数
-        if(srcDoc is null)
+        if (srcDoc is null)
         {
             logger.LogWarn("Client", "Received a post than can't deseralized into a JsonDocument.");
             return;
