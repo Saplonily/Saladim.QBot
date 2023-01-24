@@ -4,7 +4,7 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-public class PrivateMessage : Message, IPrivateMessage
+public class PrivateMessage : Message, IPrivateMessage, ICqMessageWindow
 {
     public MessageTempSource TempSource { get; protected set; } = default!;
 
@@ -14,8 +14,7 @@ public class PrivateMessage : Message, IPrivateMessage
 
     public User PrivateSender { get => ExpPrivateSender.Value; }
 
-    public override ICqMessageWindow MessageWindow =>
-        throw new InvalidOperationException("Raw PrivateMessage hasn't MessageWindow.");
+    public override ICqMessageWindow MessageWindow => this;
 
     protected internal PrivateMessage(CqClient client, int messageId) : base(client, messageId)
     {
@@ -93,9 +92,33 @@ public class PrivateMessage : Message, IPrivateMessage
 
     #endregion
 
-    #region IPrivateMessage
+    #region IPrivateMessage & ICqMessageWindow
 
     Core.MessageTempSource IPrivateMessage.TempSource => TempSource.Cast<Core.MessageTempSource>();
+
+    [Obsolete]
+    async Task<Message> ICqMessageWindow.SendMessageAsync(MessageEntity messageEntity)
+       => await Sender.SendMessageAsync(TempSourceGroupId, messageEntity).ConfigureAwait(false);
+
+    [Obsolete]
+    async Task<Message> ICqMessageWindow.SendMessageAsync(string rawString)
+       => await Sender.SendMessageAsync(TempSourceGroupId, rawString).ConfigureAwait(false);
+
+    [Obsolete]
+    async Task<Message> ICqMessageWindow.SendMessageAsync(ForwardEntity forwardEntity)
+       => await Sender.SendMessageAsync(TempSourceGroupId, forwardEntity).ConfigureAwait(false);
+
+    async Task<IMessage> IMessageWindow.SendMessageAsync(IMessageEntity messageEntity)
+        => await Sender.SendMessageAsync(TempSourceGroupId, messageEntity).ConfigureAwait(false);
+
+    [Obsolete]
+    async Task<IMessage> IMessageWindow.SendMessageAsync(string rawString)
+        => await Sender.SendMessageAsync(TempSourceGroupId, rawString).ConfigureAwait(false);
+
+
+    Task<IMessage> IMessageWindow.SendMessageAsync(IForwardEntity forwardEntity)
+        => throw new InvalidOperationException("Send forward entity to non-friend user is not impl.");
+
 
     #endregion
 }

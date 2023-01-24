@@ -36,6 +36,7 @@ public class SaladimOffbot
         AppDomain.CurrentDomain.ProcessExit += (obj, args) => OnProcessShutdown(null);
         Console.CancelKeyPress += (obj, args) => OnProcessShutdown(null);
         AppDomain.CurrentDomain.UnhandledException += (obj, args) => OnProcessShutdown(args.ExceptionObject is Exception e ? e : null);
+        logger = LoggerService.SalIns;
     }
 
     private void Client_OnStoppedUnexpectedly(Exception ce)
@@ -62,7 +63,6 @@ public class SaladimOffbot
 
         SaladimOffbot saladimOffbot = new();
         Logger salLoggerIns = saladimOffbot.LoggerService.SalIns;
-        saladimOffbot.logger = salLoggerIns;
         var logger = saladimOffbot.logger;
         _ = saladimOffbot.RunAsync().ContinueWith(t =>
         {
