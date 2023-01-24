@@ -5,7 +5,7 @@
 		<LangVersion>preview</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>0.4.4-fad2165</Version>
+		<Version>0.4.4</Version>
 		<Title>SaladimQBot.Extensions</Title>
 		<Authors>Saplonily</Authors>
 		<Company>Saplonily</Company>
