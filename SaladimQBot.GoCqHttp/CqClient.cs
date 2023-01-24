@@ -15,8 +15,9 @@ namespace SaladimQBot.GoCqHttp;
 public abstract class CqClient : IClient
 {
     internal Lazy<User> lazySelf;
-    protected Logger logger;
     protected readonly Dictionary<CqApi, IIndependentExpirable<CqApiCallResultData>> cachedApiCallResultData = new();
+    protected Logger logger;
+    protected Timer timer;
 
     /// <summary>
     /// Api 连接会话
@@ -55,11 +56,11 @@ public abstract class CqClient : IClient
     /// <summary>
     /// 该Client发生事件时触发
     /// </summary>
-    public event IClient.OnClientEventOccuredHandler<ClientEvent>? OnClientEventOccured;
+    public event IClient.OnClientEventOccuredHandler<ClientEvent>? OnClientEventOccurred;
 
-    event IClient.OnClientEventOccuredHandler<IIClientEvent>? IClient.OnClientEventOccurred
+    event IClient.OnClientEventOccuredHandler<IClientEvent>? IClient.OnClientEventOccurred
     {
-        add => OnClientEventOccured += value; remove => OnClientEventOccured -= value;
+        add => OnClientEventOccurred += value; remove => OnClientEventOccurred -= value;
     }
 
 
@@ -79,6 +80,10 @@ public abstract class CqClient : IClient
 
         ApiSession.OnErrorOccurred += this.OnSessionErrorOccurred;
         PostSession.OnErrorOccurred += this.OnSessionErrorOccurred;
+        timer = new(state =>
+        {
+            OnClientEventOccurred?.Invoke(new ClientTickEvent(this));
+        }, null, Timeout.Infinite, 1000);
 
         static string ClientLogFormatter(LogLevel l, string s, string? ss, string content)
             => $"[" +
@@ -227,7 +232,7 @@ public abstract class CqClient : IClient
             logger.LogInfo("Client", "Connection", "Connecting post session...");
             await PostSession.StartAsync().ConfigureAwait(false);
             logger.LogInfo("Client", "Connection", "Connection completed.");
-
+            timer.Change(0, 1000);
             StartedBefore = true;
             Started = true;
         }
@@ -253,6 +258,7 @@ public abstract class CqClient : IClient
     {
         lock (this)
         {
+            timer.Change(Timeout.Infinite, 1000);
             if (Started)
             {
                 logger.LogInfo("Client", "Connection", "Stopping connection...");
@@ -455,7 +461,7 @@ public abstract class CqClient : IClient
                         }
                         GroupMessage gm = GroupMessage.CreateFromGroupMessagePost(this, groupMessagePost);
                         ClientGroupMessageReceivedEvent e = new(this, gm);
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -465,14 +471,14 @@ public abstract class CqClient : IClient
                         {
                             FriendMessage fm = FriendMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
                             ClientFriendMessageReceivedEvent e = new(this, fm);
-                            OnClientEventOccured?.Invoke(e);
+                            OnClientEventOccurred?.Invoke(e);
                             //ftm (无端联想)
                         }
                         else
                         {
                             PrivateMessage pm = PrivateMessage.CreateFromPrivateMessagePost(this, privateMessagePost);
                             ClientPrivateMessageReceivedEvent e = new(this, pm);
-                            OnClientEventOccured?.Invoke(e);
+                            OnClientEventOccurred?.Invoke(e);
                         }
                     }
                     break;
@@ -486,7 +492,7 @@ public abstract class CqClient : IClient
                     {
                         var privateMsg = this.GetPrivateMessageById(notice.MessageId);
                         ClientPrivateMessageRecalledEvent e = new(this, privateMsg);
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -495,14 +501,14 @@ public abstract class CqClient : IClient
                         var groupMsg = this.GetGroupMessageById(notice.MessageId);
                         var operatorUser = this.GetGroupUser(notice.GroupId, notice.UserId);
                         ClientGroupMessageRecalledEvent e = new(this, groupMsg, operatorUser);
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
                     case CqFriendAddedNoticePost notice:
                     {
                         ClientFriendAddedEvent e = new(this, this.GetFriendUser(notice.UserId));
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -523,7 +529,7 @@ public abstract class CqClient : IClient
                             e = new ClientGroupAdminSetEvent(this, group, user);
                         else
                             e = new ClientGroupAdminCancelledEvent(this, group, user);
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -546,7 +552,7 @@ public abstract class CqClient : IClient
                             e = new ClientGroupEssenceAddedEvent(this, group, operatorUser, user, message);
                         else
                             e = new ClientGroupEssenceRemovedEvent(this, group, operatorUser, user, message);
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -555,7 +561,7 @@ public abstract class CqClient : IClient
                         GroupUser uploader = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
                         UploadedGroupFile groupFile = new(this, notice.File);
-                        OnClientEventOccured?.Invoke(new ClientGroupFileUploadedEvent(this, group, uploader, groupFile));
+                        OnClientEventOccurred?.Invoke(new ClientGroupFileUploadedEvent(this, group, uploader, groupFile));
                     }
                     break;
 
@@ -588,7 +594,7 @@ public abstract class CqClient : IClient
                             else
                                 e = new ClientGroupAllUserBanLiftedEvent(this, group, operatorUser);
                         }
-                        OnClientEventOccured?.Invoke(e);
+                        OnClientEventOccurred?.Invoke(e);
                     }
                     break;
 
@@ -596,7 +602,7 @@ public abstract class CqClient : IClient
                     {
                         GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnClientEventOccured?.Invoke(new ClientGroupMemberCardChangedEvent(this, group, user, notice.CardOld, notice.CardNew));
+                        OnClientEventOccurred?.Invoke(new ClientGroupMemberCardChangedEvent(this, group, user, notice.CardOld, notice.CardNew));
                     }
                     break;
 
@@ -604,7 +610,7 @@ public abstract class CqClient : IClient
                     {
                         User user = this.GetUser(notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnClientEventOccured?.Invoke(new ClientGroupMemberDecreasedEvent(this, group, user));
+                        OnClientEventOccurred?.Invoke(new ClientGroupMemberDecreasedEvent(this, group, user));
                     }
                     break;
 
@@ -612,7 +618,7 @@ public abstract class CqClient : IClient
                     {
                         GroupUser user = this.GetGroupUser(notice.GroupId, notice.UserId);
                         JoinedGroup group = this.GetJoinedGroup(notice.GroupId);
-                        OnClientEventOccured?.Invoke(new ClientGroupMemberIncreasedEvent(this, group, user));
+                        OnClientEventOccurred?.Invoke(new ClientGroupMemberIncreasedEvent(this, group, user));
                     }
                     break;
 
@@ -620,7 +626,7 @@ public abstract class CqClient : IClient
                     {
                         User user = this.GetUser(notice.UserId);
                         OfflineFile offlineFile = new(this, notice.File);
-                        OnClientEventOccured?.Invoke(new ClientOfflineFileReceivedEvent(this, user, offlineFile));
+                        OnClientEventOccurred?.Invoke(new ClientOfflineFileReceivedEvent(this, user, offlineFile));
                     }
                     break;
                 }
@@ -632,7 +638,7 @@ public abstract class CqClient : IClient
                     case CqFriendRequestPost request:
                     {
                         var r = FriendAddRequest.CreateFromPost(this, request);
-                        OnClientEventOccured?.Invoke(new ClientFriendAddRequestedEvent(this, r));
+                        OnClientEventOccurred?.Invoke(new ClientFriendAddRequestedEvent(this, r));
                     }
                     break;
                     case CqGroupRequestPost request:
@@ -640,12 +646,12 @@ public abstract class CqClient : IClient
                         if (request.SubType is CqGroupRequestPost.RequestSubType.Add)
                         {
                             var r = GroupJoinRequest.CreateFromPost(this, request);
-                            OnClientEventOccured?.Invoke(new ClientGroupJoinRequestedEvent(this, r));
+                            OnClientEventOccurred?.Invoke(new ClientGroupJoinRequestedEvent(this, r));
                         }
                         else if (request.SubType is CqGroupRequestPost.RequestSubType.Invite)
                         {
                             var r = GroupInviteRequest.CreateFromPost(this, request);
-                            OnClientEventOccured?.Invoke(new ClientGroupInviteRequestedEvent(this, r));
+                            OnClientEventOccurred?.Invoke(new ClientGroupInviteRequestedEvent(this, r));
                         }
                     }
                     break;

@@ -3,6 +3,9 @@ using SaladimQBot.Core;
 
 namespace SaladimQBot.Extensions;
 
+/// <summary>
+/// 协程服务
+/// </summary>
 public class CoroutineService
 {
     protected List<IEnumerator<EventWaiter>> coroutines;
@@ -41,7 +44,7 @@ public class CoroutineService
     /// 在遇到EventWaiter时会停止并且等待该事件
     /// </summary>
     /// <param name="clientEvent"></param>
-    public void PushCoroutines(IIClientEvent clientEvent)
+    public void PushCoroutines(IClientEvent clientEvent)
     {
         lock (this)
         {

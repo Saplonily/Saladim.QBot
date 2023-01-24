@@ -104,7 +104,7 @@ public static class Program
         return 0;
     }
 
-    private static async void Client_OnClientEventOccurred(IIClientEvent clientEvent)
+    private static async void Client_OnClientEventOccurred(IClientEvent clientEvent)
     {
         switch (clientEvent)
         {
@@ -179,6 +179,10 @@ public static class Program
                 await request.ApproveAsync().ConfigureAwait(false);
             }
             break;
+        }
+        if (clientEvent is IClientTickEvent)
+        {
+            logger.LogInfo("Program", "ticked...");
         }
     }
 

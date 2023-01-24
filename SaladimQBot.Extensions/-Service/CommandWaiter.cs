@@ -69,7 +69,7 @@ public class CommandWaiter : EventWaiter
         Checker = DefaultChecker;
     }
 
-    protected bool DefaultChecker(IIClientEvent clientEvent)
+    protected bool DefaultChecker(IClientEvent clientEvent)
     {
         if (curState)
         {

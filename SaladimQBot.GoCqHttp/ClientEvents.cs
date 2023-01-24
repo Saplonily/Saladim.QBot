@@ -2,15 +2,23 @@
 
 namespace SaladimQBot.GoCqHttp;
 
-public class ClientEvent : IIClientEvent
+public class ClientEvent : IClientEvent
 {
     public CqClient SourceClient { get; protected set; }
 
-    IClient IIClientEvent.SourceClient => SourceClient;
+    IClient IClientEvent.SourceClient => SourceClient;
 
     public ClientEvent(CqClient sourceClient)
     {
         this.SourceClient = sourceClient;
+    }
+}
+
+public class ClientTickEvent : ClientEvent, IClientTickEvent
+{
+    public ClientTickEvent(CqClient sourceClient) : base(sourceClient)
+    {
+
     }
 }
 

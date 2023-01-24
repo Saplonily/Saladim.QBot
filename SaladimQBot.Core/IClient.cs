@@ -188,9 +188,9 @@ public interface IClient
 
     #endregion
 
-    public delegate void OnClientEventOccuredHandler<in TIIClientEvent>(TIIClientEvent clientEvent) where TIIClientEvent : IIClientEvent;
+    public delegate void OnClientEventOccuredHandler<in TIIClientEvent>(TIIClientEvent clientEvent) where TIIClientEvent : IClientEvent;
 
-    event OnClientEventOccuredHandler<IIClientEvent> OnClientEventOccurred;
+    event OnClientEventOccuredHandler<IClientEvent> OnClientEventOccurred;
 
     event Action<Exception> OnStoppedUnexpectedly;
 

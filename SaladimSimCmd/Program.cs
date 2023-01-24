@@ -17,7 +17,7 @@ public class Program
     {
         client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
         client.OnLog += Console.WriteLine;
-        client.OnClientEventOccured += e =>
+        client.OnClientEventOccurred += e =>
         {
             if (e is IClientGroupMessageReceivedEvent groupMsgEvent)
             {

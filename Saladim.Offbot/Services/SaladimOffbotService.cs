@@ -20,7 +20,7 @@ public class SaladimOffbotService : IClientService
     protected SimCommandService simCommandService;
     protected IServiceProvider serviceProvider;
     protected CoroutineService coroutineService;
-    protected Pipeline<IIClientEvent> eventPipeline;
+    protected Pipeline<IClientEvent> eventPipeline;
     protected Pipeline<IMessage> messagePipeline;
 
     public IClient Client { get; }
@@ -49,12 +49,12 @@ public class SaladimOffbotService : IClientService
         Client.OnClientEventOccurred += this.Client_OnClientEventOccurred;
     }
 
-    private void Client_OnClientEventOccurred(IIClientEvent clientEvent)
+    private void Client_OnClientEventOccurred(IClientEvent clientEvent)
     {
         Task.Run(() => eventPipeline.ExecuteAsync(clientEvent));
     }
 
-    private void ConfigurePipeline(Pipeline<IIClientEvent> eventPipeline)
+    private void ConfigurePipeline(Pipeline<IClientEvent> eventPipeline)
     {
         //转发消息处理给消息处理管线
         eventPipeline.AppendMiddleware(async (e, next) =>
