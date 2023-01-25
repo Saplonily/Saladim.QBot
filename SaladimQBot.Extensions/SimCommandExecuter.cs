@@ -91,6 +91,11 @@ public sealed partial class SimCommandExecuter
     public void MatchAndExecuteAll(IMessage msg)
     {
         var allTextNodes = msg.MessageEntity.AllText();
+        var firstAt = msg.MessageEntity.FirstAtOrNull();
+        //有@但是没有提及自己取消执行
+        if (firstAt is not null)
+            if (!msg.MessageEntity.MentionedSelf()) return;
+        
         //寻找所有以根指令前缀开头的文本节点
         var matchedNodeTexts = allTextNodes
             .Where(node =>
@@ -138,18 +143,27 @@ public sealed partial class SimCommandExecuter
     internal bool ExecuteInternal(MethodBasedCommand cmd, string[]? cmdParams, CommandContent content)
     {
         //算了你也别尝试看懂了, 我已经看不懂了qwq
+        //2023-1-25因为支持更高级的一些特性的需要, 暂时加上一些注释
+
+        //非params指令时如果方法的参数个数和传入的个数不相同, 执行失败
         var paramsLength = cmd.Parameters.Length;
         if (cmd.Parameters.Length != cmdParams?.Length && !cmd.IsParamsCommand)
             return false;
 
+        //使用module实例化委托创建对应类型, 失败则退出执行
         if (moduleInstanceFactory?.Invoke(cmd.Method.DeclaringType!) is not CommandModule moduleIns) return false;
         moduleIns.Content = content;
+
+        //执行module预检查, 失败则退出
         if (!moduleIns.PreCheck(moduleIns.Content))
             return false;
 
+        //反射获取方法的所有参数
         var paramsTypes = from p in cmd.Parameters select p.ParameterType;
+        //params指令特殊处理
         if (cmd.IsParamsCommand)
         {
+            //消息串中没有参数, 使用空参数列表传入方法并执行
             if (cmdParams is null)
             {
                 cmd.Method.Invoke(moduleIns, Array.Empty<object>());
@@ -158,12 +172,20 @@ public sealed partial class SimCommandExecuter
             }
             else
             {
+                //消息串中有参数, 获取方法第一个参数(params参数)的类型
                 Type baseType = cmd.Parameters[0].ParameterType.GetElementType()!;
+
+                //获得一堆type组成的参数ienumerable, 然后新建个数组扔进去...
                 var invokingParamsTypes = Enumerable.Repeat(baseType, cmdParams.Length);
                 var array = Array.CreateInstance(baseType, cmdParams.Length);
+
+                //解析参数
                 object[]? paramObjects = ParseParams(cmdParams, invokingParamsTypes);
+                //解析失败退出执行
                 if (paramObjects is null) return false;
+                //把object数组转成对应类型数组
                 paramObjects.CopyTo(array, 0);
+                //执行
                 cmd.Method.Invoke(moduleIns, new object[] { array });
                 OnCommandExecuted?.Invoke(cmd, content, new object[] { array });
                 return true;
@@ -172,18 +194,21 @@ public sealed partial class SimCommandExecuter
 
         if (cmdParams is null)
         {
+            //空参数, 直接执行
             cmd.Method.Invoke(moduleIns, Array.Empty<object>());
             OnCommandExecuted?.Invoke(cmd, content, Array.Empty<object>());
             return true;
         }
         else if (paramsTypes.All(t => t == StringType))
         {
+            //全是字符串参数, 从优化方面直接传入原始cmdParams
             cmd.Method.Invoke(moduleIns, cmdParams);
             OnCommandExecuted?.Invoke(cmd, content, cmdParams);
             return true;
         }
         else
         {
+            //否则解析这些参数, 然后传入
             object[]? paramObjects = ParseParams(cmdParams, paramsTypes);
             if (paramObjects is null) return false;
             cmd.Method.Invoke(moduleIns, paramObjects);

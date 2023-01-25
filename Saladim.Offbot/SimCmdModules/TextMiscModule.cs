@@ -36,6 +36,7 @@ public partial class TextMiscModule : CommandModule
     [Command("算")]
     public void Calculate(string what)
     {
+        if (what.Contains("System")) return;
         try
         {
             ExpressionEvaluator e = new();
@@ -113,9 +114,9 @@ public partial class TextMiscModule : CommandModule
         }
     }
 
-    public readonly string[] IgnoreWords = new string[]
+    public static readonly string[] IgnoreWords = new string[]
     {
-        "禁言", "傻逼", "智障", "煞笔", "我是", "你是"
+        "禁言", "傻逼", "智障", "煞笔", "我是", "你是", "/", "!"
     };
 
     [GeneratedRegex("echo")]
