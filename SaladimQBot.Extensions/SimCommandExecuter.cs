@@ -42,6 +42,7 @@ public sealed partial class SimCommandExecuter
             [typeof(ulong)] = s => CommonTypeParsers.Ulong(s),
             [typeof(float)] = s => CommonTypeParsers.Float(s),
             [typeof(Color)] = s => CommonTypeParsers.Color(s),
+            [typeof(Point)] = s => CommonTypeParsers.Point(s),
             [typeof(sbyte)] = s => CommonTypeParsers.Sbyte(s),
             [typeof(ushort)] = s => CommonTypeParsers.Ushort(s),
             [typeof(double)] = s => CommonTypeParsers.Double(s),
@@ -58,6 +59,7 @@ public sealed partial class SimCommandExecuter
             [typeof(short[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Short, ArraySplitChar),
             [typeof(ulong[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ulong, ArraySplitChar),
             [typeof(Color[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Color, ArraySplitChar),
+            [typeof(Point[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Point, ArraySplitChar),
             [typeof(ushort[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Ushort, ArraySplitChar),
             [typeof(double[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Double, ArraySplitChar),
             [typeof(Vector2[])] = s => CommonTypeParsers.ArrayPacker(s, CommonTypeParsers.Vector2, ArraySplitChar),
@@ -80,7 +82,12 @@ public sealed partial class SimCommandExecuter
             from methodInfo in moduleClassType.GetMethods()
             let attr = methodInfo.GetCustomAttribute<CommandAttribute>()
             where attr is not null
-            select new MethodBasedCommand(attr.Name, methodInfo);
+            select new MethodBasedCommand(attr.Name, methodInfo, attr.IsSingleParam);
+        foreach (var cmd in cmdToAdd)
+        {
+            if (cmd.Parameters.Length != 1 && cmd.IsSingleParamCommand)
+                throw new InvalidOperationException("Single param command only accept one parameters!");
+        }
         commands.AddRange(cmdToAdd);
     }
 
@@ -95,7 +102,7 @@ public sealed partial class SimCommandExecuter
         //有@但是没有提及自己取消执行
         if (firstAt is not null)
             if (!msg.MessageEntity.MentionedSelf()) return;
-        
+
         //寻找所有以根指令前缀开头的文本节点
         var matchedNodeTexts = allTextNodes
             .Where(node =>
@@ -124,8 +131,8 @@ public sealed partial class SimCommandExecuter
             {
                 if (cmd.Name == matches[0].Value)
                 {
-                    //昵称相同, 现在检查参数数目是否相同(如果不是params指令的话)
-                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsParamsCommand)
+                    //昵称相同, 现在检查参数数目是否相同(如果不是params指令或singleParam指令的话)
+                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsSingleParamCommand)
                         continue;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
@@ -140,14 +147,14 @@ public sealed partial class SimCommandExecuter
         }
     }
 
-    internal bool ExecuteInternal(MethodBasedCommand cmd, string[]? cmdParams, CommandContent content)
+    internal bool ExecuteInternal(MethodBasedCommand cmd, string[] cmdArguments, CommandContent content)
     {
         //算了你也别尝试看懂了, 我已经看不懂了qwq
         //2023-1-25因为支持更高级的一些特性的需要, 暂时加上一些注释
 
-        //非params指令时如果方法的参数个数和传入的个数不相同, 执行失败
+        //非params指令或者single Param时如果方法的参数个数和传入的个数不相同, 执行失败
         var paramsLength = cmd.Parameters.Length;
-        if (cmd.Parameters.Length != cmdParams?.Length && !cmd.IsParamsCommand)
+        if (cmd.Parameters.Length != cmdArguments.Length && !cmd.IsVACommand && !cmd.IsSingleParamCommand)
             return false;
 
         //使用module实例化委托创建对应类型, 失败则退出执行
@@ -160,39 +167,82 @@ public sealed partial class SimCommandExecuter
 
         //反射获取方法的所有参数
         var paramsTypes = from p in cmd.Parameters select p.ParameterType;
-        //params指令特殊处理
-        if (cmd.IsParamsCommand)
+        int methodParametersCount = cmd.Parameters.Length;
+        //va指令特殊处理
+        if (cmd.IsVACommand)
         {
-            //消息串中没有参数, 使用空参数列表传入方法并执行
-            if (cmdParams is null)
+            //获取方法params参数的类型
+            Type baseType = cmd.VACommandParameterInfo!.ParameterType.GetElementType()!;
+            if (cmdArguments.Length is 0 && cmd.Parameters.Length == 1)
             {
-                cmd.Method.Invoke(moduleIns, Array.Empty<object>());
-                OnCommandExecuted?.Invoke(cmd, content, Array.Empty<object>());
+                //消息串中没有参数, 并且方法参数个数为1时使用空参数列表传入方法并执行
+                var arr = Array.CreateInstance(baseType, 0);
+                cmd.Method.Invoke(moduleIns, new object[] { arr });
+                OnCommandExecuted?.Invoke(cmd, content, new object[] { arr });
                 return true;
             }
             else
             {
-                //消息串中有参数, 获取方法第一个参数(params参数)的类型
-                Type baseType = cmd.Parameters[0].ParameterType.GetElementType()!;
+                //消息串中有参数
+                //可变参数之前的参数没填入, 退出
+                if (cmdArguments.Length - (methodParametersCount - 1) < 0)
+                    return false;
 
-                //获得一堆type组成的参数ienumerable, 然后新建个数组扔进去...
-                var invokingParamsTypes = Enumerable.Repeat(baseType, cmdParams.Length);
-                var array = Array.CreateInstance(baseType, cmdParams.Length);
+                //获得一堆type组成的参数ienumerable, 然后新建个数组作为目标参数扔进去
+                //实参里的VA参数个数
+                var countOfVAArgs = cmdArguments.Length - (methodParametersCount - 1);
 
-                //解析参数
-                object[]? paramObjects = ParseParams(cmdParams, invokingParamsTypes);
+                //指令实参va参数的types
+                var cmdArgsVATypes = Enumerable.Repeat(baseType, countOfVAArgs);
+                //建立最后传入invoker的va参数的数组
+                var vaArgsArray = Array.CreateInstance(baseType, countOfVAArgs);
+
+                //最终传入参数解析器的类型迭代器
+                var cmdArgsTypes = cmdArgsVATypes
+                    .Concat(
+                        cmd.Parameters
+                            .Take(methodParametersCount - 1)
+                            .Select(p => p.ParameterType)
+                    );
+
+                //将类型和实参数组传入解析器
+                object[]? parsedArgs = ParseCmdArgs(cmdArguments, cmdArgsTypes);
+
                 //解析失败退出执行
-                if (paramObjects is null) return false;
-                //把object数组转成对应类型数组
-                paramObjects.CopyTo(array, 0);
-                //执行
-                cmd.Method.Invoke(moduleIns, new object[] { array });
-                OnCommandExecuted?.Invoke(cmd, content, new object[] { array });
+                if (parsedArgs is null) return false;
+
+                //把解析结果的va部分放入新数组中, 之后会放入最终invoker需要的参数数组内
+                if (vaArgsArray.Length != 0)
+                    parsedArgs[(methodParametersCount - 1)..].CopyTo(vaArgsArray, 0);
+
+                //组装invoker需要的参数数组
+                object[] resultArgs = new object[methodParametersCount];
+                //把非va参数放入resultArgs内
+                parsedArgs[0..(methodParametersCount - 1)].CopyTo(resultArgs, 0);
+                //把va参数放到resultArgs最后一项
+                resultArgs[methodParametersCount - 1] = vaArgsArray;
+
+                //执行然后通知
+                cmd.Method.Invoke(moduleIns, resultArgs);
+                OnCommandExecuted?.Invoke(cmd, content, resultArgs);
                 return true;
             }
         }
 
-        if (cmdParams is null)
+        //所有多余参数合并到最后一个参数里如果指定了IsSingleParamCommand
+        if (cmd.IsSingleParamCommand)
+        {
+            if (methodParametersCount < cmdArguments.Length)
+            {
+                var extensionArgsString = string.Join(' ', cmdArguments[(methodParametersCount - 1)..]);
+                var newArgs = new string[methodParametersCount];
+                cmdArguments.AsSpan(0, methodParametersCount).CopyTo(newArgs.AsSpan());
+                newArgs[^1] = extensionArgsString;
+                cmdArguments = newArgs;
+            }
+        }
+
+        if (cmdArguments.Length == 0)
         {
             //空参数, 直接执行
             cmd.Method.Invoke(moduleIns, Array.Empty<object>());
@@ -202,14 +252,14 @@ public sealed partial class SimCommandExecuter
         else if (paramsTypes.All(t => t == StringType))
         {
             //全是字符串参数, 从优化方面直接传入原始cmdParams
-            cmd.Method.Invoke(moduleIns, cmdParams);
-            OnCommandExecuted?.Invoke(cmd, content, cmdParams);
+            cmd.Method.Invoke(moduleIns, cmdArguments);
+            OnCommandExecuted?.Invoke(cmd, content, cmdArguments);
             return true;
         }
         else
         {
             //否则解析这些参数, 然后传入
-            object[]? paramObjects = ParseParams(cmdParams, paramsTypes);
+            object[]? paramObjects = ParseCmdArgs(cmdArguments, paramsTypes);
             if (paramObjects is null) return false;
             cmd.Method.Invoke(moduleIns, paramObjects);
             OnCommandExecuted?.Invoke(cmd, content, paramObjects);
@@ -217,7 +267,7 @@ public sealed partial class SimCommandExecuter
         }
     }
 
-    internal object[]? ParseParams(string[] stringParams, IEnumerable<Type> paramsTypes)
+    internal object[]? ParseCmdArgs(string[] stringParams, IEnumerable<Type> paramsTypes)
     {
         var paramsLength = stringParams.Length;
         object[] paramObjects = new object[paramsLength];
@@ -252,19 +302,46 @@ public sealed partial class SimCommandExecuter
 
 public class MethodBasedCommand
 {
-    public string Name;
-    public MethodInfo Method;
-    public ParameterInfo[] Parameters;
-    public bool IsParamsCommand = false;
+    /// <summary>
+    /// 方法名称, 指令前缀后的部分
+    /// </summary>
+    public string Name { get; set; }
 
-    public MethodBasedCommand(string name, MethodInfo method)
+    /// <summary>
+    /// 对应方法
+    /// </summary>
+    public MethodInfo Method { get; set; }
+
+    /// <summary>
+    /// 对应方法的参数数组
+    /// </summary>
+    public ParameterInfo[] Parameters { get; set; }
+
+    /// <summary>
+    /// VA指令的params参数的位置
+    /// </summary>
+    public ParameterInfo? VACommandParameterInfo { get; set; }
+
+    /// <summary>
+    /// 是否是VA指令(方法带可变参数, 在C#表现为params)
+    /// </summary>
+    public bool IsVACommand { get => VACommandParameterInfo is not null; }
+
+    /// <summary>
+    /// 是否是单参数指令(所有冗余参数都合并到最后一个参数进行解析)
+    /// </summary>
+    public bool IsSingleParamCommand { get; set; }
+
+    public MethodBasedCommand(string name, MethodInfo method, bool isSingleParamCommand)
     {
         Name = name;
         Method = method;
+        IsSingleParamCommand = isSingleParamCommand;
         Parameters = method.GetParameters();
         if (Parameters.Length != 0)
         {
-            IsParamsCommand = Parameters[0].GetCustomAttributes<ParamArrayAttribute>().Any();
+            VACommandParameterInfo =
+                Parameters.Where(p => p.GetCustomAttribute<ParamArrayAttribute>() is not null).FirstOrDefault();
         }
     }
 }

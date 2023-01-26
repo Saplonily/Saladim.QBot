@@ -25,7 +25,7 @@ public class CommandWaiter : EventWaiter
             bool sameCmdSame = cmd.Name == cmdName;
             bool sameUser = content.Executor.IsSameUser(executor);
             if (!sameCmdSame || !sameUser) return false;
-            if (!cmd.IsParamsCommand)
+            if (!cmd.IsVACommand)
                 return checkerArgs.SequenceEqual(args);
             else
                 return Enumerable.SequenceEqual(((Array)args[0]).Cast<object>(), ((Array)checkerArgs[0]).Cast<object>());

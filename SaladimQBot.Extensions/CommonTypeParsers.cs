@@ -6,16 +6,27 @@ namespace SaladimQBot.Extensions;
 public static class CommonTypeParsers
 {
     public static int Int(string s) => int.Parse(s);
+
     public static long Long(string s) => long.Parse(s);
+
     public static short Short(string s) => short.Parse(s);
+
     public static uint Uint(string s) => uint.Parse(s);
+
     public static ulong Ulong(string s) => ulong.Parse(s);
+
     public static ushort Ushort(string s) => ushort.Parse(s);
+
     public static byte Byte(string s) => byte.Parse(s);
+
     public static char Char(string s) => char.Parse(s);
+
     public static float Float(string s) => float.Parse(s);
+
     public static double Double(string s) => double.Parse(s);
+
     public static sbyte Sbyte(string s) => sbyte.Parse(s);
+
     public static Vector2 Vector2(string s)
     {
         //以逗号分隔
@@ -29,6 +40,7 @@ public static class CommonTypeParsers
         }
         return new(Float(ps[0]), Float(ps[1]));
     }
+
     public static Vector3 Vector3(string s)
     {
         //以逗号分隔
@@ -42,6 +54,21 @@ public static class CommonTypeParsers
         }
         return new(Float(ps[0]), Float(ps[1]), Float(ps[2]));
     }
+
+    public static Point Point(string s)
+    {
+        //以逗号分隔
+        string[] ps = s.Split(',', '，');
+        if (ps.Length != 2) throw new CommonTypeParseFailedException();
+        //允许括号
+        if (ps[0].StartsWith("(") && ps[1].EndsWith(")"))
+        {
+            ps[0] = ps[0].Substring(1);
+            ps[1] = ps[1].Substring(0, ps[1].Length - 1);
+        }
+        return new(Int(ps[0]), Int(ps[1]));
+    }
+
     public static Color Color(string s)
     {
         //假设是以#开头的16进制形式
@@ -139,6 +166,7 @@ public static class CommonTypeParsers
             return c;
         }
     }
+
     public static T[] ArrayPacker<T>(string s, Func<string, T> subParser, char spliter)
     {
         var subStrings = s.Split(spliter);

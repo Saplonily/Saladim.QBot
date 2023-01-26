@@ -77,7 +77,7 @@ public class SampleModule : CommandModule
         Content.MessageWindow.SendMessageAsync("任务完成粒!");
     }
 
-    [Command("echo")]
+    [Command("echo", isSingleParam: true)]
     public void Echo(string contentToEcho)
     {
         _ = Content.MessageWindow.SendMessageAsync(contentToEcho);
@@ -107,11 +107,17 @@ public class SampleModule : CommandModule
         _ = Content.MessageWindow.SendMessageAsync($"你的三维向量是: {vector}");
     }
 
+    [Command("get_point")]
+    public void GetPoint(Point p)
+    {
+        _ = Content.MessageWindow.SendTextMessageAsync($"你的点是: {p}");
+    }
+
     [Command("choose")]
-    public void Choose(params string[] strs)
+    public void Choose(string prefix, params string[] strs)
     {
         StringBuilder sb = new();
-        sb.AppendLine("你给出了如下的东西, 以\" | \"分隔");
+        sb.AppendLine($"你给出了如下的东西, 以\" | \"分隔, prefix={prefix}");
         sb.Append(string.Join(" | ", strs));
         _ = Content.MessageWindow.SendMessageAsync(sb.ToString());
     }
