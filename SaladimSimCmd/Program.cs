@@ -78,9 +78,9 @@ public class SampleModule : CommandModule
     }
 
     [Command("echo", isSingleParam: true)]
-    public void Echo(string contentToEcho)
+    public void Echo(string main, string contentToEcho)
     {
-        _ = Content.MessageWindow.SendMessageAsync(contentToEcho);
+        _ = Content.MessageWindow.SendMessageAsync($"{main}说: {contentToEcho}");
     }
 
     [Command("test")]

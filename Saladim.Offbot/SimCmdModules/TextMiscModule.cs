@@ -33,7 +33,7 @@ public partial class TextMiscModule : CommandModule
         Content.MessageWindow.SendMessageAsync(e);
     }
 
-    [Command("算")]
+    [Command("算", true)]
     public void Calculate(string what)
     {
         if (what.Contains("System")) return;
@@ -122,10 +122,9 @@ public partial class TextMiscModule : CommandModule
     [GeneratedRegex("echo")]
     private static partial Regex EchoCountRegex();
 
-    [Command("echo")]
-    public void Echo(params string[] s)
+    [Command("echo", true)]
+    public void Echo(string str)
     {
-        string str = string.Join(' ', s);
         if (IgnoreWords.Any(str.Contains))
         {
             return;
@@ -143,12 +142,11 @@ public partial class TextMiscModule : CommandModule
         Content.MessageWindow.SendMessageAsync(string.Join((char)8203, str.ToCharArray()));
     }
 
-    [Command("不定积分")]
-    public async void Integral(params string[] strs)
+    [Command("不定积分", true)]
+    public async void Integral(string strs)
     {
-        string s = string.Join(' ', strs);
         var service = serviceProvider.GetRequiredService<IntegralCalculatorService>();
-        var result = await service.IntegralOf(s).ConfigureAwait(false);
+        var result = await service.IntegralOf(strs).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(result))
         {
             await Content.MessageWindow.SendMessageAsync(result).ConfigureAwait(false);
@@ -174,7 +172,7 @@ public partial class TextMiscModule : CommandModule
         }
     }
 
-    [Command("tts")]
+    [Command("tts", true)]
     public void TTS(string tts)
     {
         var ttsParam = new Dictionary<string, string>()

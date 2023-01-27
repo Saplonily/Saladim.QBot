@@ -83,11 +83,6 @@ public sealed partial class SimCommandExecuter
             let attr = methodInfo.GetCustomAttribute<CommandAttribute>()
             where attr is not null
             select new MethodBasedCommand(attr.Name, methodInfo, attr.IsSingleParam);
-        foreach (var cmd in cmdToAdd)
-        {
-            if (cmd.Parameters.Length != 1 && cmd.IsSingleParamCommand)
-                throw new InvalidOperationException("Single param command only accept one parameters!");
-        }
         commands.AddRange(cmdToAdd);
     }
 
@@ -132,7 +127,7 @@ public sealed partial class SimCommandExecuter
                 if (cmd.Name == matches[0].Value)
                 {
                     //昵称相同, 现在检查参数数目是否相同(如果不是params指令或singleParam指令的话)
-                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsSingleParamCommand)
+                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsMergeExcessCommand)
                         continue;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
@@ -152,9 +147,9 @@ public sealed partial class SimCommandExecuter
         //算了你也别尝试看懂了, 我已经看不懂了qwq
         //2023-1-25因为支持更高级的一些特性的需要, 暂时加上一些注释
 
-        //非params指令或者single Param时如果方法的参数个数和传入的个数不相同, 执行失败
+        //非params指令或者mergeExcess时如果方法的参数个数和传入的个数不相同, 执行失败
         var paramsLength = cmd.Parameters.Length;
-        if (cmd.Parameters.Length != cmdArguments.Length && !cmd.IsVACommand && !cmd.IsSingleParamCommand)
+        if (cmd.Parameters.Length != cmdArguments.Length && !cmd.IsVACommand && !cmd.IsMergeExcessCommand)
             return false;
 
         //使用module实例化委托创建对应类型, 失败则退出执行
@@ -229,8 +224,8 @@ public sealed partial class SimCommandExecuter
             }
         }
 
-        //所有多余参数合并到最后一个参数里如果指定了IsSingleParamCommand
-        if (cmd.IsSingleParamCommand)
+        //所有多余参数合并到最后一个参数里如果指定了IsMergeExcessCommand
+        if (cmd.IsMergeExcessCommand)
         {
             if (methodParametersCount < cmdArguments.Length)
             {
@@ -328,15 +323,15 @@ public class MethodBasedCommand
     public bool IsVACommand { get => VACommandParameterInfo is not null; }
 
     /// <summary>
-    /// 是否是单参数指令(所有冗余参数都合并到最后一个参数进行解析)
+    /// 是否是合并冗余指令(所有冗余参数都合并到最后一个参数进行解析)
     /// </summary>
-    public bool IsSingleParamCommand { get; set; }
+    public bool IsMergeExcessCommand { get; set; }
 
-    public MethodBasedCommand(string name, MethodInfo method, bool isSingleParamCommand)
+    public MethodBasedCommand(string name, MethodInfo method, bool isMergeExcessCommand)
     {
         Name = name;
         Method = method;
-        IsSingleParamCommand = isSingleParamCommand;
+        IsMergeExcessCommand = isMergeExcessCommand;
         Parameters = method.GetParameters();
         if (Parameters.Length != 0)
         {
