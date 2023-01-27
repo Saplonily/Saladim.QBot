@@ -21,10 +21,11 @@ public class SalLoggerService
                 OnLog?.Invoke(s);
                 streamWriter.WriteLine(s);
                 Debug.WriteLine(s);
+                Console.WriteLine(s);
             })
             .WithLevelLimit(logLevelLimit)
             .Build();
-        this.Start();
+        Start();
         hl.ApplicationStopped.Register(Stop);
     }
 
@@ -40,7 +41,7 @@ public class SalLoggerService
             fileExists = true;
         streamWriter = new(filePath, true, Encoding.UTF8);
         if (fileExists)
-            SalIns.LogRaw(LogLevel.Info, "\n\n\n");
+            streamWriter.WriteLine("\n\n\n\n");
         SalIns.LogInfo("LoggerService", $"Starting logging service at {DateTime.Now}.");
     }
 

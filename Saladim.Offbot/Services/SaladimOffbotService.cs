@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
 using SaladimQBot.Core.Services;
@@ -13,7 +14,7 @@ using SqlSugar;
 
 namespace Saladim.Offbot.Services;
 
-public class SaladimOffbotService : IClientService
+public class SaladimOffbotService : IClientService, IHostedService
 {
     protected Logger logger;
     protected CqWebSocketClient wsClient;
@@ -47,6 +48,25 @@ public class SaladimOffbotService : IClientService
         ConfigurePipeline(eventPipeline = new());
         ConfigureMessagePipeline(messagePipeline = new());
         Client.OnClientEventOccurred += this.Client_OnClientEventOccurred;
+        Client.OnStoppedUnexpectedly += Client_OnStoppedUnexpectedly;
+    }
+
+    private void Client_OnStoppedUnexpectedly(Exception ce)
+    {
+        Task.Run(async () =>
+        {
+            logger.LogError("Offbot", ce, $"Client session stopped unexpectetedly! " +
+                $"Next connection try will be started in 2s.");
+            Thread.Sleep(2000);
+            try
+            {
+                await Client.StartAsync();
+            }
+            catch (ClientException e)
+            {
+                logger.LogError("Offbot", e, "Error when trying to reconnect the saladimOffbot service");
+            }
+        });
     }
 
     private void Client_OnClientEventOccurred(IClientEvent clientEvent)
@@ -160,12 +180,12 @@ public class SaladimOffbotService : IClientService
         await next();
     }
 
-    public async Task StartAsync()
+    public async Task StartAsync(CancellationToken token)
     {
         await wsClient.StartAsync().ConfigureAwait(false);
     }
 
-    public async Task StopAsync()
+    public async Task StopAsync(CancellationToken token)
     {
         await wsClient.StopAsync().ConfigureAwait(false);
     }

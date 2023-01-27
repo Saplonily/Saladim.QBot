@@ -14,8 +14,7 @@ public static class ServicesExtensions
     public static void AddSaladimWpf(this IServiceCollection services, string goCqHttpWebSocketAddress)
     {
         services.AddSingleton(_ => new SaladimOffbotServiceConfig(goCqHttpWebSocketAddress));
-        services.AddSingleton<SaladimOffbotService>();
-        services.AddSingleton<IClientService, SaladimOffbotService>(s => s.GetRequiredService<SaladimOffbotService>());
+        services.AddHostedService<SaladimOffbotService>();
 
         services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(SaladimOffbot).Assembly);
 

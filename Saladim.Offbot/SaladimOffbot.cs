@@ -9,19 +9,17 @@ using SaladimQBot.GoCqHttp;
 
 namespace Saladim.Offbot;
 
-public class SaladimOffbot
+public static class SaladimOffbot
 {
-    protected Logger logger;
+    private static Logger logger = null!;
 
-    public IHost AppHost { get; protected set; }
+    private static SalLoggerService loggerService = null!;
 
-    public SalLoggerService LoggerService { get; protected set; }
-
-    public IClient Client { get; protected set; }
-
-    public SaladimOffbot()
+    public static async Task Main()
     {
-        AppHost = Host.CreateDefaultBuilder()
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+
+        IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices((c, coll) =>
             {
                 coll.AddSalLoggerService(LogLevel.Trace);
@@ -29,90 +27,37 @@ public class SaladimOffbot
             })
             .Build();
 
-        LoggerService = AppHost.Services.GetRequiredService<SalLoggerService>();
-        LoggerService.OnLog += Console.WriteLine;
-        Client = AppHost.Services.GetRequiredService<IClientService>().Client;
-        Client.OnStoppedUnexpectedly += this.Client_OnStoppedUnexpectedly;
         AppDomain.CurrentDomain.ProcessExit += (obj, args) => OnProcessShutdown(null);
         Console.CancelKeyPress += (obj, args) => OnProcessShutdown(null);
         AppDomain.CurrentDomain.UnhandledException += (obj, args) => OnProcessShutdown(args.ExceptionObject is Exception e ? e : null);
-        logger = LoggerService.SalIns;
-    }
 
-    private void Client_OnStoppedUnexpectedly(Exception ce)
-    {
-        Task.Run(async () =>
-        {
-            LoggerService.SalIns.LogError("Offbot", ce, $"Client session stopped unexpectetedly! " +
-                $"Next connection try will be started in 2s.");
-            Thread.Sleep(2000);
-            try
-            {
-                await Client.StartAsync();
-            }
-            catch (ClientException e)
-            {
-                logger.LogError("Offbot", e, "Error when trying to reconnect the saladimOffbot service");
-            }
-        });
-    }
-
-    public static async Task Main()
-    {
-        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-
-        SaladimOffbot saladimOffbot = new();
-        Logger salLoggerIns = saladimOffbot.LoggerService.SalIns;
-        var logger = saladimOffbot.logger;
-        _ = saladimOffbot.RunAsync().ContinueWith(t =>
+        loggerService = host.Services.GetRequiredService<SalLoggerService>();
+        logger = loggerService.SalIns;
+        await host.RunAsync().ContinueWith(t =>
         {
             logger.LogInfo("Offbot", "RunAsync task stopped.");
             if (t.Exception is not null)
             {
-                logger.LogError("Offbot", t.Exception, "Error when running the saladimOffbot service");
+                logger.LogError("Offbot", t.Exception, "Error when running the host");
             }
         });
-        string cmd;
-        while (true)
+
+        await host.StopAsync().ContinueWith(t =>
         {
-            cmd = Console.ReadLine()!.Trim();
-            switch (cmd)
+            logger.LogInfo("Offbot", "StopAsync task stopped.");
+            if (t.Exception is not null)
             {
-                case "help": logger.LogInfo("Console", "help 帮助, exit 退出, stop 暂时停止, start 开始"); break;
-                case "exit": goto end;
-                case "stop": await saladimOffbot.Client.StopAsync().ConfigureAwait(false); break;
-                case "start": await saladimOffbot.Client.StartAsync().ConfigureAwait(false); break;
+                logger.LogError("Offbot", t.Exception, "Error when stopping the host.");
             }
-        }
-    end:
-        try
+        });
+
+        static void OnProcessShutdown(Exception? exception)
         {
-            await saladimOffbot.StopAsync();
+            logger.LogInfo("Program", "Program is shutdowning...");
+            if (exception is not null)
+                logger.LogFatal("Program", exception, prefix: "Fatal exception occurred!");
+            loggerService.FlushFileStream();
+            loggerService.Stop();
         }
-        catch (Exception e)
-        {
-            logger.LogWarn("Offbot", e, "Error when try stopping service.");
-        }
-    }
-
-    public async Task RunAsync()
-    {
-        await AppHost.Services.GetRequiredService<SaladimOffbotService>().StartAsync();
-        await AppHost.RunAsync();
-    }
-
-    public async Task StopAsync()
-    {
-        await AppHost.StopAsync();
-        await AppHost.Services.GetRequiredService<SaladimOffbotService>().StopAsync();
-    }
-
-    private void OnProcessShutdown(Exception? exception)
-    {
-        LoggerService.SalIns.LogInfo("Program", "Program is shutdowning...");
-        if (exception is not null)
-            LoggerService.SalIns.LogFatal("Program", exception, prefix: "Fatal exception occurred!");
-        LoggerService.FlushFileStream();
-        LoggerService.Stop();
     }
 }
