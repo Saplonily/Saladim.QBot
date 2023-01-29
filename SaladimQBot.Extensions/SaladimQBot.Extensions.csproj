@@ -5,7 +5,7 @@
 		<LangVersion>preview</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>0.4.4</Version>
+		<Version>0.4.5</Version>
 		<Title>SaladimQBot.Extensions</Title>
 		<Authors>Saplonily</Authors>
 		<Company>Saplonily</Company>
@@ -14,20 +14,26 @@
 		<PackageProjectUrl>https://github.com/saladim-org/Saladim.QBot</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
+		<PackageReadmeFile>README-nuget.md</PackageReadmeFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\README-nuget.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+		<PackageReference Include="SqlSugarCore" Version="5.1.3.46" />
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\SaladimQBot.Core\SaladimQBot.Core.csproj" />
-		<PackageReference Include="SqlSugar">
-			<Version>5.1.3.1437</Version>
-		</PackageReference>
 	</ItemGroup>
 
 </Project>

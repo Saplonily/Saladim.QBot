@@ -25,6 +25,7 @@ public static class SaladimOffbot
                 coll.AddSalLoggerService(LogLevel.Trace);
                 coll.AddSaladimWpf("ws://127.0.0.1:5000");
             })
+            .UseConsoleLifetime()
             .Build();
 
         AppDomain.CurrentDomain.ProcessExit += (obj, args) => OnProcessShutdown(null);
