@@ -16,33 +16,25 @@ public static class ServicesExtensions
         services.AddSingleton(_ => new SaladimOffbotServiceConfig(goCqHttpWebSocketAddress));
         services.AddHostedService<SaladimOffbotService>();
 
-        services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(Program).Assembly);
+        services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(SaladimOffbot).Assembly);
 
-        services.AddSingleton<CoroutineService>();
-        services.AddSingleton<HttpRequesterService>();
-        services.AddSingleton<RandomService>();
-
-        services.AddSingleton<SqlSugarScope>(s =>
-        {
-            string connectionString =
+        string connectionString =
 #if DEBUG
             @"DataSource=D:\User\Desktop\SaladimWPF\data\debug.db";
 #else
             @"DataSource=D:\User\Desktop\SaladimWPF\data\release.db";
 #endif
-            var loggerService = s.GetRequiredService<SalLoggerService>();
-            var scope = new SqlSugarScope(new ConnectionConfig()
-            {
-                DbType = DbType.Sqlite,
-                ConnectionString = connectionString,
-                IsAutoCloseConnection = true,
-            });
-            scope.Aop.OnLogExecuting = (sql, args) =>
-            {
-                loggerService.SalIns.LogInfo("Offbot", "SqlExecuting", UtilMethods.GetSqlString(DbType.SqlServer, sql, args));
-            };
-            return scope;
+        services.AddSingleton(s => new ConnectionConfig()
+        {
+            DbType = DbType.Sqlite,
+            ConnectionString = connectionString,
+            IsAutoCloseConnection = true
         });
+
+        services.AddSingleton<CoroutineService>();
+        services.AddSingleton<HttpRequesterService>();
+        services.AddSingleton<RandomService>();
+
         services.AddSingleton<SessionSqliteService>();
         services.AddSingleton<MemorySessionService>();
 

@@ -13,6 +13,8 @@
 		<RepositoryUrl>https://github.com/saladim-org/Saladim.QBot</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<Description>SaladimQBot的抽象层, 众多拓展只需依赖它</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README-nuget.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -22,5 +24,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\README-nuget.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 </Project>

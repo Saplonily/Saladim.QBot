@@ -6,14 +6,9 @@ public class SessionSqliteService
 {
     protected SqlSugarScope sqlSugarScope;
 
-    public event Action<string, SugarParameter[]>? OnSqlSugarAopLogExecuting;
-
-    public SessionSqliteService(ConnectionConfig config)
+    public SessionSqliteService(SqlSugarScope scope)
     {
-        sqlSugarScope = new(config, client =>
-        {
-            client.Aop.OnLogExecuting = (s, args) => OnSqlSugarAopLogExecuting?.Invoke(s, args);
-        });
+        sqlSugarScope = scope;
     }
 
     public TSession GetSession<TSession>(SessionId sessionId) where TSession : SqliteStoreSession, new()

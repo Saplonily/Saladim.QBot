@@ -256,21 +256,24 @@ public abstract class CqClient : IClient
 
     internal void InternalStop()
     {
-        lock (this)
+        lock (ApiSession)
         {
-            timer.Change(Timeout.Infinite, 1000);
-            if (Started)
+            lock (PostSession)
             {
-                logger.LogInfo("Client", "Connection", "Stopping connection...");
-                ApiSession.Dispose();
-                PostSession.Dispose();
-                Started = false;
+                timer.Change(Timeout.Infinite, 1000);
+                if (Started)
+                {
+                    logger.LogInfo("Client", "Connection", "Stopping connection...");
+                    ApiSession.Dispose();
+                    PostSession.Dispose();
+                    Started = false;
+                }
+                else
+                {
+                    logger.LogWarn("Client", "Connection", "Try to stop a not started client.");
+                }
+                return;
             }
-            else
-            {
-                logger.LogWarn("Client", "Connection", "Try to stop a not started client.");
-            }
-            return;
         }
     }
 

@@ -27,7 +27,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimSimCmd", "SaladimSim
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaladimQBot.Extensions", "SaladimQBot.Extensions\SaladimQBot.Extensions.csproj", "{889EBEA8-5009-4BFE-95FB-95AC7A2EBBFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saladim.Offbot", "Saladim.Offbot\Saladim.Offbot.csproj", "{8EFB2E00-2591-4E9E-B6DA-C37D828553AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saladim.Offbot", "Saladim.Offbot\Saladim.Offbot.csproj", "{8EFB2E00-2591-4E9E-B6DA-C37D828553AD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{FFFD34E8-728E-4426-95FF-4972AA3222FD}"
+	ProjectSection(SolutionItems) = preProject
+		README-nuget.md = README-nuget.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

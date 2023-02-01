@@ -23,7 +23,7 @@ public class CoroutineService
     {
         if (enumerator.MoveNext())
         {
-            lock (this)
+            lock (coroutines)
             {
                 coroutines.Add(enumerator);
             }
@@ -46,7 +46,7 @@ public class CoroutineService
     /// <param name="clientEvent"></param>
     public void PushCoroutines(IClientEvent clientEvent)
     {
-        lock (this)
+        lock (coroutines)
         {
             List<IEnumerator<EventWaiter>> markedRemoves = new();
             foreach (var ie in coroutines)

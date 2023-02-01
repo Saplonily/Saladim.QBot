@@ -33,6 +33,10 @@ public sealed class CommandContent
 
     public IClient Client => Message.Client;
 
+    public bool ExecutedInGroup => Message is IGroupMessage;
+
+    public long ExecutorId => Executor.UserId;
+
     public CommandContent(SimCommandExecuter service, IMessage message)
     {
         this.SimCommandExecuter = service;

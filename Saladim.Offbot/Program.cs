@@ -9,7 +9,7 @@ using SaladimQBot.GoCqHttp;
 
 namespace Saladim.Offbot;
 
-public static class SaladimOffbot
+public static class Program
 {
     private static Logger logger = null!;
 

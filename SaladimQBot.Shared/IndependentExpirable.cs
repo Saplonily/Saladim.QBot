@@ -21,7 +21,7 @@ public class IndependentExpirable<T> : IIndependentExpirable<T>, IExpirable<T>
         {
             if (!IsExpired)
                 return valueCache!;
-            lock (this)
+            lock (valueFactory)
             {
                 if (!IsExpired)
                     return valueCache!;

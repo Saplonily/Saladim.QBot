@@ -28,23 +28,19 @@ public class SaladimOffbotService : IClientService, IHostedService
 
     public SaladimOffbotService(
         SaladimOffbotServiceConfig config,
+        IServiceProvider serviceProvider,
         SalLoggerService loggerService,
         SimCommandService simCommandService,
-        IServiceProvider serviceProvider,
-        CoroutineService coroutineService,
-        SessionSqliteService sessionSqliteService
+        CoroutineService coroutineService
         )
     {
         wsClient = new(config.GoCqHttpWebSocketAddress, LogLevel.Trace);
         Client = wsClient;
         logger = loggerService.SalIns;
         wsClient.OnLog += s => logger.LogInfo("WsClient", s);
-        sessionSqliteService.OnSqlSugarAopLogExecuting +=
-            (sql, args) => logger.LogDebug("SqlExecuting", UtilMethods.GetSqlString(DbType.Sqlite, sql, args));
         this.simCommandService = simCommandService;
         this.serviceProvider = serviceProvider;
         this.coroutineService = coroutineService;
-
         ConfigurePipeline(eventPipeline = new());
         ConfigureMessagePipeline(messagePipeline = new());
         Client.OnClientEventOccurred += this.Client_OnClientEventOccurred;
@@ -91,7 +87,7 @@ public class SaladimOffbotService : IClientService, IHostedService
                     {
                         if (t.Exception is not null)
                         {
-                            logger.LogError("WpfClient", "MessagePipeline", t.Exception);
+                            logger.LogError("Offbot", "MessagePipeline", t.Exception);
                         }
                     }).ConfigureAwait(false);
                 }
@@ -126,7 +122,7 @@ public class SaladimOffbotService : IClientService, IHostedService
                 }
                 string log = $"{eFriend.Request.User.Nickname} 请求添加好友, " +
                     $"期望key值: {expectKey}, 实际给出: {comment}, 是否同意: {approve}";
-                logger.LogInfo("WpfConsole", log);
+                logger.LogInfo("Offbot", log);
             }
         });
     }
@@ -151,7 +147,7 @@ public class SaladimOffbotService : IClientService, IHostedService
         if (msg is GroupMessage groupMsg)
         {
             logger.LogInfo(
-                "WpfConsole", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
+                "Offbot", $"{groupMsg.Group.Name.Value}({groupMsg.Group.GroupId}) - " +
                 $"{groupMsg.Author.FullName} 说: " +
                 $"{groupMsg.MessageEntity.RawString}"
                 .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
@@ -160,7 +156,7 @@ public class SaladimOffbotService : IClientService, IHostedService
         else if (msg is PrivateMessage privateMsg)
         {
             logger.LogInfo(
-                "WpfConsole", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
+                "Offbot", $"{await privateMsg.Sender.Nickname.GetValueAsync().ConfigureAwait(false)}" +
                 $"({privateMsg.Sender.UserId}) 私聊你: {privateMsg.MessageEntity.RawString}"
                 .Replace(@"\", @"\\").Replace("\n", @"\n").Replace("\r", @"\r")
                 );
