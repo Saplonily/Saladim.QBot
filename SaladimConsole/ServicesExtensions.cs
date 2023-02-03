@@ -35,7 +35,7 @@ public static class ServicesExtensions
         services.AddSingleton<HttpRequesterService>();
         services.AddSingleton<RandomService>();
 
-        services.AddSingleton<SessionSqliteService>();
+        services.AddSingleton<SessionSugarStoreService>();
         services.AddSingleton<MemorySessionService>();
 
         services.AddSingleton<IntegralCalculatorService>();

@@ -5,10 +5,10 @@ namespace Saladim.Offbot.Services;
 
 public class SdSysService
 {
-    protected SessionSqliteService sss;
+    protected SessionSugarStoreService sss;
     protected SqlSugarScope sugarScope;
 
-    public SdSysService(SessionSqliteService sessionSqliteService, SqlSugarScope sugarScope)
+    public SdSysService(SessionSugarStoreService sessionSqliteService, SqlSugarScope sugarScope)
     {
         this.sss = sessionSqliteService;
         this.sugarScope = sugarScope;

@@ -20,17 +20,30 @@ public class MemorySessionService
             }
             else
             {
-                TSession newSession = new()
+                lock (sessions)
                 {
-                    SessionId = sessionId
-                };
-                sessions.Add(sessionId, newSession);
-                return newSession;
+                    if (sessions.TryGetValue(sessionId, out var sessionAfterLock))
+                    {
+                        return (TSession)sessionAfterLock;
+                    }
+                    else
+                    {
+                        TSession newSession = new()
+                        {
+                            SessionId = sessionId
+                        };
+                        sessions.Add(sessionId, newSession);
+                        return newSession;
+                    }
+                }
             }
         }
         else
         {
-            allSessions.Add(typeSession, new());
+            lock (allSessions)
+            {
+                allSessions.TryAdd(typeSession, new());
+            }
             return GetSession<TSession>(sessionId);
         }
     }

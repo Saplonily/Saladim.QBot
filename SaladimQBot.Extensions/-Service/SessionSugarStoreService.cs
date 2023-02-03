@@ -2,11 +2,11 @@
 
 namespace SaladimQBot.Extensions;
 
-public class SessionSqliteService
+public class SessionSugarStoreService
 {
     protected SqlSugarScope sqlSugarScope;
 
-    public SessionSqliteService(SqlSugarScope scope)
+    public SessionSugarStoreService(SqlSugarScope scope)
     {
         sqlSugarScope = scope;
     }

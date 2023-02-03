@@ -40,13 +40,13 @@ public class FiveInARowModule : CommandModule
     protected readonly FiveInARowService fiveInARowService;
     protected readonly MemorySessionService memorySessionService;
     protected readonly CoroutineService coroutineService;
-    protected readonly SessionSqliteService sessionSqliteService;
+    protected readonly SessionSugarStoreService sessionSqliteService;
 
     public FiveInARowModule(
         FiveInARowService fiveInARowService,
         MemorySessionService memorySessionService,
         CoroutineService coroutineService,
-        SessionSqliteService sessionSqliteService
+        SessionSugarStoreService sessionSqliteService
         )
     {
         this.fiveInARowService = fiveInARowService;

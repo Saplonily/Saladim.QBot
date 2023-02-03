@@ -43,7 +43,7 @@ public static class ServicesExtensions
             };
             return scope;
         });
-        services.AddSingleton<SessionSqliteService>();
+        services.AddSingleton<SessionSugarStoreService>();
         services.AddSingleton<MemorySessionService>();
 
         services.AddSingleton<IntegralCalculatorService>();
