@@ -40,7 +40,7 @@ public class FiveInARowModule : CommandModule
     protected readonly FiveInARowService fiveInARowService;
     protected readonly MemorySessionService memorySessionService;
     protected readonly CoroutineService coroutineService;
-    protected readonly SessionSugarStoreService sessionSqliteService;
+    protected readonly SessionSugarStoreService sessionStoreService;
 
     public FiveInARowModule(
         FiveInARowService fiveInARowService,
@@ -52,7 +52,7 @@ public class FiveInARowModule : CommandModule
         this.fiveInARowService = fiveInARowService;
         this.memorySessionService = memorySessionService;
         this.coroutineService = coroutineService;
-        this.sessionSqliteService = sessionSqliteService;
+        this.sessionStoreService = sessionSqliteService;
     }
 
     [Command("开始五子棋")]
@@ -139,9 +139,9 @@ public class FiveInARowModule : CommandModule
                 if (playingOne.ChessBoard.PlaceSucceedTimes >= 5)
                 {
                     Content.MessageWindow.SendMessageAsync(TipMsgGamePlayEndOver5);
-                    var s = sessionSqliteService.GetUserSession<FiveInARowStoreSession>(groupMessage.Sender.UserId);
+                    var s = sessionStoreService.GetUserSession<FiveInARowStoreSession>(groupMessage.Sender.UserId);
                     s.LoseTimes += 1;
-                    sessionSqliteService.SaveSession(s);
+                    sessionStoreService.SaveSession(s);
                 }
                 else
                 {
@@ -162,13 +162,13 @@ public class FiveInARowModule : CommandModule
     [Command("五子棋排行")]
     public void HighScores()
     {
-        var winHighScores = sessionSqliteService
+        var winHighScores = sessionStoreService
             .GetQueryable<FiveInARowStoreSession>()
             .OrderByDescending(s => s.WinTimes)
             .Take(3)
             .ToList();
 
-        var radioHighScores = sessionSqliteService
+        var radioHighScores = sessionStoreService
             .GetQueryable<FiveInARowStoreSession>()
             .Where(s => s.LoseTimes != 0)
             .OrderByDescending(s => (float)s.WinTimes / s.LoseTimes)
@@ -247,12 +247,12 @@ public class FiveInARowModule : CommandModule
                         fiveInARowService.EndGame(record);
                         foreach (var u in record.Users)
                         {
-                            var s = sessionSqliteService.GetUserSession<FiveInARowStoreSession>(u.UserId);
+                            var s = sessionStoreService.GetUserSession<FiveInARowStoreSession>(u.UserId);
                             if (u.IsSameUser(winnerUser))
                                 s.WinTimes += 1;
                             else
                                 s.LoseTimes += 1;
-                            sessionSqliteService.SaveSession(s);
+                            sessionStoreService.SaveSession(s);
                         }
                         yield break;
                     }
@@ -306,7 +306,7 @@ public class FiveInARowModule : CommandModule
     }
 
     [SugarTable("five_in_a_row")]
-    public class FiveInARowStoreSession : SqliteStoreSession
+    public class FiveInARowStoreSession : SugarStoreSession
     {
         [SugarColumn(ColumnName = "win_times")]
         public int WinTimes { get; set; }

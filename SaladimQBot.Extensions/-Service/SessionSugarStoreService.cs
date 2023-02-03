@@ -11,7 +11,7 @@ public class SessionSugarStoreService
         sqlSugarScope = scope;
     }
 
-    public TSession GetSession<TSession>(SessionId sessionId) where TSession : SqliteStoreSession, new()
+    public TSession GetSession<TSession>(SessionId sessionId) where TSession : SugarStoreSession, new()
     {
         try
         {
@@ -39,20 +39,20 @@ public class SessionSugarStoreService
         sqlSugarScope.Storageable(session).ExecuteCommand();
     }
 
-    public ISugarQueryable<TSession> GetQueryable<TSession>() where TSession : SqliteStoreSession, new()
+    public ISugarQueryable<TSession> GetQueryable<TSession>() where TSession : SugarStoreSession, new()
         => sqlSugarScope.Queryable<TSession>();
 
-    public TSession GetUserSession<TSession>(long userId) where TSession : SqliteStoreSession, new()
+    public TSession GetUserSession<TSession>(long userId) where TSession : SugarStoreSession, new()
         => GetSession<TSession>(new SessionId(userId));
 
-    public TSession GetGroupSession<TSession>(long groupId) where TSession : SqliteStoreSession, new()
+    public TSession GetGroupSession<TSession>(long groupId) where TSession : SugarStoreSession, new()
         => GetSession<TSession>(new SessionId(0, groupId));
 
-    public TSession GetGroupUserSession<TSession>(long groupId, long userId) where TSession : SqliteStoreSession, new()
+    public TSession GetGroupUserSession<TSession>(long groupId, long userId) where TSession : SugarStoreSession, new()
         => GetSession<TSession>(new SessionId(userId, groupId));
 }
 
-public abstract class SqliteStoreSession : ISession
+public abstract class SugarStoreSession : ISession
 {
     [SugarColumn(ColumnName = "session_string", IsPrimaryKey = true)]
     public string SessionString

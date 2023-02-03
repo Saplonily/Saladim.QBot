@@ -26,7 +26,7 @@ public class SdSysService
 }
 
 [SugarTable("sd_sys")]
-public class UserSdSession : SqliteStoreSession
+public class UserSdSession : SugarStoreSession
 {
     [SugarColumn(ColumnName = "sd")]
     public long Sd { get; set; }
