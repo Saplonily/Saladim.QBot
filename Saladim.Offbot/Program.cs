@@ -3,9 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Saladim.Offbot.Services;
 using Saladim.SalLogger;
-using SaladimQBot.Core;
-using SaladimQBot.Core.Services;
-using SaladimQBot.GoCqHttp;
 
 namespace Saladim.Offbot;
 

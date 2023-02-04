@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Saladim.Offbot.Services;
 using Saladim.SalLogger;
-using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SqlSugar;
 

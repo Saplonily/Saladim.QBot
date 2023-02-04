@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +8,6 @@ using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
-using SqlSugar;
 
 
 namespace Saladim.Offbot.Services;

@@ -3,7 +3,6 @@ global using StringDictionary = System.Collections.Generic.Dictionary<string, st
 //让智能提示闭嘴
 global using Int32 = System.Int32;
 global using Int64 = System.Int64;
-global using UInt32 = System.UInt32;
-
 global using Ignore = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using Name = System.Text.Json.Serialization.JsonPropertyNameAttribute;
+global using UInt32 = System.UInt32;

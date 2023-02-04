@@ -3,5 +3,5 @@
 
 public static class ICqClientExtensions
 {
-    
+
 }
