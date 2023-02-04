@@ -116,7 +116,7 @@ public sealed partial class SimCommandExecuter
         {
             var cmdTextWithoutRootPrefix = matchedNodeText.AsSpan(RootCommandPrefix.Length);
             //现在这个字符串就形如 "add 1 2 3" 了
-            //以空格切分, 但忽略引号内的空格, 同时去除引号
+            //以空格切分, 但忽略引号内的空格
             var matches = CommandParamRegex.Matches(cmdTextWithoutRootPrefix.ToString());
             if (matches.Count == 0) continue;
             string[] argAsString = new string[matches.Count - 1];
@@ -126,13 +126,14 @@ public sealed partial class SimCommandExecuter
             {
                 if (cmd.Name == matches[0].Value)
                 {
-                    //昵称相同, 现在检查参数数目是否相同(如果不是params指令或singleParam指令的话)
+                    //昵称相同, 现在检查参数数目是否相同(如果不是va指令或mergeExcess指令的话)
                     if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsMergeExcessCommand)
                         continue;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
                     for (int i = 0; i < argAsString.Length; i++)
                     {
+                        //我们只trim 非va和非mergeExcess部分的参数左右的引号
                         argAsString[i] = matches[i + 1].Value.Trim('"');
                     }
                     CommandContent content = new(this, msg);

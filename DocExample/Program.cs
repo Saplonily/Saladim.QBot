@@ -8,7 +8,7 @@ internal class Program
     static async Task Main(string[] args)
     {
         CqClient client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
-        client.OnMessageReceived += Client_OnMessageReceived;
+        client.OnClientEventOccurred += Client_OnClientEventOccurred; ;
 
         client.OnLog += Console.WriteLine;
 
@@ -17,6 +17,14 @@ internal class Program
         Console.ReadLine();
 
         await client.StopAsync().ConfigureAwait(false);
+    }
+
+    private static void Client_OnClientEventOccurred(ClientEvent clientEvent)
+    {
+        if (clientEvent is ClientMessageReceivedEvent clientMessageReceivedEvent)
+        {
+            Client_OnMessageReceived(clientMessageReceivedEvent.Message);
+        }
     }
 
     private static async void Client_OnMessageReceived(Message message)
