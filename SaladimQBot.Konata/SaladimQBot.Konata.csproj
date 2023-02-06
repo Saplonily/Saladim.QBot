@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SaladimQBot.Core\SaladimQBot.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+	  <PackageReference Include="Konata.Core">
+	    <Version>1.3.2</Version>
+	  </PackageReference>
+	  <PackageReference Include="SqlSugarCore">
+	    <Version>5.1.3.49</Version>
+	  </PackageReference>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+	  <PackageReference Include="Konata.Core">
+	    <Version>1.3.2</Version>
+	  </PackageReference>
+	  <PackageReference Include="SqlSugarCore">
+	    <Version>5.1.3.49</Version>
+	  </PackageReference>
+	</ItemGroup>
+
+</Project>
