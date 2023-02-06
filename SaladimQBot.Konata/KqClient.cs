@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Konata.Core;
+using Konata.Core.Common;
+using Konata.Core.Events.Model;
 using SaladimQBot.Core;
 using SqlSugar;
 
@@ -8,16 +11,47 @@ namespace SaladimQBot.Konata;
 public class KqClient : IClient
 {
     protected SqlSugarScope sugarScope;
+    internal Bot konatoBot;
 
-    public KqClient()
+    public TimeSpan ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+    public event IClient.OnClientEventOccuredHandler<IClientEvent>? OnClientEventOccurred;
+
+    public event Action<Exception>? OnStoppedUnexpectedly;
+
+    public IUser Self => throw new NotImplementedException();
+
+    public KqClient(Bot konatoBot)
     {
         sugarScope = new(new ConnectionConfig()
         {
             DbType = DbType.Sqlite,
-            ConnectionString = "SaladimQBot.Konata.MessageDb.db"
+            ConnectionString = "DataSource=SaladimQBot.KonataMessages.db"
         });
+
+        sugarScope.CodeFirst.InitTables<MessageStoraged>();
+        this.konatoBot = konatoBot;
+        konatoBot.OnGroupMessage += this.KonatoBot_OnGroupMessage;
     }
 
+    private void KonatoBot_OnGroupMessage(Bot sender, GroupMessageEvent args)
+    {
+
+    }
+
+    internal BotFriend
+
+    public Task StartAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task StopAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    #region IClient交互
     public IGroupMessage GetGroupMessageById(int messageId)
     {
         throw new NotImplementedException();
@@ -133,12 +167,6 @@ public class KqClient : IClient
         throw new NotImplementedException();
     }
 
-    public event IClient.OnClientEventOccuredHandler<IClientEvent>? OnClientEventOccurred;
-
-    public event Action<Exception>? OnStoppedUnexpectedly;
-
-    public IUser Self { get; }
-
     public IMessageEntityBuilder CreateMessageBuilder()
     {
         throw new NotImplementedException();
@@ -148,14 +176,5 @@ public class KqClient : IClient
     {
         throw new NotImplementedException();
     }
-
-    public Task StartAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task StopAsync()
-    {
-        throw new NotImplementedException();
-    }
+    #endregion
 }
