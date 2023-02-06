@@ -77,7 +77,7 @@ public class SampleModule : CommandModule
         Content.MessageWindow.SendMessageAsync("任务完成粒!");
     }
 
-    [Command("echo", isSingleParam: true)]
+    [Command("echo", isMergeExcess: true)]
     public void Echo(string main, string contentToEcho)
     {
         _ = Content.MessageWindow.SendMessageAsync($"{main}说: {contentToEcho}");

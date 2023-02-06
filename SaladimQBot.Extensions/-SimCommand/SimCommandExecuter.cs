@@ -82,7 +82,7 @@ public sealed partial class SimCommandExecuter
             from methodInfo in moduleClassType.GetMethods()
             let attr = methodInfo.GetCustomAttribute<CommandAttribute>()
             where attr is not null
-            select new MethodBasedCommand(attr.Name, methodInfo, attr.IsSingleParam);
+            select new MethodBasedCommand(attr.Name, methodInfo, attr.MergeExcess);
         commands.AddRange(cmdToAdd);
     }
 
@@ -120,6 +120,11 @@ public sealed partial class SimCommandExecuter
             var matches = CommandParamRegex.Matches(cmdTextWithoutRootPrefix.ToString());
             if (matches.Count == 0) continue;
             string[] argAsString = new string[matches.Count - 1];
+            for (int i = 0; i < argAsString.Length; i++)
+            {
+                //我们只trim 非va和非mergeExcess部分的参数左右的引号
+                argAsString[i] = matches[i + 1].Value;
+            }
             //现在我们得到了它的参数的以字符串形式的参数数组
             //开始查找所有符合的指令
             foreach (var cmd in commands)
@@ -129,15 +134,19 @@ public sealed partial class SimCommandExecuter
                     //昵称相同, 现在检查参数数目是否相同(如果不是va指令或mergeExcess指令的话)
                     if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsMergeExcessCommand)
                         continue;
+                    string[] processedStrArgs = argAsString;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
-                    for (int i = 0; i < argAsString.Length; i++)
+                    if (cmd.IsMergeExcessCommand)
                     {
-                        //我们只trim 非va和非mergeExcess部分的参数左右的引号
-                        argAsString[i] = matches[i + 1].Value.Trim('"');
+                        processedStrArgs = (string[])argAsString.Clone();
+                        for (int i = 0; i < cmd.Parameters.Length - 1; i++)
+                        {
+                            processedStrArgs[i] = processedStrArgs[i].Trim();
+                        }
                     }
                     CommandContent content = new(this, msg);
-                    ExecuteInternal(cmd, argAsString, content);
+                    ExecuteInternal(cmd, processedStrArgs, content);
                 }
             }
         }

@@ -195,7 +195,7 @@ public interface IClient
     event Action<Exception> OnStoppedUnexpectedly;
 
     /// <summary>
-    /// bot号本身的实体
+    /// bot号本身的用户实体
     /// </summary>
     IUser Self { get; }
 
