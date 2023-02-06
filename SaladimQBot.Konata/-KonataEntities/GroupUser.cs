@@ -47,11 +47,13 @@ public class GroupUser : User, IGroupUser
     public GroupUser(KqClient client, long userId, long groupId, string nickname)
         : base(client, userId, nickname)
     {
+        
         getMemberApi = new(BotMemberFactory, client.ExpireTimeSpan);
     }
 
     protected BotMember BotMemberFactory()
     {
         Client.konatoBot.GetGroupMemberInfo()
+            Client.konatoBot.GetFr
     }
 }
