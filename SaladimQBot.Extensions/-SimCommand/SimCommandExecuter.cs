@@ -126,13 +126,15 @@ public sealed partial class SimCommandExecuter
                 if (cmd.Name == matches[0].Value)
                 {
                     //昵称相同, 现在检查参数数目是否相同(如果不是va指令或mergeExcess指令的话)
-                    if (cmd.Parameters.Length != matches.Count - 1 && !cmd.IsVACommand && !cmd.IsMergeExcessCommand)
+                    if (!cmd.IsVACommand && !cmd.IsMergeExcessCommand && cmd.Parameters.Length != matches.Count - 1)
                         continue;
                     string[] processedStrArgs = argAsString;
                     //昵称相同参数相同, 生成参数字符串数组传递给ExecuteInternal让其解析为对应值
                     //并调用最后的实体方法
                     if (cmd.IsMergeExcessCommand)
                     {
+                        if (argAsString.Length < cmd.Parameters.Length)
+                            continue;
                         processedStrArgs = (string[])argAsString.Clone();
                         for (int i = 0; i < cmd.Parameters.Length - 1; i++)
                         {
@@ -228,7 +230,7 @@ public sealed partial class SimCommandExecuter
             }
         }
 
-        if (cmdArguments.Length == 0)
+        if (!paramsTypes.Any())
         {
             //空参数, 直接执行
             cmd.Method.Invoke(moduleIns, Array.Empty<object>());
