@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -37,6 +38,8 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
 
     public bool Started { get; private set; }
 
+    public string? Authorization { get; }
+
     public event Action<Exception>? OnErrorOccurred;
 
 
@@ -50,14 +53,16 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
     /// </summary>
     public event Action<Exception>? OnReceivedAcceptableException;
 
-    public CqWebSocketSession(string address, string? endpoint = null)
+    private CqWebSocketSession(string address, string? authorization = null, string? endpoint = null)
     {
         Uri = new($"{address}/{endpoint}");
+        this.Authorization = authorization;
     }
 
     public CqWebSocketSession(string address, string? endpoint = null,
+        string? authorization = null,
         bool useEventEndPoint = false, bool useApiEndPoint = false)
-        : this(address, endpoint) =>
+        : this(address, authorization, endpoint) =>
         (UseEventEndPoint, UseApiEndPoint) =
         (useEventEndPoint, useApiEndPoint);
 
@@ -68,6 +73,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         try
         {
             MakeWebSocketAvailable();
+            webSocket.Options.SetRequestHeader("Authorization", Authorization);
             //只把token传给ws
             await webSocket.ConnectAsync(Uri, token).ConfigureAwait(false);
             Started = true;

@@ -32,7 +32,7 @@ public class SaladimOffbotService : IClientService, IHostedService
         CoroutineService coroutineService
         )
     {
-        wsClient = new(config.GoCqHttpWebSocketAddress, LogLevel.Trace);
+        wsClient = new(config.GoCqHttpWebSocketAddress, LogLevel.Trace, authorization: "d7ffb205-632d-4e9c-8922-236ea7a3d08c");
         Client = wsClient;
         logger = loggerService.SalIns;
         wsClient.OnLog += s => logger.LogInfo("WsClient", s);

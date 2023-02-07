@@ -8,8 +8,8 @@ public sealed class CqHttpClient : CqClient
 
     public override TimeSpan ExpireTimeSpan => expireTimeSpan;
 
-    public CqHttpClient(string requestUrl, string listenerUrl, LogLevel logLevelLimit) :
-        base(logLevelLimit, new CqHttpRequestorSession(requestUrl), new CqHttpListenerSession(listenerUrl))
+    public CqHttpClient(string requestUrl, string listenerUrl, string authorization, LogLevel logLevelLimit) :
+        base(logLevelLimit, new CqHttpRequestorSession(requestUrl, authorization), new CqHttpListenerSession(listenerUrl))
     {
 
     }

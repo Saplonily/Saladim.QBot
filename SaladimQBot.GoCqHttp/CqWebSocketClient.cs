@@ -13,11 +13,12 @@ public sealed class CqWebSocketClient : CqClient
     /// </summary>
     /// <param name="gocqHttpAddress">ws地址,例如<code>ws://127.0.0.1:5000</code></param>
     /// <param name="logLevelLimit">日志等级限制, 低于该等级的日志将不会触发<see cref="CqClient.OnLog"/>事件</param>
-    public CqWebSocketClient(string gocqHttpAddress, LogLevel logLevelLimit = LogLevel.Info)
+    /// <param name="authorization">authorization值</param>
+    public CqWebSocketClient(string gocqHttpAddress, LogLevel logLevelLimit = LogLevel.Info, string? authorization = null)
         : base(
             logLevelLimit,
-            new CqWebSocketSession(gocqHttpAddress, "api", useApiEndPoint: true),
-            new CqWebSocketSession(gocqHttpAddress, "event", useEventEndPoint: true)
+            new CqWebSocketSession(gocqHttpAddress, "api", useApiEndPoint: true, authorization: authorization),
+            new CqWebSocketSession(gocqHttpAddress, "event", useEventEndPoint: true, authorization: authorization)
               )
     {
     }

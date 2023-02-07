@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -18,14 +19,16 @@ public class CqHttpRequestorSession : ICqSession, IDisposable
 #pragma warning restore
 
     public bool Started { get; protected set; }
+    public string? Authorization { get; }
 
     /// <summary>
     /// 使用http地址创建一个
     /// </summary>
     /// <param name="goCqHttpAddressBaseUrl"></param>
-    public CqHttpRequestorSession(string goCqHttpAddressBaseUrl)
+    public CqHttpRequestorSession(string goCqHttpAddressBaseUrl, string? authorization = null)
     {
         this.goCqHttpAddressBaseUrl = goCqHttpAddressBaseUrl;
+        this.Authorization = authorization;
     }
 
     public async Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api)
@@ -35,6 +38,7 @@ public class CqHttpRequestorSession : ICqSession, IDisposable
         string jsonString = apiParamsNode.ToJsonString();
         StringContent content = new(jsonString);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        content.Headers.Add("Authorization", Authorization);
         HttpResponseMessage? response;
         try
         {
