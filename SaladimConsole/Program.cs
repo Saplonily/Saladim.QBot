@@ -13,7 +13,7 @@ public static class Program
     private static StreamWriter writer = null!;
     public const string SecProgram = "Program";
 
-    private async static Task ConsoleLoop()
+    private static async Task ConsoleLoop()
     {
         string s;
         while ((s = Console.ReadLine()!) != "exit")

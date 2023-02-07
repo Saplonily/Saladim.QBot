@@ -9,9 +9,9 @@ public class ForwardEntity : CqEntity, IForwardEntity
 {
     public IExpirable<List<ForwardNode>> Nodes { get; protected set; }
 
-    internal protected bool IsFromFlag { get; protected set; }
+    protected internal bool IsFromFlag { get; protected set; }
 
-    internal protected string? Flag { get; protected set; }
+    protected internal string? Flag { get; protected set; }
 
     protected internal IDependencyExpirable<GetForwardMessageActionResultData>? ApiCallResultData { get; set; }
 

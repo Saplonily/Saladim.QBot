@@ -14,7 +14,7 @@ public class GroupJoinRequest : CqEntity, IGroupJoinRequest
 
     public RequestProcessStatus ProcessStatus { get; protected set; }
 
-    internal protected string Flag { get; set; } = null!;
+    protected internal string Flag { get; set; } = null!;
 
     public static GroupJoinRequest CreateFromPost(CqClient client, CqGroupRequestPost post) => new(client)
     {

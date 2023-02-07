@@ -5,7 +5,7 @@ namespace SaladimQBot.GoCqHttp;
 
 public class ForwardEntityModel : IEnumerable<ForwardEntityNodeModel>
 {
-    internal protected IEnumerable<ForwardEntityNodeModel> nodeModels;
+    protected internal IEnumerable<ForwardEntityNodeModel> nodeModels;
 
     public ForwardEntityModel(ForwardEntity entity)
     {

@@ -34,7 +34,7 @@ public class FriendMessage : PrivateMessage, IFriendMessage
         TempSource = MessageTempSource.Invalid;
     }
 
-    internal new static FriendMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)
+    internal static new FriendMessage CreateFromPrivateMessagePost(CqClient client, CqPrivateMessagePost post)
         => new FriendMessage(client, post.MessageId)
                 .LoadFromPrivateMessagePost(post)
                 .Cast<FriendMessage>();

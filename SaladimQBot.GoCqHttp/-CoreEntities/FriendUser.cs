@@ -10,21 +10,21 @@ public class FriendUser : User, IFriendUser, ICqMessageWindow
     {
     }
 
-    internal new static FriendUser CreateFromMessagePost(in CqClient client, in CqMessagePost post)
+    internal static new FriendUser CreateFromMessagePost(in CqClient client, in CqMessagePost post)
     => new FriendUser(client, post.UserId)
             .LoadApiCallResult(post.UserId)
             .LoadFromUserId()
             .LoadFromMessageSender(post.Sender)
             .Cast<FriendUser>();
 
-    internal new static FriendUser CreateFromNicknameAndId(in CqClient client, in string nickname, long userId)
+    internal static new FriendUser CreateFromNicknameAndId(in CqClient client, in string nickname, long userId)
         => new FriendUser(client, userId)
                 .LoadApiCallResult(userId)
                 .LoadFromUserId()
                 .LoadNickname(nickname)
                 .Cast<FriendUser>();
 
-    internal new static FriendUser CreateFromId(in CqClient client, long userId)
+    internal static new FriendUser CreateFromId(in CqClient client, long userId)
         => new FriendUser(client, userId)
                 .LoadApiCallResult(userId)
                 .LoadFromUserId()
