@@ -24,9 +24,6 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SimCmdModules\appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="HomoNumberTable.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
