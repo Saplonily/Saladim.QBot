@@ -2,13 +2,13 @@
 
 public class SimCommandConfig
 {
-    public string RootPrefix { get; set; }
+    public string[] RootPrefixes { get; set; }
 
     public Func<Type, CommandModule>? ModuleInstancer { get; set; }
 
-    public SimCommandConfig(string rootPrefix, Func<Type, CommandModule>? moduleInstancer = null)
+    public SimCommandConfig(Func<Type, CommandModule>? moduleInstancer = null, params string[] rootPrefixes)
     {
-        this.RootPrefix = rootPrefix;
+        this.RootPrefixes = rootPrefixes;
         this.ModuleInstancer = moduleInstancer;
     }
 }

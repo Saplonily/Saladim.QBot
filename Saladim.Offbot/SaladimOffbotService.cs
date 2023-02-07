@@ -164,7 +164,7 @@ public class SaladimOffbotService : IClientService, IHostedService
 
     private async Task SimCmdMiddleware(IMessage msg, Func<Task> next)
     {
-        await simCommandService.Executor.MatchAndExecuteAllAsync(msg).ConfigureAwait(false);
+        await simCommandService.Executer.MatchAndExecuteAllAsync(msg).ConfigureAwait(false);
         await next();
     }
 

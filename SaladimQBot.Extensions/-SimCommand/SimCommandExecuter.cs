@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -17,19 +19,18 @@ public sealed partial class SimCommandExecuter
 
     public Dictionary<Type, Func<string, object>> CommandParamParsers { get; private set; }
 
-    public string RootCommandPrefix { get; }
+    public string[] RootCommandPrefixes { get; }
 
     public delegate void OnCommandExecutedHandler(MethodBasedCommand command, CommandContent content, object[] @params);
     public event OnCommandExecutedHandler? OnCommandExecuted;
 
     /// <summary>
-    /// 创建一个服务实例
+    /// 创建一个Executer实例
     /// </summary>
-    /// <param name="client">client实例</param>
-    /// <param name="rootCommandPrefix">指令的前缀, 不需要前缀时请显式指定为空字符串</param>
-    public SimCommandExecuter(string rootCommandPrefix)
+    /// <param name="rootCommandPrefixes">指令的前缀, 不需要前缀时请显式指定为空字符串</param>
+    public SimCommandExecuter(params string[] rootCommandPrefixes)
     {
-        this.RootCommandPrefix = rootCommandPrefix;
+        this.RootCommandPrefixes = rootCommandPrefixes;
         commands = new();
         CommandParamParsers = new()
         {
@@ -70,7 +71,7 @@ public sealed partial class SimCommandExecuter
         moduleInstanceFactory = Activator.CreateInstance;
     }
 
-    public SimCommandExecuter(string rootCommandPrefix, Func<Type, object?> moduleInstanceFactory)
+    public SimCommandExecuter(Func<Type, object?> moduleInstanceFactory, params string[] rootCommandPrefix)
         : this(rootCommandPrefix)
     {
         this.moduleInstanceFactory = moduleInstanceFactory;
@@ -98,23 +99,17 @@ public sealed partial class SimCommandExecuter
         if (firstAt is not null)
             if (!msg.MessageEntity.MentionedSelf()) return;
 
-        //寻找所有以根指令前缀开头的文本节点
-        var matchedNodeTexts = allTextNodes
-            .Where(node =>
-            {
-                var text = node.Text;
-                var trimedText = text.AsSpan().Trim();
-                if (trimedText.StartsWith(RootCommandPrefix.AsSpan()))
-                    return true;
-                return false;
-            })
-            //trim掉前后的空格
-            .Select(node => node.Text.Trim());
+        IEnumerable<(string TrimedText, string FirstMatchedPrefix)> matchResults =
+            from node in allTextNodes
+            let trimedText = node.Text.Trim()
+            let firstMatchedPrefix = RootCommandPrefixes.Where(trimedText.StartsWith).FirstOrDefault()
+            where firstMatchedPrefix is not null
+            select (trimedText, firstMatchedPrefix);
 
         //遍历这些文本节点, 执行所有的指令
-        foreach (var matchedNodeText in matchedNodeTexts)
+        foreach (var (trimedText, firstMatchedPrefix) in matchResults)
         {
-            var cmdTextWithoutRootPrefix = matchedNodeText.AsSpan(RootCommandPrefix.Length);
+            var cmdTextWithoutRootPrefix = trimedText.AsSpan(firstMatchedPrefix.Length);
             //现在这个字符串就形如 "add 1 2 3" 了
             //以空格切分, 但忽略引号内的空格
             var matches = CommandParamRegex.Matches(cmdTextWithoutRootPrefix.ToString());
@@ -234,19 +229,6 @@ public sealed partial class SimCommandExecuter
             }
         }
 
-        //所有多余参数合并到最后一个参数里如果指定了IsMergeExcessCommand
-        if (cmd.IsMergeExcessCommand)
-        {
-            if (methodParametersCount < cmdArguments.Length)
-            {
-                var extensionArgsString = string.Join(' ', cmdArguments[(methodParametersCount - 1)..]);
-                var newArgs = new string[methodParametersCount];
-                cmdArguments.AsSpan(0, methodParametersCount).CopyTo(newArgs.AsSpan());
-                newArgs[^1] = extensionArgsString;
-                cmdArguments = newArgs;
-            }
-        }
-
         if (cmdArguments.Length == 0)
         {
             //空参数, 直接执行
@@ -305,6 +287,7 @@ public sealed partial class SimCommandExecuter
         => await Task.Run(() => MatchAndExecuteAll(msg)).ConfigureAwait(false);
 }
 
+[DebuggerDisplay("{Name,nq}, param count={Parameters.Length}, va={IsVACommand}, merge excess={IsMergeExcessCommand}")]
 public class MethodBasedCommand
 {
     /// <summary>

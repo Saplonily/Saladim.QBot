@@ -120,7 +120,7 @@ public class Message : CqEntity, IMessage
     #region ÖØÐ´¼°ÔÓÆßÔÓ°ËµÄ
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}";
+    private string DebuggerDisplay => $"{Sender.Nickname.Value}({Sender.UserId}): {MessageEntity.RawString}";
 
     public override bool Equals(object? obj)
     {

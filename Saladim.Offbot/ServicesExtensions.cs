@@ -15,7 +15,7 @@ public static class ServicesExtensions
         services.AddSingleton(_ => new SaladimOffbotServiceConfig(goCqHttpWebSocketAddress));
         services.AddHostedService<SaladimOffbotService>();
 
-        services.AddSimCommand(s => new("/", t => (CommandModule)s.GetRequiredService(t)), typeof(Program).Assembly);
+        services.AddSimCommand(s => new(t => (CommandModule)s.GetRequiredService(t), "/", "!", "s>"), typeof(Program).Assembly);
 
         services.AddSingleton<CoroutineService>();
         services.AddSingleton<HttpRequesterService>();

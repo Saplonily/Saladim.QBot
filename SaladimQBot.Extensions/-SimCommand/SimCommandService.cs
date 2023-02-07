@@ -5,15 +5,15 @@ namespace SaladimQBot.Extensions;
 
 public class SimCommandService
 {
-    public SimCommandExecuter Executor { get; protected set; }
+    public SimCommandExecuter Executer { get; protected set; }
 
     public SimCommandService(SimCommandConfig config)
     {
         var mi = config.ModuleInstancer;
         if (mi is null)
-            Executor = new(config.RootPrefix);
+            Executer = new(config.RootPrefixes);
         else
-            Executor = new(config.RootPrefix, mi);
+            Executer = new(mi, config.RootPrefixes);
     }
 }
 
@@ -26,7 +26,7 @@ public static partial class ServiceExtensions
         {
             SimCommandService service = new(s.GetRequiredService<SimCommandConfig>());
             foreach (var module in toBeAddModules)
-                service.Executor.AddModule(module);
+                service.Executer.AddModule(module);
             return service;
         });
         services.AddSingleton(s => configProvider(s));
