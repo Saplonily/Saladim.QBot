@@ -2,7 +2,7 @@
 
 namespace SaladimQBot.Shared;
 
-[DebuggerDisplay("{(!hasValueCache ? \"[NoValueCache]\" : \"\")} {valueCache}")]
+[DebuggerDisplay("{(!hasValueCache ? \"[NoValueCached]\" : \"\")} {valueCache}")]
 public class IndependentExpirable<T> : IIndependentExpirable<T>, IExpirable<T>
 {
     protected Func<T> valueFactory;

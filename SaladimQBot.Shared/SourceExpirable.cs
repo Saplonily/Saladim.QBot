@@ -1,5 +1,8 @@
-﻿namespace SaladimQBot.Shared;
+﻿using System.Diagnostics;
 
+namespace SaladimQBot.Shared;
+
+[DebuggerDisplay("IndepenExp -> {independentExpirable}")]
 public class SourceExpirable<T> : IDependencyExpirable<T>
 {
     protected IndependentExpirable<T> independentExpirable;

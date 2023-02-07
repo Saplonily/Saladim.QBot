@@ -287,7 +287,7 @@ public sealed partial class SimCommandExecuter
         => await Task.Run(() => MatchAndExecuteAll(msg)).ConfigureAwait(false);
 }
 
-[DebuggerDisplay("{Name,nq}, param count={Parameters.Length}, va={IsVACommand}, merge excess={IsMergeExcessCommand}")]
+[DebuggerDisplay("{Name}, {Parameters.Length}args, {(IsVACommand ? \"VA, \" : \"\"),nq}{(IsMergeExcessCommand ? \"Merge excess\" : \"\"),nq}")]
 public class MethodBasedCommand
 {
     /// <summary>

@@ -1,5 +1,8 @@
-﻿namespace SaladimQBot.Shared;
+﻿using System.Diagnostics;
 
+namespace SaladimQBot.Shared;
+
+[DebuggerDisplay("[NonExpirable] {Value}")]
 public class NonExpirableExpirable<T> : IExpirable<T>
 {
     protected Lazy<T> lazyValue;

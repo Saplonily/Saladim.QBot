@@ -9,7 +9,7 @@ namespace SaladimQBot.GoCqHttp;
 /// <summary>
 /// 一个消息实体
 /// </summary>
-[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerDisplay("{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}")]
 public class Message : CqEntity, IMessage
 {
     public IExpirable<MessageEntity> ExpMessageEntity { get; protected set; } = default!;
@@ -33,11 +33,13 @@ public class Message : CqEntity, IMessage
     /// <summary>
     /// 消息发送者
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public User Sender => ExpSender.Value;
 
     /// <summary>
     /// 消息发送者
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public User Author => Sender;
 
     /// <summary>
@@ -118,10 +120,6 @@ public class Message : CqEntity, IMessage
     #endregion
 
     #region 重写及杂七杂八的
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"{Sender.Nickname.Value}({Sender.UserId}): {MessageEntity.RawString}";
-
     public override bool Equals(object? obj)
     {
         return obj is Message message &&

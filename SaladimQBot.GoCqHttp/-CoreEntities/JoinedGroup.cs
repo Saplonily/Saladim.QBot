@@ -9,7 +9,7 @@ namespace SaladimQBot.GoCqHttp;
 /// <summary>
 /// 一个bot号加入的群
 /// </summary>
-[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerDisplay("{Name} ({GroupId})")]
 public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
 {
     /// <summary>
@@ -143,9 +143,6 @@ public class JoinedGroup : Group, IJoinedGroup, ICqMessageWindow
     => await Client.SendGroupMessageAsync(GroupId, forwardEntity).ConfigureAwait(false);
 
     #endregion
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"{Name} ({GroupId})";
 
     public override bool Equals(object? obj)
     {

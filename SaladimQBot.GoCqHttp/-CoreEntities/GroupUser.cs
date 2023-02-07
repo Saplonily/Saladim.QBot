@@ -6,7 +6,7 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerDisplay("{Card} ({Nickname}, {UserId})")]
 public class GroupUser : User, IGroupUser
 {
     public JoinedGroup Group { get; protected set; } = default!;
@@ -227,9 +227,6 @@ public class GroupUser : User, IGroupUser
     {
         return HashCode.Combine(base.GetHashCode(), this.UserId, this.Group);
     }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => FullName;
 
     public static bool operator ==(GroupUser? left, GroupUser? right)
     {

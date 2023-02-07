@@ -1,5 +1,8 @@
-﻿namespace SaladimQBot.Shared;
+﻿using System.Diagnostics;
 
+namespace SaladimQBot.Shared;
+
+[DebuggerDisplay("UpStream -> {upstream}")]
 public class DependencyExpirable<T> : IDependencyExpirable<T>, IExpirable<T>
 {
     protected IndependentExpirable<T>? presetIndependent;

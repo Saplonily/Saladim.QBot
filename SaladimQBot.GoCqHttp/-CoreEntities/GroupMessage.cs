@@ -6,17 +6,20 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
-[DebuggerDisplay("{DebuggerDisplay}")]
+[DebuggerDisplay("{Sender.Nickname}({Sender.UserId}): {MessageEntity.RawString}")]
 public class GroupMessage : Message, IGroupMessage
 {
     public IExpirable<JoinedGroup> ExpGroup { get; protected set; } = default!;
 
     public IExpirable<GroupUser> ExpGroupSender { get; protected set; } = default!;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public JoinedGroup Group => ExpGroup.Value;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public new GroupUser Sender => ExpGroupSender.Value;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public new GroupUser Author => Sender;
 
     public override ICqMessageWindow MessageWindow => Group;

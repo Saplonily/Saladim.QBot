@@ -6,6 +6,7 @@ using SaladimQBot.Shared;
 
 namespace SaladimQBot.GoCqHttp;
 
+[DebuggerDisplay("{Name} ({GroupId})")]
 /// <summary>
 /// 一个群实体, 允许bot号未加入
 /// </summary>
