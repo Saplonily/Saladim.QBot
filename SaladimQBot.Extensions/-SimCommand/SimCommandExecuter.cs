@@ -230,6 +230,19 @@ public sealed partial class SimCommandExecuter
             }
         }
 
+        //所有多余参数合并到最后一个参数里如果指定了IsMergeExcessCommand
+        if (cmd.IsMergeExcessCommand)
+        {
+            if (methodParametersCount < cmdArguments.Length)
+            {
+                var extensionArgsString = string.Join(' ', cmdArguments[(methodParametersCount - 1)..]);
+                var newArgs = new string[methodParametersCount];
+                cmdArguments.AsSpan(0, methodParametersCount).CopyTo(newArgs.AsSpan());
+                newArgs[^1] = extensionArgsString;
+                cmdArguments = newArgs;
+            }
+        }
+
         if (!paramsTypes.Any())
         {
             //空参数, 直接执行
