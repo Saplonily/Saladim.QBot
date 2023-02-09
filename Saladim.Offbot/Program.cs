@@ -25,9 +25,12 @@ public static class Program
             .UseConsoleLifetime()
             .Build();
 
-        AppDomain.CurrentDomain.ProcessExit += (obj, args) => OnProcessShutdown(null);
-        Console.CancelKeyPress += (obj, args) => OnProcessShutdown(null);
-        AppDomain.CurrentDomain.UnhandledException += (obj, args) => OnProcessShutdown(args.ExceptionObject is Exception e ? e : null);
+        AppDomain.CurrentDomain.ProcessExit += (obj, args) => OnProcessShutdown(null, "ProcessExit");
+        Console.CancelKeyPress += (obj, args) => OnProcessShutdown(null, "CancelKeyPress");
+        AppDomain.CurrentDomain.UnhandledException += (obj, args) =>
+            OnProcessShutdown(args.ExceptionObject is Exception e ? e : null, "UnhandledException");
+        TaskScheduler.UnobservedTaskException += (obj, args) =>
+            OnProcessShutdown(args.Exception, "UnobservedTaskException");
 
         loggerService = host.Services.GetRequiredService<SalLoggerService>();
         logger = loggerService.SalIns;
@@ -49,9 +52,9 @@ public static class Program
             }
         });
 
-        static void OnProcessShutdown(Exception? exception)
+        static void OnProcessShutdown(Exception? exception, string reason)
         {
-            logger.LogInfo("Program", "Program is shutdowning...");
+            logger.LogInfo("Program", $"Program is shutdowning... reason: {reason}");
             if (exception is not null)
                 logger.LogFatal("Program", exception, prefix: "Fatal exception occurred!");
             loggerService.FlushFileStream();
