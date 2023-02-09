@@ -32,7 +32,32 @@ public class MessageChain : CqEntity, IMessageChain
             if (node is not null)
                 nodes.Add(node);
         }
-        return new MessageChain(client, nodes);
+        //合并同时出现的文本节点
+        List<MessageChainNode> mergedNodes = new();
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            if (nodes[i] is MessageChainTextNode)
+            {
+                int offset = 0;
+                while (i + 1 + offset < nodes.Count && nodes[i + 1 + offset] is MessageChainTextNode)
+                {
+                    offset++;
+                }
+                int pi = i;
+                i += offset;
+                MessageChainTextNode tn = new(client, "");
+                foreach (var textNode in nodes.GetRange(pi, offset + 1))
+                {
+                    tn.Text += ((MessageChainTextNode)textNode).Text;
+                }
+                mergedNodes.Add(tn);
+            }
+            else
+            {
+                mergedNodes.Add(nodes[i]);
+            }
+        }
+        return new MessageChain(client, mergedNodes);
     }
 
     internal CqMessageChainModel ToModel()

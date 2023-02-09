@@ -42,10 +42,11 @@ public class IndependentExpirable<T> : IIndependentExpirable<T>, IExpirable<T>
 
     public IndependentExpirable(T presetValue, Func<T> valueFactory, TimeSpan expireTimeSpan)
     {
-        this.expireDateTime = DateTime.Now + expireTimeSpan;
+        this.hasValueCache = true;
         this.valueCache = presetValue;
         this.valueFactory = valueFactory;
         this.expireTimeSpan = expireTimeSpan;
+        this.expireDateTime = DateTime.Now + expireTimeSpan;
     }
 }
 
