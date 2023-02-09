@@ -29,3 +29,6 @@ Visual Studio 2022/
 
 #放go-cqhttp的
 Working/*
+
+#publish的日志
+Properties/PublishProfiles/**
