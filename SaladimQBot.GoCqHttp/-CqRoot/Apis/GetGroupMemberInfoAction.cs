@@ -1,4 +1,5 @@
 ﻿namespace SaladimQBot.GoCqHttp.Apis;
+
 public class GetGroupMemberInfoAction : CqCacheableApi
 {
     public override string ApiName => "get_group_member_info";

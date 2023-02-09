@@ -3,7 +3,7 @@
 public abstract class CqCacheableApi : CqApi
 {
     [Ignore]
-    public virtual bool UseCache { get; set; }
+    public bool UseCache { get; set; } = true;
 
     [Name("no_cache")]
     public bool NoCache { get => !UseCache; set => UseCache = !value; }

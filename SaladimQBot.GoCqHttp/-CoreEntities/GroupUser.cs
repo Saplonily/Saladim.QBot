@@ -165,8 +165,7 @@ public class GroupUser : User, IGroupUser
         CqApi api = new GetGroupMemberInfoAction()
         {
             GroupId = groupId,
-            UserId = userId,
-            UseCache = true
+            UserId = userId
         };
         ApiCallResult = Client.MakeExpirableApiCallResultData<GetGroupMemberInfoActionResultData>(api);
         return this;
