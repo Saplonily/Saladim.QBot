@@ -25,7 +25,7 @@ public abstract class User : KqEntity, IUser
 
     public Uri AvatarUrl => new($"https://q1.qlogo.cn/g?b=qq&nk={UserId}&s=640");
 
-    public User(KqClient client, long userId, string nickname) : base(client)
+    protected internal User(KqClient client, long userId, string nickname) : base(client)
     {
         this.UserId = userId;
         this.Nickname = nickname;

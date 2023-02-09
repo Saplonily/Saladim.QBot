@@ -18,7 +18,7 @@ public class FriendUser : User, IFriendUser
 
     public override int LoginDays => throw new NotSupportedException(DoesNotSupportMsg);
 
-    public FriendUser(KqClient client, long userId, string nickname) : base(client, userId, nickname)
+    protected internal FriendUser(KqClient client, long userId, string nickname) : base(client, userId, nickname)
     {
     }
 

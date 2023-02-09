@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Konata.Core;
 using Konata.Core.Common;
 using Konata.Core.Events.Model;
+using Konata.Core.Interfaces.Api;
 using SaladimQBot.Core;
+using SaladimQBot.Shared;
 using SqlSugar;
 
 namespace SaladimQBot.Konata;
@@ -11,9 +14,13 @@ namespace SaladimQBot.Konata;
 public class KqClient : IClient
 {
     protected SqlSugarScope sugarScope;
-    internal Bot konatoBot;
+    internal Bot konataBot;
+    internal readonly SourceExpirable<IReadOnlyList<BotFriend>> expBotFriends;
+    internal readonly SourceExpirable<IReadOnlyList<BotGroup>> expBotGroups;
+    internal readonly Dictionary<(long GroupId, long UserId), IndependentExpirable<BotMember>> expBotMembers;
 
     public TimeSpan ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    public TimeSpan FriendGroupListExpireTimeSpan = TimeSpan.FromMinutes(13);
 
     public event IClient.OnClientEventOccuredHandler<IClientEvent>? OnClientEventOccurred;
 
@@ -21,17 +28,21 @@ public class KqClient : IClient
 
     public IUser Self => throw new NotImplementedException();
 
-    public KqClient(Bot konatoBot)
+    public KqClient(Bot konataBot)
     {
         sugarScope = new(new ConnectionConfig()
         {
             DbType = DbType.Sqlite,
             ConnectionString = "DataSource=SaladimQBot.KonataMessages.db"
         });
-
         sugarScope.CodeFirst.InitTables<MessageStoraged>();
-        this.konatoBot = konatoBot;
-        konatoBot.OnGroupMessage += this.KonatoBot_OnGroupMessage;
+
+        expBotMembers = new();
+
+        this.konataBot = konataBot;
+        expBotFriends = new(new(() => konataBot.GetFriendList().ConfigureAwait(false).GetAwaiter().GetResult(), FriendGroupListExpireTimeSpan));
+        expBotGroups = new(new(() => konataBot.GetGroupList().ConfigureAwait(false).GetAwaiter().GetResult(), FriendGroupListExpireTimeSpan));
+        konataBot.OnGroupMessage += this.KonatoBot_OnGroupMessage;
     }
 
     private void KonatoBot_OnGroupMessage(Bot sender, GroupMessageEvent args)
@@ -39,7 +50,21 @@ public class KqClient : IClient
 
     }
 
-    internal BotFriend
+    internal IndependentExpirable<BotMember> GetExpirableBotMember(long groupId, long userId)
+    {
+        if (expBotMembers.TryGetValue((groupId, userId), out var member))
+        {
+            return member;
+        }
+        else
+        {
+            var newMember = new IndependentExpirable<BotMember>(Factory, ExpireTimeSpan);
+            BotMember Factory()
+                => konataBot.GetGroupMemberInfo((uint)groupId, (uint)userId).ConfigureAwait(false).GetAwaiter().GetResult();
+            expBotMembers.Add((groupId, userId), newMember);
+            return newMember;
+        }
+    }
 
     public Task StartAsync()
     {

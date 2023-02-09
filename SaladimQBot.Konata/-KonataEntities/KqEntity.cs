@@ -8,7 +8,7 @@ public class KqEntity : IClientEntity
 
     IClient IClientEntity.Client => Client;
 
-    public KqEntity(KqClient client)
+    protected internal KqEntity(KqClient client)
     {
         Client = client;
     }

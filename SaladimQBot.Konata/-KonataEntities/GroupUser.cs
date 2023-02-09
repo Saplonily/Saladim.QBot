@@ -9,7 +9,6 @@ namespace SaladimQBot.Konata;
 // wip, do not use
 public class GroupUser : User, IGroupUser
 {
-
     public IJoinedGroup Group { get; }
 
     public string Card { get; }
@@ -42,18 +41,12 @@ public class GroupUser : User, IGroupUser
 
     public override int LoginDays { get; }
 
-    protected internal IndependentExpirable<BotMember> getMemberApi;
+    protected internal IExpirable<BotMember> getMemberApi;
 
-    public GroupUser(KqClient client, long userId, long groupId, string nickname)
+    protected internal GroupUser(KqClient client, long userId, long groupId, string nickname)
         : base(client, userId, nickname)
     {
-        
-        getMemberApi = new(BotMemberFactory, client.ExpireTimeSpan);
-    }
-
-    protected BotMember BotMemberFactory()
-    {
-        Client.konatoBot.GetGroupMemberInfo()
-            Client.konatoBot.GetFr
+        Group = new JoinedGroup(client, groupId);
+        getMemberApi = client.GetExpirableBotMember(groupId, userId);
     }
 }
