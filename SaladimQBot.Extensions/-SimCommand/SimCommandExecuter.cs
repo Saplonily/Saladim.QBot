@@ -10,7 +10,7 @@ namespace SaladimQBot.Extensions;
 public sealed partial class SimCommandExecuter
 {
     public static readonly Type StringType = typeof(string);
-    public static readonly Regex CommandParamRegex = new("(\"[^\"]*\")|[^\\s]+", RegexOptions.Compiled | RegexOptions.Multiline);
+    public static readonly Regex CommandParamRegex = new(@"(""[^""]*"")|[\S\n]+", RegexOptions.Compiled | RegexOptions.Multiline);
     public static char ArraySplitChar { get; set; } = ',';
 
     private readonly List<MethodBasedCommand> commands;
