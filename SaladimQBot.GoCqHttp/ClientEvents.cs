@@ -91,16 +91,19 @@ public abstract class ClientMessageRecalledEvent : ClientEvent, IClientMessageRe
 {
     public Message Message { get; protected set; }
 
-    public User MessageSender { get; protected set; }
+    public User MessageSender => lazyMessageSender.Value;
+
+    protected Lazy<User> lazyMessageSender;
 
     public ClientMessageRecalledEvent(CqClient client, Message message)
         : base(client)
     {
         this.Message = message;
-        this.MessageSender = message.Sender;
+        lazyMessageSender = new(() => message.Sender, isThreadSafe: true);
     }
 
     IMessage IClientMessageRecalledEvent.Message => Message;
+
     IUser IClientMessageRecalledEvent.MessageSender => MessageSender;
 }
 
