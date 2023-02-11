@@ -188,10 +188,21 @@ public interface IClient
 
     #endregion
 
-    public delegate void OnClientEventOccuredHandler<in TIIClientEvent>(TIIClientEvent clientEvent) where TIIClientEvent : IClientEvent;
+    /// <summary>
+    /// Client发生事件Handler
+    /// </summary>
+    /// <typeparam name="TIClientEvent"></typeparam>
+    /// <param name="clientEvent"></param>
+    public delegate void OnClientEventOccuredHandler<in TIClientEvent>(TIClientEvent clientEvent) where TIClientEvent : IClientEvent;
 
+    /// <summary>
+    /// Client发生事件时引发
+    /// </summary>
     event OnClientEventOccuredHandler<IClientEvent> OnClientEventOccurred;
 
+    /// <summary>
+    /// 出现异常停止时引发, 例如在Socket通讯时链接断开时伴随SocketException引发此事件
+    /// </summary>
     event Action<Exception> OnStoppedUnexpectedly;
 
     /// <summary>
@@ -199,8 +210,16 @@ public interface IClient
     /// </summary>
     IUser Self { get; }
 
+    /// <summary>
+    /// 创建一个MessageBuilder
+    /// </summary>
+    /// <returns></returns>
     IMessageEntityBuilder CreateMessageBuilder();
 
+    /// <summary>
+    /// 创建一个转发消息Builder
+    /// </summary>
+    /// <returns></returns>
     IForwardEntityBuilder CreateForwardBuilder();
 
     /// <summary>
