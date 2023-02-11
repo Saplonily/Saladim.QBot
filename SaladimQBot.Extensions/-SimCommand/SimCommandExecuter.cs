@@ -138,7 +138,7 @@ public sealed partial class SimCommandExecuter
                         processedStrArgs = (string[])argAsString.Clone();
                         for (int i = 0; i < cmd.Parameters.Length - 1; i++)
                         {
-                            processedStrArgs[i] = processedStrArgs[i].Trim();
+                            processedStrArgs[i] = processedStrArgs[i].Trim('"');
                         }
                     }
                     CommandContent content = new(this, msg);
