@@ -214,12 +214,12 @@ public sealed partial class SimCommandExecuter
 
                 //把解析结果的va部分放入新数组中, 之后会放入最终invoker需要的参数数组内
                 if (vaArgsArray.Length != 0)
-                    parsedArgs[(methodParametersCount - 1)..].CopyTo(vaArgsArray, 0);
+                    parsedArgs.Skip(methodParametersCount - 1).ToArray().CopyTo(vaArgsArray, 0);
 
                 //组装invoker需要的参数数组
                 object[] resultArgs = new object[methodParametersCount];
                 //把非va参数放入resultArgs内
-                parsedArgs[0..(methodParametersCount - 1)].CopyTo(resultArgs, 0);
+                parsedArgs.Take(methodParametersCount - 1).ToArray().CopyTo(resultArgs, 0);
                 //把va参数放到resultArgs最后一项
                 resultArgs[methodParametersCount - 1] = vaArgsArray;
 
@@ -235,10 +235,10 @@ public sealed partial class SimCommandExecuter
         {
             if (methodParametersCount < cmdArguments.Length)
             {
-                var extensionArgsString = string.Join(' ', cmdArguments[(methodParametersCount - 1)..]);
+                var extensionArgsString = string.Join(" ", cmdArguments.Skip(methodParametersCount - 1));
                 var newArgs = new string[methodParametersCount];
                 cmdArguments.AsSpan(0, methodParametersCount).CopyTo(newArgs.AsSpan());
-                newArgs[^1] = extensionArgsString;
+                newArgs[newArgs.Length - 1] = extensionArgsString;
                 cmdArguments = newArgs;
             }
         }

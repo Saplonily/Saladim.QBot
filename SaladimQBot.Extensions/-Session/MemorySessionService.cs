@@ -42,7 +42,8 @@ public class MemorySessionService
         {
             lock (allSessions)
             {
-                allSessions.TryAdd(typeSession, new());
+                if (!allSessions.ContainsKey(typeSession))
+                    allSessions.Add(typeSession, new());
             }
             return GetSession<TSession>(sessionId);
         }
