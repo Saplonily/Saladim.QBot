@@ -70,6 +70,18 @@ public class SaladimOffbotService : IClientService, IHostedService
 
     private void ConfigurePipeline(Pipeline<IClientEvent> eventPipeline)
     {
+        //异常中间件
+        eventPipeline.AppendMiddleware(async (e, next) =>
+        {
+            try
+            {
+                await next().ConfigureAwait(false);
+            }
+            catch (Exception exc)
+            {
+                logger.LogError("Offbot", exc, "Error detected by exception middleware:");
+            }
+        });
         //转发消息处理给消息处理管线
         eventPipeline.AppendMiddleware(async (e, next) =>
         {
