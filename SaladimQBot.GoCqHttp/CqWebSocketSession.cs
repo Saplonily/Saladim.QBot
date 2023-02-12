@@ -17,7 +17,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
     public static readonly Encoding Encoding = Encoding.UTF8;
     public readonly Uri Uri;
 
-    private readonly Dictionary<string, Action<JsonDocument>> suspendedApiResponseWaitings = new();
+    private readonly Dictionary<string, TaskCompletionSource<JsonDocument>> apiResponseWaitings = new();
     private ClientWebSocket webSocket = new();
     private CancellationTokenSource receiveTokenSource = new();
     private int seq = 0;
@@ -115,10 +115,10 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
             try
             {
                 string aimEcho = echoProp.GetString() ?? string.Empty;
-                if (suspendedApiResponseWaitings.TryGetValue(aimEcho, out var action))
+                if (apiResponseWaitings.TryGetValue(aimEcho, out var tcs))
                 {
-                    suspendedApiResponseWaitings.Remove(aimEcho);
-                    action.Invoke(docToEmit);
+                    apiResponseWaitings.Remove(aimEcho);
+                    tcs.SetResult(docToEmit);
                 }
 
             }
@@ -205,19 +205,34 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
         ArraySegment<byte> seg = new(Encoding.GetBytes(json));
         await webSocket.SendAsync(seg, WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
 
-        CqApiCallResult? result = new();
-        JsonDocument? docForDeserialize = null;
-        bool hasResponse = false;
-
-        AutoResetEvent e = new(false);
-        void Callback(JsonDocument doc) => (_, docForDeserialize, hasResponse) = (e.Set(), doc, true);
-        suspendedApiResponseWaitings.Add(echo, Callback);
-        e.WaitOne(TimeSpan.FromSeconds(10));
-        if (!hasResponse) return (null, 22);
-        if (docForDeserialize is null) return (null, 20);
-        result = CqApiJsonSerializer.DeserializeApiResult(docForDeserialize, api);
-        if (result is null) return (null, 23);
-        return (result, result.Data is null ? 21 : 10);
+        TaskCompletionSource<JsonDocument> tcs = new();
+        lock (apiResponseWaitings)
+        {
+            apiResponseWaitings.Add(echo, tcs);
+        }
+        using CancellationTokenSource s = new();
+        {
+            var tcsTask = tcs.Task;
+            var t = await Task.WhenAny(tcsTask, Task.Delay(TimeSpan.FromSeconds(10), s.Token));
+            if (t == tcsTask)
+            {
+                //我们等到了目标回应
+                s.Cancel();
+                var doc = tcsTask.Result;
+                var result = CqApiJsonSerializer.DeserializeApiResult(doc, api);
+                if (result is null) return (null, 23);
+                return (result, result.Data is null ? 21 : 10);
+            }
+            else
+            {
+                //没等到回应, api调用失败, 然后移除掉等待列表中的那个tcs
+                lock (apiResponseWaitings)
+                {
+                    apiResponseWaitings.Remove(echo);
+                }
+                return (null, 22);
+            }
+        }
     }
 
     private static ArraySegment<byte> GetArraySegment(int size)
