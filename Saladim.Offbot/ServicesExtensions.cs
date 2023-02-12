@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Saladim.Offbot.Entity;
 using Saladim.Offbot.Services;
 using Saladim.SalLogger;
 using SaladimQBot.Extensions;
@@ -21,13 +22,13 @@ public static class ServicesExtensions
         services.AddSingleton<HttpRequesterService>();
         services.AddSingleton<RandomService>();
 
-        services.AddSingleton<SqlSugarScope>(s =>
+        services.AddSingleton(s =>
         {
             string connectionString =
 #if DEBUG
-            @"DataSource=D:\User\Desktop\SaladimWPF\data\debug.db";
+            @"DataSource=D:\User\Desktop\Saladim.Offbot\data\debug.db";
 #else
-            @"DataSource=D:\User\Desktop\SaladimWPF\data\release.db";
+            @"DataSource=D:\User\Desktop\Saladim.Offbot\data\release.db";
 #endif
             var loggerService = s.GetRequiredService<SalLoggerService>();
             var scope = new SqlSugarScope(new ConnectionConfig()
@@ -40,14 +41,17 @@ public static class ServicesExtensions
             {
                 loggerService.SalIns.LogInfo("Offbot", "SqlExecuting", UtilMethods.GetSqlString(DbType.SqlServer, sql, args));
             };
+            scope.CodeFirst.InitTables(typeof(Program).Assembly.GetTypes().Where(t => t.Namespace == "Saladim.Offbot.Entity").ToArray());
             return scope;
         });
-        services.AddSingleton<SessionSugarStoreService>();
+
+
         services.AddSingleton<MemorySessionService>();
 
         services.AddSingleton<IntegralCalculatorService>();
         services.AddSingleton<Auto1A2BService>();
         services.AddSingleton<HomoService>();
+        services.AddSingleton<SdSysService>();
 
         services.AddSingleton<FiveInARowService>();
     }

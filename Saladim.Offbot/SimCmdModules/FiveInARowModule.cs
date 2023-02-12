@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
+using Saladim.Offbot.Entity;
 using Saladim.Offbot.Services;
 using SaladimQBot.Core;
 using SaladimQBot.Extensions;
@@ -40,19 +41,19 @@ public class FiveInARowModule : CommandModule
     protected readonly FiveInARowService fiveInARowService;
     protected readonly MemorySessionService memorySessionService;
     protected readonly CoroutineService coroutineService;
-    protected readonly SessionSugarStoreService sessionStoreService;
+    protected readonly SqlSugarScope sqlScope;
 
     public FiveInARowModule(
         FiveInARowService fiveInARowService,
         MemorySessionService memorySessionService,
         CoroutineService coroutineService,
-        SessionSugarStoreService sessionSqliteService
+        SqlSugarScope sqlScope
         )
     {
         this.fiveInARowService = fiveInARowService;
         this.memorySessionService = memorySessionService;
         this.coroutineService = coroutineService;
-        this.sessionStoreService = sessionSqliteService;
+        this.sqlScope = sqlScope;
     }
 
     [Command("开始五子棋")]
@@ -139,9 +140,10 @@ public class FiveInARowModule : CommandModule
                 if (playingOne.ChessBoard.PlaceSucceedTimes >= 5)
                 {
                     Content.MessageWindow.SendMessageAsync(TipMsgGamePlayEndOver5);
-                    var s = sessionStoreService.GetUserSession<FiveInARowStoreSession>(groupMessage.Sender.UserId);
-                    s.LoseTimes += 1;
-                    sessionStoreService.SaveSession(s);
+                    var se = sqlScope.Queryable<FiveInARowStoreEntity>()
+                                    .Single(s => s.UserId == groupMessage.Sender.UserId) ?? new() { UserId = groupMessage.Sender.UserId };
+                    se.LoseTimes += 1;
+                    sqlScope.Storageable(se).ExecuteCommand();
                 }
                 else
                 {
@@ -162,16 +164,17 @@ public class FiveInARowModule : CommandModule
     [Command("五子棋排行")]
     public void HighScores()
     {
-        var winHighScores = sessionStoreService
-            .GetQueryable<FiveInARowStoreSession>()
+        var winHighScores = sqlScope
+            .Queryable<FiveInARowStoreEntity>()
             .OrderByDescending(s => s.WinTimes)
             .Take(3)
             .ToList();
 
-        var radioHighScores = sessionStoreService
-            .GetQueryable<FiveInARowStoreSession>()
+        var radioHighScores = sqlScope
+            .Queryable<FiveInARowStoreEntity>()
             .Where(s => s.LoseTimes != 0)
             .OrderByDescending(s => (float)s.WinTimes / s.LoseTimes)
+            .Take(3)
             .ToList();
 
         StringBuilder sb = new();
@@ -180,14 +183,14 @@ public class FiveInARowModule : CommandModule
         foreach (var winHighScore in winHighScores)
         {
             cur++;
-            sb.AppendLine($"{cur}. {Content.Client.GetUser(winHighScore.SessionId.UserId).Nickname} {winHighScore.WinTimes}次");
+            sb.AppendLine($"{cur}. {Content.Client.GetUser(winHighScore.UserId).Nickname} {winHighScore.WinTimes}次");
         }
         sb.AppendLine(TipMsgRadioHighscore);
         cur = 0;
         foreach (var radioHignScore in radioHighScores)
         {
             cur++;
-            string str = $"{cur}. {Content.Client.GetUser(radioHignScore.SessionId.UserId).Nickname} " +
+            string str = $"{cur}. {Content.Client.GetUser(radioHignScore.UserId).Nickname} " +
                 $"{TipMsgRadioHighscoreTip} {(float)radioHignScore.WinTimes / radioHignScore.LoseTimes:F2}";
             sb.AppendLine(str);
         }
@@ -247,12 +250,13 @@ public class FiveInARowModule : CommandModule
                         fiveInARowService.EndGame(record);
                         foreach (var u in record.Users)
                         {
-                            var s = sessionStoreService.GetUserSession<FiveInARowStoreSession>(u.UserId);
+                            var s = sqlScope.Queryable<FiveInARowStoreEntity>()
+                                            .Single(s => s.UserId == u.UserId) ?? new() { UserId = u.UserId };
                             if (u.IsSameUser(winnerUser))
                                 s.WinTimes += 1;
                             else
                                 s.LoseTimes += 1;
-                            sessionStoreService.SaveSession(s);
+                            sqlScope.Storageable(s).ExecuteCommand();
                         }
                         yield break;
                     }
@@ -303,15 +307,5 @@ public class FiveInARowModule : CommandModule
         public SessionId SessionId { get; set; }
 
         public List<IGroupUser> CurrentWaitings { get; set; } = new();
-    }
-
-    [SugarTable("five_in_a_row")]
-    public class FiveInARowStoreSession : SugarStoreSession
-    {
-        [SugarColumn(ColumnName = "win_times")]
-        public int WinTimes { get; set; }
-
-        [SugarColumn(ColumnName = "lose_times")]
-        public int LoseTimes { get; set; }
     }
 }

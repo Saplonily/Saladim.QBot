@@ -19,7 +19,7 @@ public class SdSysModule : CommandModule
         Content.MessageWindow.SendMessageAsync(
             Content.Client.CreateMessageBuilder()
                 .WithAt(Content.Executor)
-                .WithText($"您现在拥有 {sdSysService.GetUserSd(Content.Executor.UserId):###.###} sd.")
+                .WithText($"您现在拥有 {sdSysService.GetUserSd(Content.Executor.UserId)} sd.")
                 .Build()
                 );
     }

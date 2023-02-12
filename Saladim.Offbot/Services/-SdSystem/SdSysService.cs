@@ -1,42 +1,35 @@
-﻿using SaladimQBot.Extensions;
+﻿using Saladim.Offbot.Entity;
+using SaladimQBot.Extensions;
 using SqlSugar;
 
 namespace Saladim.Offbot.Services;
 
 public class SdSysService
 {
-    protected SessionSugarStoreService sss;
-    protected SqlSugarScope sugarScope;
+    protected SqlSugarScope sqlScope;
 
-    public SdSysService(SessionSugarStoreService sessionSqliteService, SqlSugarScope sugarScope)
+    public SdSysService(SqlSugarScope sqlScope)
     {
-        this.sss = sessionSqliteService;
-        this.sugarScope = sugarScope;
+        this.sqlScope = sqlScope;
     }
 
+    public UserSdEntity GetUserSdSession(long userId)
+        => (sqlScope.Queryable<UserSdEntity>().Single(s => s.UserId == userId) ?? new() { UserId = userId });
+
     public long GetUserSd(long userId)
-        => sss.GetUserSession<UserSdSession>(userId).Sd;
+        => GetUserSdSession(userId).Sd;
 
     public void SetUserSd(long userId, long amount)
     {
-        var s = sss.GetUserSession<UserSdSession>(userId);
-        s.Sd = amount;
-        sss.SaveSession(s);
+        var se = GetUserSdSession(userId);
+        se.Sd = amount;
+        sqlScope.Storageable(se).ExecuteCommand();
     }
-}
 
-[SugarTable("sd_sys")]
-public class UserSdSession : SugarStoreSession
-{
-    [SugarColumn(ColumnName = "sd")]
-    public long Sd { get; set; }
-
-
-}
-
-[SugarTable("sealed_sd")]
-public class SealedSds
-{
-    [SugarColumn(ColumnName = "id", IsPrimaryKey = true)]
-    public int Id { get; set; }
+    public void UpdateUserSd(long userId, Func<long, long> func)
+    {
+        var se = GetUserSdSession(userId);
+        se.Sd = func(se.Sd);
+        sqlScope.Storageable(se).ExecuteCommand();
+    }
 }
