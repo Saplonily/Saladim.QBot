@@ -29,13 +29,27 @@ public class CqHttpListenerSession : ICqSession
         listener.Prefixes.Add(goCqHttpBaseUrl + "/");
     }
 
+    ~CqHttpListenerSession()
+    {
+        Dispose(false);
+    }
+
     public Task<(CqApiCallResult? result, int statusCode)> CallApiAsync(CqApi api)
         => throw new NotSupportedException("CqHttpListenerSession doesn't support CallApi.");
 
     public void Dispose()
     {
-        listener.Stop();
-        listener.Close();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public void Dispose(bool disposing)
+    {
+        if(disposing)
+        {
+            listener.Stop();
+            listener.Close();
+        }
     }
 
     public Task StartAsync()
@@ -44,7 +58,7 @@ public class CqHttpListenerSession : ICqSession
         try
         {
             listener.Start();
-            Task.Run(ListenLoop);
+            Task.Factory.StartNew(ListenLoop, TaskCreationOptions.LongRunning);
         }
         catch (Exception)
         {

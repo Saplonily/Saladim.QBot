@@ -77,7 +77,7 @@ public sealed partial class CqWebSocketSession : ICqSession, IDisposable
             //只把token传给ws
             await webSocket.ConnectAsync(Uri, token).ConfigureAwait(false);
             Started = true;
-            ReceivingTask = Task.Run(ReceivingLoop, CancellationToken.None);
+            ReceivingTask = Task.Factory.StartNew(ReceivingLoop, TaskCreationOptions.LongRunning);
         }
         catch (Exception)
         {

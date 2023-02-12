@@ -65,9 +65,23 @@ public class CqHttpRequestorSession : ICqSession, IDisposable
         return (deserializedResult, 10);
     }
 
+    ~CqHttpRequestorSession()
+    {
+        Dispose(false);
+    }
+
     public void Dispose()
     {
-        httpClient.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            httpClient.Dispose();
+        }
     }
 
     public Task StartAsync()
