@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>eff9d5d3-8d18-4945-a0d5-9ef78631864f</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SaladimQBot.UniNode</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.parse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypedUniNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UniNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UniNodeMapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)-TypedNodes\" />
+  </ItemGroup>
+</Project>

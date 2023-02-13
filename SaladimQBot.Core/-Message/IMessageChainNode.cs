@@ -5,5 +5,8 @@
 /// </summary>
 public interface IMessageChainNode
 {
+    /// <summary>
+    /// 对应节点类型
+    /// </summary>
     MessageNodeType NodeType { get; }
 }

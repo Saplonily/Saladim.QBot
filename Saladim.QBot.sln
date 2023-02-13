@@ -34,6 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 		README-nuget.md = README-nuget.md
 	EndProjectSection
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SaladimQBot.UniNode", "SaladimQBot.UniNode\SaladimQBot.UniNode.shproj", "{EFF9D5D3-8D18-4945-A0D5-9EF78631864F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,7 +91,6 @@ Global
 		{A0C1B0F3-4D7A-4994-A31B-4DD1683FCEA7} = {05FB3223-288E-44C3-87EC-FB9EAA1CE59B}
 		{9237368C-335E-406C-B623-1F8E1DBA9FD5} = {31966F12-111A-4ED5-AE85-68778980BCC4}
 		{1B858AA3-15A0-4FBE-82E7-346AFDF791B3} = {05FB3223-288E-44C3-87EC-FB9EAA1CE59B}
-		{D57FC84C-8E88-4DAD-BDD8-51938B07618D} = {31966F12-111A-4ED5-AE85-68778980BCC4}
 		{28234C10-C3B2-47ED-80C6-066A312A07EB} = {05FB3223-288E-44C3-87EC-FB9EAA1CE59B}
 		{BE914143-FF5B-4A58-B87C-782C577DEAB8} = {05FB3223-288E-44C3-87EC-FB9EAA1CE59B}
 		{889EBEA8-5009-4BFE-95FB-95AC7A2EBBFB} = {AA042957-43FF-4C51-B2AE-6C28D11D69DA}
@@ -97,5 +98,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {612B179E-32CD-435F-9215-B57FD852A862}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SaladimQBot.UniNode\SaladimQBot.UniNode.projitems*{09e162b2-3a57-452a-85fc-e987fea08b92}*SharedItemsImports = 5
+		SaladimQBot.UniNode\SaladimQBot.UniNode.projitems*{eff9d5d3-8d18-4945-a0d5-9ef78631864f}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

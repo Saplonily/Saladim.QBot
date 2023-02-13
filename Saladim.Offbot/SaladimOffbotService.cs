@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Saladim.SalLogger;
 using SaladimQBot.Core;
-using SaladimQBot.Core.Services;
 using SaladimQBot.Extensions;
 using SaladimQBot.GoCqHttp;
 using SaladimQBot.Shared;
@@ -12,7 +11,7 @@ using SaladimQBot.Shared;
 
 namespace Saladim.Offbot.Services;
 
-public class SaladimOffbotService : IClientService, IHostedService
+public class SaladimOffbotService : IHostedService
 {
     protected Logger logger;
     protected CqWebSocketClient wsClient;
