@@ -93,7 +93,6 @@ public partial class GenericUniNode
 #else
         throw new NotImplementedException(".net std2.0 GenericUniNode parsing is not impl.");
 #endif
-        return false;
     }
 
 #if !NETSTANDARD2_0

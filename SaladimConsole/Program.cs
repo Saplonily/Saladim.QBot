@@ -67,7 +67,7 @@ public static class Program
         #endregion
 
         logger.LogInfo(SecProgram, "Starting...");
-        client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace);
+        client = new CqWebSocketClient("ws://127.0.0.1:5000", LogLevel.Trace, "d7ffb205-632d-4e9c-8922-236ea7a3d08c");
         (client as CqClient)!.OnLog += s => logger.LogInfo("External", "GoCqHttpClient", s);
         client.OnClientEventOccurred += Client_OnClientEventOccurred;
 

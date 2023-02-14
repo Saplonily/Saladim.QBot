@@ -37,6 +37,7 @@ public interface IClient
 
     #region 发送消息
 
+    #region Private
     /// <summary>
     /// 使用消息实体发送私聊消息
     /// </summary>
@@ -55,6 +56,9 @@ public interface IClient
     /// <returns>该消息实体</returns>
     Task<IPrivateMessage> SendPrivateMessageAsync(long userId, long? groupId, string rawString);
 
+    #endregion
+
+    #region Friend
     /// <summary>
     /// 使用消息实体发送好友消息
     /// </summary>
@@ -70,7 +74,9 @@ public interface IClient
     /// <param name="rawString">消息实体</param>
     /// <returns>该消息实体</returns>
     Task<IFriendMessage> SendFriendMessageAsync(long friendUserId, string rawString);
+    #endregion
 
+    #region Group
     /// <summary>
     /// 使用消息实体发送群消息
     /// </summary>
@@ -86,7 +92,9 @@ public interface IClient
     /// <param name="messageEntity">消息实体</param>
     /// <returns>该消息实体</returns>
     Task<IGroupMessage> SendGroupMessageAsync(long groupId, string rawString);
+    #endregion
 
+    #region Forward
     /// <summary>
     /// 向群里发送转发实体
     /// </summary>
@@ -110,6 +118,19 @@ public interface IClient
     /// <param name="forwardEntity">转发实体</param>
     /// <returns></returns>
     Task<IFriendMessage> SendFriendMessageAsync(long friendUserId, IForwardEntity forwardEntity);
+    #endregion
+
+    #region Reply
+
+    Task<IPrivateMessage> ReplyMessageAsync(IPrivateMessage privateMessage, IMessageEntity msg);
+
+    Task<IPrivateMessage> ReplyMessageAsync(IPrivateMessage privateMessage, string formattedString);
+
+    Task<IGroupMessage> ReplyMessageAsync(IGroupMessage groupMessage, IMessageEntity msg);
+
+    Task<IGroupMessage> ReplyMessageAsync(IGroupMessage groupMessage, string formattedString);
+
+    #endregion
 
     #endregion
 

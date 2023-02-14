@@ -37,6 +37,22 @@ public static class EntityExtensions
 
     #endregion
 
+    #region Reply
+
+    public static Task<IPrivateMessage> ReplyAsync(this IPrivateMessage privateMessage, IMessageEntity msgEntity)
+        => privateMessage.Client.ReplyMessageAsync(privateMessage, msgEntity);
+
+    public static Task<IPrivateMessage> ReplyAsync(this IPrivateMessage privateMessage, string formattedString)
+        => privateMessage.Client.ReplyMessageAsync(privateMessage, formattedString);
+
+    public static Task<IGroupMessage> ReplyAsync(this IGroupMessage groupMessage, IMessageEntity msgEntity)
+        => groupMessage.Client.ReplyMessageAsync(groupMessage, msgEntity);
+
+    public static Task<IGroupMessage> ReplyAsync(this IGroupMessage groupMessage, string formattedString)
+        => groupMessage.Client.ReplyMessageAsync(groupMessage, formattedString);
+
+    #endregion
+
     public static Task SendTextMessageAsync(this IMessageWindow messageWindow, string text)
         => messageWindow.SendMessageAsync(messageWindow.Client.CreateTextOnlyEntity(text));
 

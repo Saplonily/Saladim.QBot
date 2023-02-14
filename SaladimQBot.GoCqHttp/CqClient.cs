@@ -725,7 +725,7 @@ public abstract class CqClient : IClient
         => FriendMessage.CreateFromMessageId(this, messageId);
     #endregion
 
-    #region 发消息
+    #region 消息
 
     #region 私聊
 
@@ -909,6 +909,97 @@ public abstract class CqClient : IClient
         };
         await this.CallApiWithCheckingAsync(api).ConfigureAwait(false);
     }
+
+    #endregion
+
+    #region Reply
+
+    #region private
+    /// <summary>
+    /// 回复一个私聊消息,
+    /// 注意回复过程中不要再次引用消息实体,
+    /// 回复过程中会向消息链前端加入回复节点,
+    /// 在gocq实现中**该方法始终丢出异常**但消息会发送成功
+    /// </summary>
+    /// <param name="msgEntity">使用的消息实体</param>
+    /// <returns>发送的消息</returns>
+    public async Task<PrivateMessage> ReplyMessageAsync(PrivateMessage privateMessage, MessageEntity msgEntity)
+    {
+        msgEntity.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(privateMessage.Client, privateMessage));
+        var sentMessage = await SendPrivateMessageAsync(
+            privateMessage.Sender.UserId,
+            privateMessage.TempSourceGroupId,
+            msgEntity
+            ).ConfigureAwait(false);
+        msgEntity.Chain.MessageChainNodes.RemoveAt(0);
+        return sentMessage;
+    }
+
+    public async Task<PrivateMessage> ReplyMessageAsync(PrivateMessage privateMessage, string formattedString)
+    {
+        var newString = ((new MessageChainReplyNode(privateMessage.Client, privateMessage)).ToModel().CqStringify()) + formattedString;
+        var sentMessage = await SendPrivateMessageAsync(
+            privateMessage.Sender.UserId,
+            privateMessage.TempSourceGroupId,
+            newString
+            ).ConfigureAwait(false);
+        return sentMessage;
+    }
+
+    async Task<IPrivateMessage> IClient.ReplyMessageAsync(IPrivateMessage privateMessage, IMessageEntity msgEntity)
+        => await ReplyMessageAsync(
+            privateMessage as PrivateMessage ??
+            throw new InvalidOperationException("Transfer entities between two client is not allowed."),
+            new MessageEntity(this, msgEntity)
+            ).ConfigureAwait(false);
+
+    async Task<IPrivateMessage> IClient.ReplyMessageAsync(IPrivateMessage privateMessage, string formattedString)
+        => await ReplyMessageAsync(
+            privateMessage as PrivateMessage ??
+            throw new InvalidOperationException("Transfer entities between two client is not allowed."),
+            formattedString
+            ).ConfigureAwait(false);
+    #endregion
+
+    #region group
+
+    /// <summary>
+    /// 回复一个群消息,
+    /// 注意回复过程中不要再次引用消息实体,
+    /// 回复过程中会向消息链前端加入回复节点
+    /// </summary>
+    /// <param name="msgEntity">使用的消息实体</param>
+    /// <returns>发送的消息</returns>
+    public async Task<GroupMessage> ReplyMessageAsync(GroupMessage groupMessage, MessageEntity msgEntity)
+    {
+        msgEntity.Chain.MessageChainNodes.Insert(0, new MessageChainReplyNode(groupMessage.Client, groupMessage));
+        var sentMessage = await SendGroupMessageAsync(groupMessage.Group.GroupId, msgEntity).ConfigureAwait(false);
+        msgEntity.Chain.MessageChainNodes.RemoveAt(0);
+        return sentMessage;
+    }
+
+    public async Task<GroupMessage> ReplyMessageAsync(GroupMessage groupMessage, string formattedString)
+    {
+        var newString = ((new MessageChainReplyNode(groupMessage.Client, groupMessage)).ToModel().CqStringify()) + formattedString;
+        var sentMessage = await SendGroupMessageAsync(groupMessage.Group.GroupId, newString).ConfigureAwait(false);
+        return sentMessage;
+    }
+
+    async Task<IGroupMessage> IClient.ReplyMessageAsync(IGroupMessage groupMessage, IMessageEntity msgEntity)
+        => await ReplyMessageAsync(
+            groupMessage as GroupMessage ??
+            throw new InvalidOperationException("Transfer entities between two client is not allowed."),
+            new MessageEntity(this, msgEntity)
+            ).ConfigureAwait(false);
+
+    async Task<IGroupMessage> IClient.ReplyMessageAsync(IGroupMessage groupMessage, string formattedString)
+        => await ReplyMessageAsync(
+            groupMessage as GroupMessage ??
+            throw new InvalidOperationException("Transfer entities between two client is not allowed."),
+            formattedString
+            ).ConfigureAwait(false);
+
+    #endregion
 
     #endregion
 
