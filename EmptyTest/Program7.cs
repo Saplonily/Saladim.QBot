@@ -1,10 +1,13 @@
 ﻿using System.Globalization;
+using System.IO.Compression;
 using System.Text.Json;
 
-Console.WriteLine($"默认Culture: {3.12}");
-CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("");
-Console.WriteLine($"fr-FR Culture: {3.12}");
-JsonDocument d = JsonDocument.Parse("{\"test\": hello!\"}");
+
+
+//Console.WriteLine($"默认Culture: {3.12}");
+//CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("");
+//Console.WriteLine($"fr-FR Culture: {3.12}");
+//JsonDocument d = JsonDocument.Parse("{\"test\": hello!\"}");
 
 
 /*using SQLite;

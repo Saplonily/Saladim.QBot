@@ -19,7 +19,7 @@ public class EncodeDecodeModule : CommandModule
         this.serviceProvider = serviceProvider;
     }
 
-    [Command("图片编码")]
+    [Command("图片编码", true)]
     public void EncodePicture(string s)
     {
         string fileName = $"tempImages\\{DateTime.Now.Ticks}.png";

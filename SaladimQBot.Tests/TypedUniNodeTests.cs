@@ -200,5 +200,25 @@ public class TestClient : IClient
     {
         throw new NotImplementedException();
     }
+
+    public Task<IPrivateMessage> ReplyMessageAsync(IPrivateMessage privateMessage, IMessageEntity msg)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IPrivateMessage> ReplyMessageAsync(IPrivateMessage privateMessage, string formattedString)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IGroupMessage> ReplyMessageAsync(IGroupMessage groupMessage, IMessageEntity msg)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IGroupMessage> ReplyMessageAsync(IGroupMessage groupMessage, string formattedString)
+    {
+        throw new NotImplementedException();
+    }
 }
 #nullable restore
