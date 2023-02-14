@@ -6,17 +6,15 @@
     <SharedGUID>eff9d5d3-8d18-4945-a0d5-9ef78631864f</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>SaladimQBot.UniNode</Import_RootNamespace>
+    <Import_RootNamespace>SaladimQBot.Core</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)-TypedNodes\AtUniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.parse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MemoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypedUniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UniNodeMapper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)-TypedNodes\" />
   </ItemGroup>
 </Project>

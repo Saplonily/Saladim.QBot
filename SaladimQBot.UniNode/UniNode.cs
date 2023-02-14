@@ -19,7 +19,7 @@ public abstract class UniNode : IClientEntity
     public IClient Client { get; protected set; }
 
     /// <summary>
-    /// 该UniNode的名称
+    /// 该<see cref="UniNode"/>的名称
     /// </summary>
     public abstract string Name { get; }
 
@@ -125,4 +125,30 @@ public abstract class UniNode : IClientEntity
         return sb.ToString();
     }
 
+    public static implicit operator string(UniNode node) 
+        => node.ToFormattedText();
+
+    internal static string ToFormattedText(string name, string? primaryValue, IDictionary<string, string> args)
+    {
+        StringBuilder sb = new(25);
+        sb.Append('<');
+        sb.Append(name);
+        if (primaryValue is not null)
+        {
+            sb.Append(':');
+            sb.Append(Escape(primaryValue));
+        }
+        if (args.Count != 0)
+        {
+            foreach (var nodeArg in args)
+            {
+                sb.Append(',');
+                sb.Append(Escape(nodeArg.Key));
+                sb.Append('=');
+                sb.Append(Escape(nodeArg.Value));
+            }
+        }
+        sb.Append('>');
+        return sb.ToString();
+    }
 }
