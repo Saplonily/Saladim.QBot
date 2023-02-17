@@ -45,13 +45,13 @@ public sealed class CqJsonPostLoader
         {
             rawInt = Element.GetProperty(keyName).GetInt32();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ke)
         {
-            throw new ArgumentException(keyName);
+            throw new ArgumentException(keyName, ke);
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ioe)
         {
-            throw new InvalidOperationException("not a number token type or over range");
+            throw new InvalidOperationException("not a number token type or over range", ioe);
         }
         return EnumAttributeCacher.GetEnumFromAttr(enumType, rawInt);
     }

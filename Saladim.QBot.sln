@@ -100,7 +100,7 @@ Global
 		SolutionGuid = {612B179E-32CD-435F-9215-B57FD852A862}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		SaladimQBot.UniNode\SaladimQBot.UniNode.projitems*{09e162b2-3a57-452a-85fc-e987fea08b92}*SharedItemsImports = 5
+		SaladimQBot.UniNode\SaladimQBot.UniNode.projitems*{d57fc84c-8e88-4dad-bdd8-51938b07618d}*SharedItemsImports = 5
 		SaladimQBot.UniNode\SaladimQBot.UniNode.projitems*{eff9d5d3-8d18-4945-a0d5-9ef78631864f}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

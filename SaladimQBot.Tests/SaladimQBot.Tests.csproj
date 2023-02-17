@@ -32,4 +32,6 @@
     <ProjectReference Include="..\SaladimQBot.Shared\SaladimQBot.Shared.csproj" />
   </ItemGroup>
 
+  <Import Project="..\SaladimQBot.UniNode\SaladimQBot.UniNode.projitems" Label="Shared" />
+
 </Project>

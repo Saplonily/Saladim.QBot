@@ -32,6 +32,4 @@
 	  </None>
 	</ItemGroup>
 
-	<Import Project="..\SaladimQBot.UniNode\SaladimQBot.UniNode.projitems" Label="Shared" />
-
 </Project>

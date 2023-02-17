@@ -13,8 +13,7 @@ public class MessageChainAtNode : MessageChainNode, IMessageChainAtNode
 
     public bool IsMentionAllUser => User is null;
 
-    public string? UserName
-    { get; set; }
+    public string? UserName { get; set; }
 
     /// <summary>
     /// 使用User实体创建一个At消息节点
