@@ -9,8 +9,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="SaladimQBot.Extensions" Version="0.5.0" />
-	  <PackageReference Include="SaladimQBot.GoCqHttp" Version="0.5.0" />
+	  <ProjectReference Include="..\SaladimQBot.Extensions\SaladimQBot.Extensions.csproj" />
+	  <ProjectReference Include="..\SaladimQBot.GoCqHttp\SaladimQBot.GoCqHttp.csproj" />
 	</ItemGroup>
 
 </Project>
