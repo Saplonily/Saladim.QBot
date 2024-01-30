@@ -9,7 +9,7 @@
     <Import_RootNamespace>SaladimQBot.Core</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)-TypedNodes\AtUniNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypedNodes\AtUniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericUniNode.parse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MemoryExtensions.cs" />
